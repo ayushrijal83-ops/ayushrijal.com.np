@@ -1,4 +1,4 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE from "three";
 
 (function () {
   "use strict";
@@ -26,10 +26,12 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return;
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isSmall ? 1.5 : 2));
+  var dpr = Math.min(window.devicePixelRatio || 1, isSmall ? 1.5 : 2);
+  renderer.setPixelRatio(dpr);
+  renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.2;
 
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
@@ -39,7 +41,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   var ambient = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambient);
 
-  var keyLight = new THREE.PointLight(0x00e5ff, 3, 14, 2);
+  var keyLight = new THREE.PointLight(0x00e5ff, 3.4, 14, 2);
   keyLight.position.set(2.6, 2.1, 3.2);
   scene.add(keyLight);
 
@@ -47,7 +49,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   rimLight.position.set(-3, -1.6, -2);
   scene.add(rimLight);
 
-  /* ---------------- Glow halo (fakes bloom, cheap) ---------------- */
+  /* ---------------- Glow halo (extra warmth behind bloom) ---------------- */
   function makeRadialTexture(inner, mid, outer, size) {
     var c = document.createElement("canvas");
     c.width = c.height = size;
@@ -61,29 +63,14 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return new THREE.CanvasTexture(c);
   }
 
-  var glowTex = makeRadialTexture(
-    "rgba(255,255,255,1)",
-    "rgba(255,255,255,0.35)",
-    "rgba(255,255,255,0)",
-    256
-  );
-  var glowMat = new THREE.SpriteMaterial({
-    map: glowTex,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
+  var glowTex = makeRadialTexture("rgba(255,255,255,1)", "rgba(255,255,255,0.35)", "rgba(255,255,255,0)", 256);
+  var glowMat = new THREE.SpriteMaterial({ map: glowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
   var glowSprite = new THREE.Sprite(glowMat);
-  glowSprite.scale.set(5.2, 5.2, 1);
+  glowSprite.scale.set(5.6, 5.6, 1);
   glowSprite.position.z = -0.8;
   scene.add(glowSprite);
 
-  var sparkTex = makeRadialTexture(
-    "rgba(255,255,255,1)",
-    "rgba(255,255,255,0.55)",
-    "rgba(255,255,255,0)",
-    64
-  );
+  var sparkTex = makeRadialTexture("rgba(255,255,255,1)", "rgba(255,255,255,0.55)", "rgba(255,255,255,0)", 64);
 
   /* ---------------- Core: glass sphere + wireframe shell ---------------- */
   var core = new THREE.Group();
@@ -99,22 +86,41 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     clearcoat: 1,
     clearcoatRoughness: 0.12,
     emissive: 0x00e5ff,
-    emissiveIntensity: 0.14
+    emissiveIntensity: 0.16
   });
   var glassMesh = new THREE.Mesh(glassGeo, glassMat);
   core.add(glassMesh);
 
   var wireGeo = new THREE.IcosahedronGeometry(1.42, 1);
   var wireEdgesGeo = new THREE.EdgesGeometry(wireGeo);
-  var wireMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5 });
+  var wireMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.55 });
   var wireMesh = new THREE.LineSegments(wireEdgesGeo, wireMat);
   core.add(wireMesh);
+
+  /* ---------------- Orbiting reactor rings ---------------- */
+  var ringGroup = new THREE.Group();
+  scene.add(ringGroup);
+
+  var ringSpecs = [
+    { radius: 2.05, tube: 0.012, tilt: [1.15, 0.3, 0], speed: 0.00022 },
+    { radius: 2.3, tube: 0.008, tilt: [0.4, 1.1, 0.4], speed: -0.00016 },
+    { radius: 2.55, tube: 0.006, tilt: [1.5, 0.9, 0.2], speed: 0.00011 }
+  ];
+  var rings = ringSpecs.map(function (spec) {
+    var geo = new THREE.TorusGeometry(spec.radius, spec.tube, 8, isSmall ? 64 : 128);
+    var mat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.4 });
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.set(spec.tilt[0], spec.tilt[1], spec.tilt[2]);
+    mesh.userData.speed = spec.speed;
+    ringGroup.add(mesh);
+    return mesh;
+  });
 
   /* ---------------- Orbiting node network (particle shell) ---------------- */
   var particleShell = new THREE.Group();
   scene.add(particleShell);
 
-  var nodeCount = isSmall ? 90 : 170;
+  var nodeCount = isSmall ? 110 : 220;
   var nodePts = [];
   var positions = new Float32Array(nodeCount * 3);
   for (var i = 0; i < nodeCount; i++) {
@@ -134,10 +140,10 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   var particleGeo = new THREE.BufferGeometry();
   particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   var particleMat = new THREE.PointsMaterial({
-    size: isSmall ? 0.09 : 0.075,
+    size: isSmall ? 0.09 : 0.08,
     map: sparkTex,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.95,
     color: 0x00e5ff,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
@@ -148,7 +154,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   var linePositions = [];
   var neighborK = 2;
-  var maxLineNodes = Math.min(nodePts.length, isSmall ? 40 : 70);
+  var maxLineNodes = Math.min(nodePts.length, isSmall ? 50 : 90);
   for (var a = 0; a < maxLineNodes; a++) {
     var dists = [];
     for (var b = 0; b < maxLineNodes; b++) {
@@ -166,42 +172,21 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   var lineGeo = new THREE.BufferGeometry();
   lineGeo.setAttribute("position", new THREE.Float32BufferAttribute(linePositions, 3));
-  var lineMat = new THREE.LineBasicMaterial({
-    color: 0x00e5ff,
-    transparent: true,
-    opacity: 0.2,
-    blending: THREE.AdditiveBlending
-  });
+  var lineMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending });
   var lines = new THREE.LineSegments(lineGeo, lineMat);
   particleShell.add(lines);
 
   /* ---------------- Theme-aware material presets ---------------- */
   var THEME_PRESETS = {
     dark: {
-      accent: "#00e5ff",
-      ambient: 0.5,
-      key: 3.2,
-      rim: 1,
-      glassColor: 0x0c2830,
-      glassOpacity: 0.42,
-      glassEmissive: 0.16,
-      wireOpacity: 0.5,
-      particleOpacity: 0.9,
-      lineOpacity: 0.2,
-      glowOpacity: 0.9
+      accent: "#00e5ff", ambient: 0.5, key: 3.4, rim: 1,
+      glassColor: 0x0c2830, glassOpacity: 0.42, glassEmissive: 0.18,
+      wireOpacity: 0.55, ringOpacity: 0.45, particleOpacity: 0.95, lineOpacity: 0.22, glowOpacity: 0.95
     },
     light: {
-      accent: "#00808f",
-      ambient: 1,
-      key: 1.8,
-      rim: 0.7,
-      glassColor: 0xeaf7fa,
-      glassOpacity: 0.3,
-      glassEmissive: 0.08,
-      wireOpacity: 0.4,
-      particleOpacity: 0.75,
-      lineOpacity: 0.16,
-      glowOpacity: 0.4
+      accent: "#00808f", ambient: 1, key: 2, rim: 0.7,
+      glassColor: 0xeaf7fa, glassOpacity: 0.3, glassEmissive: 0.09,
+      wireOpacity: 0.42, ringOpacity: 0.3, particleOpacity: 0.78, lineOpacity: 0.17, glowOpacity: 0.42
     }
   };
 
@@ -210,6 +195,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     var accentColor = new THREE.Color(p.accent);
     wireMat.color.copy(accentColor);
     wireMat.opacity = p.wireOpacity;
+    rings.forEach(function (m) { m.material.color.copy(accentColor); m.material.opacity = p.ringOpacity; });
     particleMat.color.copy(accentColor);
     particleMat.opacity = p.particleOpacity;
     lineMat.color.copy(accentColor);
@@ -271,6 +257,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     core.rotation.x = Math.sin(time * 0.00012) * 0.08;
     particleShell.rotation.y -= dt * 0.00009;
     particleShell.rotation.x += dt * 0.00003;
+    rings.forEach(function (m) { m.rotation.z += m.userData.speed * dt; });
+    glassMat.emissiveIntensity = (THEME_PRESETS[currentTheme] || THEME_PRESETS.dark).glassEmissive * (0.85 + Math.sin(time * 0.0016) * 0.3);
 
     tiltX += (targetTiltX - tiltX) * 0.05;
     tiltY += (targetTiltY - tiltY) * 0.05;
@@ -280,6 +268,11 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     render();
     requestAnimationFrame(frame);
   }
+
+  var currentTheme = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  document.addEventListener("themechange", function (e) {
+    currentTheme = e.detail && e.detail.theme === "light" ? "light" : "dark";
+  });
 
   function start() {
     if (reduceMotion) { render(); return; }

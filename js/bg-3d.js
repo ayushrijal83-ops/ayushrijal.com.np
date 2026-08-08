@@ -1,4 +1,4 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE from "three";
 
 (function () {
   "use strict";
@@ -72,21 +72,21 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   var starTex = sparkTexture();
 
-  var STAR_COUNT = 260;
+  var STAR_COUNT = 420;
   var starPositions = new Float32Array(STAR_COUNT * 3);
   var worldDepth = WORLD_UNITS_PER_PAGE * 2;
   for (var i = 0; i < STAR_COUNT; i++) {
-    starPositions[i * 3] = (Math.random() - 0.5) * 22;
+    starPositions[i * 3] = (Math.random() - 0.5) * 24;
     starPositions[i * 3 + 1] = (Math.random() - 0.5) * worldDepth;
     starPositions[i * 3 + 2] = -Math.random() * 14 - 1;
   }
   var starGeo = new THREE.BufferGeometry();
   starGeo.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
   var starMat = new THREE.PointsMaterial({
-    size: 0.05,
+    size: 0.06,
     map: starTex,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.7,
     color: 0x00e5ff,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
@@ -95,35 +95,36 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   var stars = new THREE.Points(starGeo, starMat);
   world.add(stars);
 
-  /* ---------------- Floating wireframe shards, one roughly per section ---------------- */
+  /* ---------------- Floating wireframe shards, roughly one+ per section ---------------- */
   var shardGeoms = [
     new THREE.IcosahedronGeometry(1, 0),
     new THREE.OctahedronGeometry(1, 0),
-    new THREE.TetrahedronGeometry(1.1, 0)
+    new THREE.TetrahedronGeometry(1.1, 0),
+    new THREE.DodecahedronGeometry(0.9, 0)
   ];
-  var SHARD_COUNT = 7;
+  var SHARD_COUNT = 14;
   var shards = [];
   for (var s = 0; s < SHARD_COUNT; s++) {
     var geo = shardGeoms[s % shardGeoms.length];
     var edges = new THREE.EdgesGeometry(geo);
-    var mat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.28 });
+    var mat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.38 });
     var mesh = new THREE.LineSegments(edges, mat);
-    var scale = 0.6 + Math.random() * 0.9;
+    var scale = 0.5 + Math.random() * 1.3;
     mesh.scale.setScalar(scale);
     mesh.position.set(
-      (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 6),
+      (Math.random() > 0.5 ? 1 : -1) * (3.5 + Math.random() * 7),
       -(s / SHARD_COUNT) * worldDepth + worldDepth * 0.15,
-      -3 - Math.random() * 6
+      -2.5 - Math.random() * 7
     );
-    mesh.userData.spin = (Math.random() - 0.5) * 0.0004;
+    mesh.userData.spin = (Math.random() - 0.5) * 0.00055;
     world.add(mesh);
     shards.push(mesh);
   }
 
   /* ---------------- Theme presets ---------------- */
   var PRESETS = {
-    dark: { accent: "#00e5ff", starOpacity: 0.55, shardOpacity: 0.28, ambient: 0.7, key: 2 },
-    light: { accent: "#00808f", starOpacity: 0.3, shardOpacity: 0.16, ambient: 1.1, key: 1.1 }
+    dark: { accent: "#00e5ff", starOpacity: 0.7, shardOpacity: 0.4, ambient: 0.7, key: 2 },
+    light: { accent: "#00808f", starOpacity: 0.38, shardOpacity: 0.22, ambient: 1.1, key: 1.1 }
   };
 
   function applyTheme(theme) {

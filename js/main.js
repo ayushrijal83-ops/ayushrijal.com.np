@@ -242,7 +242,7 @@
     var canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     if (reduceMotion || !canHover) return;
 
-    var selector = ".project-card, .tech-card, .about-facts, .featured-card";
+    var selector = ".project-card, .tech-card, .about-facts, .featured-card, .explore-card";
     var current = null;
 
     function resetTilt(el) {
@@ -264,11 +264,11 @@
       var rect = target.getBoundingClientRect();
       var px = (e.clientX - rect.left) / rect.width - 0.5;
       var py = (e.clientY - rect.top) / rect.height - 0.5;
-      var rotateY = px * 7;
-      var rotateX = py * -7;
+      var rotateY = px * 11;
+      var rotateX = py * -11;
       target.style.transform =
-        "perspective(900px) rotateX(" + rotateX.toFixed(2) + "deg) rotateY(" + rotateY.toFixed(2) +
-        "deg) translateY(-4px) translateZ(6px)";
+        "perspective(800px) rotateX(" + rotateX.toFixed(2) + "deg) rotateY(" + rotateY.toFixed(2) +
+        "deg) translateY(-6px) translateZ(12px)";
     }, { passive: true });
 
     document.addEventListener("mouseleave", function () {
