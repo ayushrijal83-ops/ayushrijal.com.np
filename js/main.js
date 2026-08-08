@@ -236,4 +236,43 @@
         if (!cached) { renderError(); }
       });
   })();
+
+  /* ---------------- 3D pointer-tilt on cards (desktop only) ---------------- */
+  (function () {
+    var canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (reduceMotion || !canHover) return;
+
+    var selector = ".project-card, .tech-card, .about-facts, .featured-card";
+    var current = null;
+
+    function resetTilt(el) {
+      el.style.transition = "transform 500ms cubic-bezier(0.16, 1, 0.3, 1)";
+      el.style.transform = "";
+    }
+
+    document.addEventListener("mousemove", function (e) {
+      var target = e.target.closest ? e.target.closest(selector) : null;
+      if (!target) {
+        if (current) { resetTilt(current); current = null; }
+        return;
+      }
+      if (target !== current) {
+        if (current) resetTilt(current);
+        current = target;
+        current.style.transition = "none";
+      }
+      var rect = target.getBoundingClientRect();
+      var px = (e.clientX - rect.left) / rect.width - 0.5;
+      var py = (e.clientY - rect.top) / rect.height - 0.5;
+      var rotateY = px * 7;
+      var rotateX = py * -7;
+      target.style.transform =
+        "perspective(900px) rotateX(" + rotateX.toFixed(2) + "deg) rotateY(" + rotateY.toFixed(2) +
+        "deg) translateY(-4px) translateZ(6px)";
+    }, { passive: true });
+
+    document.addEventListener("mouseleave", function () {
+      if (current) { resetTilt(current); current = null; }
+    });
+  })();
 })();
