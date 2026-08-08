@@ -52,11 +52,28 @@
     if (e.key === "Escape") { closeMenu(); }
   });
 
-  /* ---------------- Scroll reveal ---------------- */
+  /* ---------------- Scroll reveal ----------------
+     Content visibility must never depend on how fast the 3D scenes on the
+     page happen to be — a slow device/GPU stalling the IntersectionObserver
+     callback must not leave text stuck semi-transparent. Elements already
+     in the viewport at load reveal immediately (no observer round-trip),
+     and a safety-net timeout force-reveals anything left after 1.2s
+     regardless of what else is going on. */
   var revealEls = document.querySelectorAll(".reveal");
   if (reduceMotion || !("IntersectionObserver" in window)) {
     revealEls.forEach(function (el) { el.classList.add("is-visible"); });
   } else {
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var pending = [];
+    revealEls.forEach(function (el) {
+      var rect = el.getBoundingClientRect();
+      if (rect.top < vh && rect.bottom > 0) {
+        el.classList.add("is-visible");
+      } else {
+        pending.push(el);
+      }
+    });
+
     var observer = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
@@ -68,7 +85,12 @@
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
-    revealEls.forEach(function (el) { observer.observe(el); });
+    pending.forEach(function (el) { observer.observe(el); });
+
+    setTimeout(function () {
+      revealEls.forEach(function (el) { el.classList.add("is-visible"); });
+      observer.disconnect();
+    }, 1200);
   }
 
   /* ---------------- Resume availability check ---------------- */

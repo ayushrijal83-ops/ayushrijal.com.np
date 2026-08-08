@@ -32,7 +32,13 @@ import * as THREE from "three";
     return;
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  /* This canvas covers the full viewport, so fill-rate (not geometry) is
+     the dominant cost — render at a fraction of native resolution and let
+     the browser upscale it via CSS. The content is sparse/blurry-soft
+     particles and lines, so the softness from upscaling is invisible, but
+     the fill-rate savings are large (a 0.5 ratio is ~4x fewer pixels). */
+  var RENDER_SCALE = 0.55;
+  renderer.setPixelRatio(RENDER_SCALE);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   var scene = new THREE.Scene();
@@ -72,7 +78,7 @@ import * as THREE from "three";
   }
   var starTex = sparkTexture();
 
-  var STAR_COUNT = 420;
+  var STAR_COUNT = 140;
   var starPositions = new Float32Array(STAR_COUNT * 3);
   var worldDepth = WORLD_UNITS_PER_PAGE * 2;
   for (var i = 0; i < STAR_COUNT; i++) {
@@ -102,7 +108,7 @@ import * as THREE from "three";
     new THREE.TetrahedronGeometry(1.1, 0),
     new THREE.DodecahedronGeometry(0.9, 0)
   ];
-  var SHARD_COUNT = 14;
+  var SHARD_COUNT = 6;
   var shards = [];
   for (var s = 0; s < SHARD_COUNT; s++) {
     var geo = shardGeoms[s % shardGeoms.length];
@@ -185,8 +191,13 @@ import * as THREE from "three";
     window.addEventListener("pointermove", onPointerMove, { passive: true });
   }
 
-  /* ---------------- Render loop ---------------- */
+  /* ---------------- Render loop ----------------
+     This canvas is purely decorative and runs on every page, so it's
+     throttled to ~24fps (skip every other rAF tick) to leave headroom for
+     the compositor and any other WebGL scenes on the page — full 60fps
+     here bought nothing visually but starved everything else. */
   var running = false;
+  var frameSkip = 0;
 
   function render() {
     renderer.render(scene, camera);
@@ -195,18 +206,21 @@ import * as THREE from "three";
   function frame(time) {
     if (!running) return;
 
-    if (!reduceMotion) {
-      worldY += (targetScrollY - worldY) * 0.06;
-      tiltX += (targetTiltX - tiltX) * 0.04;
-      tiltY += (targetTiltY - tiltY) * 0.04;
-      world.position.y = worldY;
-      world.rotation.x = tiltX;
-      world.rotation.y = tiltY;
-      shards.forEach(function (m) { m.rotation.y += m.userData.spin * 16; m.rotation.x += m.userData.spin * 10; });
-      stars.rotation.y += 0.00002;
+    frameSkip = (frameSkip + 1) % 3;
+    if (frameSkip === 0) {
+      if (!reduceMotion) {
+        worldY += (targetScrollY - worldY) * 0.06;
+        tiltX += (targetTiltX - tiltX) * 0.04;
+        tiltY += (targetTiltY - tiltY) * 0.04;
+        world.position.y = worldY;
+        world.rotation.x = tiltX;
+        world.rotation.y = tiltY;
+        shards.forEach(function (m) { m.rotation.y += m.userData.spin * 32; m.rotation.x += m.userData.spin * 20; });
+        stars.rotation.y += 0.00004;
+      }
+      render();
     }
 
-    render();
     requestAnimationFrame(frame);
   }
 

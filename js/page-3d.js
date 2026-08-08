@@ -12,7 +12,7 @@ import * as THREE from "three";
 
   var renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false, powerPreference: "high-performance" });
   } catch (e) {
     renderer = null;
   }
@@ -21,7 +21,7 @@ import * as THREE from "three";
     return;
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isSmall ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isSmall ? 1 : 1.5));
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -93,7 +93,7 @@ import * as THREE from "three";
     { radius: 1.95, tube: 0.007, tilt: [0.4, 1.1, 0.3], speed: -0.00018 }
   ];
   var rings = ringSpecs.map(function (spec) {
-    var geo = new THREE.TorusGeometry(spec.radius, spec.tube, 8, isSmall ? 48 : 96);
+    var geo = new THREE.TorusGeometry(spec.radius, spec.tube, 8, isSmall ? 32 : 56);
     var mat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.4 });
     var mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.set(spec.tilt[0], spec.tilt[1], spec.tilt[2]);
@@ -105,7 +105,7 @@ import * as THREE from "three";
   var shell = new THREE.Group();
   scene.add(shell);
 
-  var nodeCount = isSmall ? 80 : 150;
+  var nodeCount = isSmall ? 40 : 70;
   var nodePts = [];
   var positions = new Float32Array(nodeCount * 3);
   for (var i = 0; i < nodeCount; i++) {
@@ -134,7 +134,7 @@ import * as THREE from "three";
   shell.add(new THREE.Points(particleGeo, particleMat));
 
   var linePositions = [];
-  var maxLineNodes = Math.min(nodePts.length, isSmall ? 34 : 60);
+  var maxLineNodes = Math.min(nodePts.length, isSmall ? 24 : 42);
   for (var a = 0; a < maxLineNodes; a++) {
     var dists = [];
     for (var b = 0; b < maxLineNodes; b++) {
@@ -205,7 +205,7 @@ import * as THREE from "three";
   }
   resize();
 
-  var running = false, visible = true, lastTime = 0;
+  var running = false, visible = true, lastTime = 0, frameSkip = 0;
   var targetTiltX = 0, targetTiltY = 0, tiltX = 0, tiltY = 0;
 
   function render() {
@@ -214,21 +214,26 @@ import * as THREE from "three";
 
   function frame(time) {
     if (!running) return;
-    var dt = lastTime ? Math.min(time - lastTime, 50) : 16;
-    lastTime = time;
 
-    core.rotation.y += dt * 0.00015;
-    core.rotation.x = Math.sin(time * 0.0001) * 0.06;
-    shell.rotation.y -= dt * 0.00008;
-    rings.forEach(function (m) { m.rotation.z += m.userData.speed * dt; });
-    glassMat.emissiveIntensity = (THEME_PRESETS[currentTheme] || THEME_PRESETS.dark).glassEmissive * (0.85 + Math.sin(time * 0.0016) * 0.3);
+    frameSkip = (frameSkip + 1) % 3;
+    if (frameSkip === 0) {
+      var dt = lastTime ? Math.min(time - lastTime, 80) : 32;
+      lastTime = time;
 
-    tiltX += (targetTiltX - tiltX) * 0.05;
-    tiltY += (targetTiltY - tiltY) * 0.05;
-    scene.rotation.x = tiltX;
-    scene.rotation.y = tiltY;
+      core.rotation.y += dt * 0.00015;
+      core.rotation.x = Math.sin(time * 0.0001) * 0.06;
+      shell.rotation.y -= dt * 0.00008;
+      rings.forEach(function (m) { m.rotation.z += m.userData.speed * dt; });
+      glassMat.emissiveIntensity = (THEME_PRESETS[currentTheme] || THEME_PRESETS.dark).glassEmissive * (0.85 + Math.sin(time * 0.0016) * 0.3);
 
-    render();
+      tiltX += (targetTiltX - tiltX) * 0.08;
+      tiltY += (targetTiltY - tiltY) * 0.08;
+      scene.rotation.x = tiltX;
+      scene.rotation.y = tiltY;
+
+      render();
+    }
+
     requestAnimationFrame(frame);
   }
 

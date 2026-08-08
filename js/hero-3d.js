@@ -15,7 +15,7 @@ import * as THREE from "three";
     renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       alpha: true,
-      antialias: true,
+      antialias: false,
       powerPreference: "high-performance"
     });
   } catch (e) {
@@ -26,7 +26,7 @@ import * as THREE from "three";
     return;
   }
 
-  var dpr = Math.min(window.devicePixelRatio || 1, isSmall ? 1.5 : 2);
+  var dpr = Math.min(window.devicePixelRatio || 1, isSmall ? 1 : 1.5);
   renderer.setPixelRatio(dpr);
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -103,11 +103,10 @@ import * as THREE from "three";
 
   var ringSpecs = [
     { radius: 2.05, tube: 0.012, tilt: [1.15, 0.3, 0], speed: 0.00022 },
-    { radius: 2.3, tube: 0.008, tilt: [0.4, 1.1, 0.4], speed: -0.00016 },
-    { radius: 2.55, tube: 0.006, tilt: [1.5, 0.9, 0.2], speed: 0.00011 }
+    { radius: 2.35, tube: 0.008, tilt: [0.4, 1.1, 0.4], speed: -0.00016 }
   ];
   var rings = ringSpecs.map(function (spec) {
-    var geo = new THREE.TorusGeometry(spec.radius, spec.tube, 8, isSmall ? 64 : 128);
+    var geo = new THREE.TorusGeometry(spec.radius, spec.tube, 8, isSmall ? 40 : 72);
     var mat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.4 });
     var mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.set(spec.tilt[0], spec.tilt[1], spec.tilt[2]);
@@ -120,7 +119,7 @@ import * as THREE from "three";
   var particleShell = new THREE.Group();
   scene.add(particleShell);
 
-  var nodeCount = isSmall ? 110 : 220;
+  var nodeCount = isSmall ? 55 : 100;
   var nodePts = [];
   var positions = new Float32Array(nodeCount * 3);
   for (var i = 0; i < nodeCount; i++) {
@@ -154,7 +153,7 @@ import * as THREE from "three";
 
   var linePositions = [];
   var neighborK = 2;
-  var maxLineNodes = Math.min(nodePts.length, isSmall ? 50 : 90);
+  var maxLineNodes = Math.min(nodePts.length, isSmall ? 36 : 65);
   for (var a = 0; a < maxLineNodes; a++) {
     var dists = [];
     for (var b = 0; b < maxLineNodes; b++) {
@@ -238,10 +237,15 @@ import * as THREE from "three";
   }
   resize();
 
-  /* ---------------- Animation loop ---------------- */
+  /* ---------------- Animation loop ----------------
+     Capped to ~30fps (skip every other rAF tick). The motion here is slow
+     rotation/parallax that doesn't benefit from 60fps, and this halves the
+     GPU/main-thread load — important since this scene often runs alongside
+     the full-page ambient background at the same time. */
   var running = false;
   var visible = true;
   var lastTime = 0;
+  var frameSkip = 0;
   var targetTiltX = 0, targetTiltY = 0, tiltX = 0, tiltY = 0;
 
   function render() {
@@ -250,22 +254,27 @@ import * as THREE from "three";
 
   function frame(time) {
     if (!running) return;
-    var dt = lastTime ? Math.min(time - lastTime, 50) : 16;
-    lastTime = time;
 
-    core.rotation.y += dt * 0.00016;
-    core.rotation.x = Math.sin(time * 0.00012) * 0.08;
-    particleShell.rotation.y -= dt * 0.00009;
-    particleShell.rotation.x += dt * 0.00003;
-    rings.forEach(function (m) { m.rotation.z += m.userData.speed * dt; });
-    glassMat.emissiveIntensity = (THEME_PRESETS[currentTheme] || THEME_PRESETS.dark).glassEmissive * (0.85 + Math.sin(time * 0.0016) * 0.3);
+    frameSkip = (frameSkip + 1) % 3;
+    if (frameSkip === 0) {
+      var dt = lastTime ? Math.min(time - lastTime, 80) : 32;
+      lastTime = time;
 
-    tiltX += (targetTiltX - tiltX) * 0.05;
-    tiltY += (targetTiltY - tiltY) * 0.05;
-    scene.rotation.x = tiltX;
-    scene.rotation.y = tiltY;
+      core.rotation.y += dt * 0.00016;
+      core.rotation.x = Math.sin(time * 0.00012) * 0.08;
+      particleShell.rotation.y -= dt * 0.00009;
+      particleShell.rotation.x += dt * 0.00003;
+      rings.forEach(function (m) { m.rotation.z += m.userData.speed * dt; });
+      glassMat.emissiveIntensity = (THEME_PRESETS[currentTheme] || THEME_PRESETS.dark).glassEmissive * (0.85 + Math.sin(time * 0.0016) * 0.3);
 
-    render();
+      tiltX += (targetTiltX - tiltX) * 0.08;
+      tiltY += (targetTiltY - tiltY) * 0.08;
+      scene.rotation.x = tiltX;
+      scene.rotation.y = tiltY;
+
+      render();
+    }
+
     requestAnimationFrame(frame);
   }
 
