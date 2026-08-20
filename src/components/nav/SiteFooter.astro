@@ -1,0 +1,41 @@
+---
+/** The colophon. One line of provenance, the way an archive stamps a sheet. */
+import { SITE } from '@lib/site';
+import type { World } from '@lib/worlds';
+
+type Props = { world: World };
+const { world } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="colophon">
+  <hr class="rule rule--faint" />
+  <div class="sheet colophon__inner">
+    <p class="t-label">{world.ref} · {world.world}</p>
+    <p class="t-label">
+      {SITE.title} · {year} ·
+      <a href={`https://github.com/${SITE.github}`} rel="noopener noreferrer">
+        github
+      </a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .colophon {
+    margin-block-start: var(--space-3xl);
+  }
+
+  .colophon__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+    padding-block: var(--space-m);
+  }
+
+  .colophon a {
+    color: var(--world-accent);
+    text-underline-offset: 3px;
+  }
+</style>

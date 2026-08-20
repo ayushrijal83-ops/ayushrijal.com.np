@@ -1,0 +1,23 @@
+---
+import WorldLayout from '@layouts/WorldLayout.astro';
+import ArchiveIndex, { type IndexEntry } from '@components/archive/ArchiveIndex.astro';
+import { getCollection } from 'astro:content';
+
+const entries: IndexEntry[] = (await getCollection('experiments', (e) => !e.data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((e) => ({
+    id: e.id,
+    title: e.data.title,
+    summary: e.data.summary,
+    date: e.data.date,
+    verified: e.data.verified,
+    register: e.data.outcome.toUpperCase(),
+  }));
+---
+
+<WorldLayout world="ai">
+  <ArchiveIndex
+    entries={entries}
+    emptyNote="No experiments have been filed yet. The schema records a hypothesis, the apparatus and the outcome — including failed and inconclusive runs, which are kept rather than dropped."
+  />
+</WorldLayout>

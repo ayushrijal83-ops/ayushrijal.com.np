@@ -1,0 +1,95 @@
+---
+/**
+ * ABOUT — the personal record.
+ *
+ * The record is intentionally near-empty. V1's biography, tech lists and 2026
+ * timeline have never been checked against reality (PROJECT_PROGRESS §9.4,
+ * K6), and the project's no-fabrication rule means none of it may be carried
+ * across until it has been confirmed item by item.
+ *
+ * So this world renders the *card*, not invented contents. An archive with an
+ * uncatalogued record shows the blank fields; it does not fill them in.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+
+const RECORD: { field: string; value: string | null }[] = [
+  { field: 'Name', value: 'Ayush Rijal' },
+  { field: 'Record', value: 'AR-01 · Personal' },
+  { field: 'Focus', value: null },
+  { field: 'Currently', value: null },
+  { field: 'Education', value: null },
+  { field: 'Location', value: null },
+];
+---
+
+<WorldLayout world="about">
+  <section class="sheet card" aria-labelledby="record-heading">
+    <h2 class="t-label" id="record-heading">Record card</h2>
+
+    <dl class="card__list">
+      {
+        RECORD.map(({ field, value }) => (
+          <div class="card__row">
+            <dt class="t-label card__field">{field}</dt>
+            <dd class="card__value" data-blank={value === null ? '' : undefined}>
+              {value ?? 'Not yet recorded'}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <p class="t-text card__note">
+      This record is being compiled from source rather than carried over. Every
+      line the previous site asserted — the timeline, the tools, the security
+      work — is being confirmed before it is entered here. Fields stay blank
+      until then.
+    </p>
+  </section>
+</WorldLayout>
+
+<style>
+  .card {
+    padding-block-start: var(--space-xl);
+  }
+
+  .card__list {
+    margin-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .card__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3xs);
+    /* The ruling of the card itself — the ABOUT world's ground, brought up
+       into the content so the paper and the record read as one object. */
+    border-block-end: 1px solid var(--rule-faint);
+    padding-block: var(--space-s);
+  }
+
+  .card__value {
+    margin: 0;
+    font-family: var(--font-text);
+    font-size: var(--step-1);
+  }
+
+  .card__value[data-blank] {
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: var(--step-0);
+  }
+
+  .card__note {
+    margin-block-start: var(--space-l);
+    color: var(--ink-secondary);
+  }
+
+  @media (min-width: 40rem) {
+    .card__row {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      gap: var(--space-m);
+      align-items: baseline;
+    }
+  }
+</style>

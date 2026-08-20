@@ -1,0 +1,116 @@
+---
+/**
+ * GITHUB — the source index.
+ *
+ * Renders whatever the build-time snapshot contains. At M02 that is an empty
+ * snapshot with `generatedAt: null`, because the fetch workflow is deliberately
+ * not implemented yet (M02 brief §11) — so what this page demonstrates is the
+ * *fallback contract*: no data available, and the page says exactly that
+ * instead of showing an empty grid or an invented number.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import { loadGitHubSnapshot, publicRepos } from '@lib/github';
+import { SITE } from '@lib/site';
+
+const snapshot = loadGitHubSnapshot();
+const repos = publicRepos(snapshot);
+const compiledAt = snapshot?.generatedAt;
+---
+
+<WorldLayout world="github">
+  <section class="sheet source" aria-labelledby="source-heading">
+    <h2 class="t-label" id="source-heading">
+      Source index · {repos.length} {repos.length === 1 ? 'repository' : 'repositories'}
+    </h2>
+
+    {
+      repos.length === 0 ? (
+        <div class="source__pending">
+          <p class="t-text">
+            No snapshot has been compiled yet. Repository data is fetched at
+            build time by a GitHub Actions workflow and baked into these pages,
+            so no credential is ever sent to a visitor and no visitor spends the
+            API rate limit. That workflow lands in a later milestone; until then
+            this index is honestly empty rather than filled from the browser.
+          </p>
+          <p class="t-meta">
+            Source of record:
+            <a href={`https://github.com/${SITE.github}`} rel="noopener noreferrer">
+              github.com/{SITE.github}
+            </a>
+          </p>
+        </div>
+      ) : (
+        <ol class="source__list" role="list">
+          {repos.map((repo) => (
+            <li class="source__row">
+              <a class="source__link" href={repo.url} rel="noopener noreferrer">
+                <span class="source__name">{repo.name}</span>
+                {repo.description && <span class="source__desc">{repo.description}</span>}
+                <span class="t-label source__meta">
+                  {repo.language ?? 'unclassified'} · {repo.stars}★
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      )
+    }
+
+    <p class="t-label source__stamp">
+      {
+        compiledAt
+          ? `Compiled ${new Date(compiledAt).toISOString().slice(0, 16).replace('T', ' ')} UTC`
+          : 'Not yet compiled'
+      }
+    </p>
+  </section>
+</WorldLayout>
+
+<style>
+  .source {
+    padding-block-start: var(--space-xl);
+  }
+
+  .source__pending {
+    margin-block-start: var(--space-m);
+    padding-inline-start: var(--space-s);
+    border-inline-start: 2px solid var(--world-accent);
+  }
+
+  .source__pending .t-meta {
+    margin-block-start: var(--space-s);
+  }
+
+  .source__pending a {
+    color: var(--world-accent);
+  }
+
+  .source__list {
+    margin-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .source__link {
+    display: grid;
+    gap: var(--space-3xs);
+    padding-block: var(--space-s);
+    border-block-end: 1px solid var(--rule-faint);
+    text-decoration: none;
+  }
+
+  .source__name {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    font-weight: 500;
+  }
+
+  .source__desc {
+    color: var(--ink-secondary);
+  }
+
+  .source__stamp {
+    margin-block-start: var(--space-l);
+    color: var(--ink-faint);
+  }
+</style>

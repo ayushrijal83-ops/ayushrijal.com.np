@@ -1,0 +1,77 @@
+---
+/**
+ * A world. Everything a section shares — the gate, the index strip, the sheet
+ * masthead, the colophon — lives here, so a world page contains only what
+ * makes it that world.
+ */
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from '@components/nav/SiteHeader.astro';
+import SiteFooter from '@components/nav/SiteFooter.astro';
+import WorldGate from '@components/transition/WorldGate.astro';
+import { getWorld } from '@lib/worlds';
+
+type Props = {
+  world: string;
+  /** Overrides the world's own name as the <h1>. Home does this. */
+  title?: string;
+  /** Suppress the standard sheet masthead when a world composes its own. */
+  masthead?: boolean;
+};
+
+const { world: id, title, masthead = true } = Astro.props;
+const world = getWorld(id);
+---
+
+<BaseLayout
+  title={title ?? world.world}
+  description={world.summary}
+  world={world.id}
+>
+  <slot name="head" slot="head" />
+
+  <WorldGate world={world} />
+  <SiteHeader current={world.id} />
+
+  <main id="main">
+    {
+      masthead && (
+        <div class="sheet world-head">
+          <p class="t-label">
+            {world.ref} · {world.gateTitle}
+          </p>
+          <h1 class="t-display world-title">{world.world}</h1>
+          <p class="t-text world-summary">{world.summary}</p>
+          <hr class="rule rule--strong world-rule" />
+        </div>
+      )
+    }
+    <slot />
+  </main>
+
+  <SiteFooter world={world} />
+</BaseLayout>
+
+<script>
+  import { bindWorldGate } from '@scripts/world-gate';
+  bindWorldGate();
+</script>
+
+<style>
+  .world-head {
+    padding-block-start: var(--space-2xl);
+  }
+
+  .world-title {
+    font-size: var(--step-4);
+    margin-block-start: var(--space-2xs);
+  }
+
+  .world-summary {
+    margin-block-start: var(--space-s);
+    color: var(--ink-secondary);
+  }
+
+  .world-rule {
+    margin-block-start: var(--space-l);
+  }
+</style>

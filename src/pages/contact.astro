@@ -1,0 +1,83 @@
+---
+/**
+ * CONTACT — the transmission room.
+ *
+ * Only channels that can be verified from the repository itself are listed.
+ * The rest are not guessed at: publishing an address that turns out to be
+ * wrong is worse than publishing none, and the no-fabrication rule applies to
+ * contact details as much as to credentials.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import { SITE } from '@lib/site';
+
+const CHANNELS = [
+  {
+    label: 'GitHub',
+    value: `github.com/${SITE.github}`,
+    href: `https://github.com/${SITE.github}`,
+  },
+];
+---
+
+<WorldLayout world="contact">
+  <section class="sheet channels" aria-labelledby="channels-heading">
+    <h2 class="t-label" id="channels-heading">Open channels</h2>
+
+    <ul class="channels__list" role="list">
+      {
+        CHANNELS.map((c) => (
+          <li class="channels__row">
+            <span class="t-label channels__label">{c.label}</span>
+            <a class="channels__value" href={c.href} rel="noopener noreferrer">
+              {c.value}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="t-text channels__note">
+      Further channels are added here once they are confirmed. Until then this
+      list stays short rather than speculative.
+    </p>
+  </section>
+</WorldLayout>
+
+<style>
+  .channels {
+    padding-block-start: var(--space-xl);
+  }
+
+  .channels__list {
+    margin-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .channels__row {
+    display: grid;
+    gap: var(--space-3xs);
+    padding-block: var(--space-s);
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  .channels__value {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    color: var(--world-accent);
+    text-underline-offset: 4px;
+    inline-size: fit-content;
+  }
+
+  .channels__note {
+    margin-block-start: var(--space-l);
+    color: var(--ink-secondary);
+  }
+
+  @media (min-width: 40rem) {
+    .channels__row {
+      grid-template-columns: 8rem minmax(0, 1fr);
+      gap: var(--space-m);
+      align-items: baseline;
+    }
+  }
+</style>

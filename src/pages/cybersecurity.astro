@@ -1,0 +1,23 @@
+---
+import WorldLayout from '@layouts/WorldLayout.astro';
+import ArchiveIndex, { type IndexEntry } from '@components/archive/ArchiveIndex.astro';
+import { getCollection } from 'astro:content';
+
+const entries: IndexEntry[] = (await getCollection('labs', (e) => !e.data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((e) => ({
+    id: e.id,
+    title: e.data.title,
+    summary: e.data.summary,
+    date: e.data.date,
+    verified: e.data.verified,
+    register: e.data.discipline.toUpperCase(),
+  }));
+---
+
+<WorldLayout world="cybersecurity">
+  <ArchiveIndex
+    entries={entries}
+    emptyNote="No security work has been filed yet. The schema requires each entry to record the environment it was carried out in and its authorisation, so nothing can be published here without its context."
+  />
+</WorldLayout>

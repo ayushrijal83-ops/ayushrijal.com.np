@@ -1,0 +1,24 @@
+---
+import WorldLayout from '@layouts/WorldLayout.astro';
+import ArchiveIndex, { type IndexEntry } from '@components/archive/ArchiveIndex.astro';
+import { getCollection } from 'astro:content';
+
+// Drafts never reach a build. Everything else is ordered newest work first.
+const entries: IndexEntry[] = (await getCollection('projects', (e) => !e.data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((e) => ({
+    id: e.id,
+    title: e.data.title,
+    summary: e.data.summary,
+    date: e.data.date,
+    verified: e.data.verified,
+    register: e.data.status.toUpperCase(),
+  }));
+---
+
+<WorldLayout world="projects">
+  <ArchiveIndex
+    entries={entries}
+    emptyNote="No projects have been filed yet. Entries land here once each build has been confirmed against its repository — the schema is in place, the holdings are not."
+  />
+</WorldLayout>

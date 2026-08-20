@@ -1,0 +1,23 @@
+---
+import WorldLayout from '@layouts/WorldLayout.astro';
+import ArchiveIndex, { type IndexEntry } from '@components/archive/ArchiveIndex.astro';
+import { getCollection } from 'astro:content';
+
+const entries: IndexEntry[] = (await getCollection('learning', (e) => !e.data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((e) => ({
+    id: e.id,
+    title: e.data.title,
+    summary: e.data.summary,
+    date: e.data.date,
+    verified: e.data.verified,
+    register: e.data.kind.toUpperCase(),
+  }));
+---
+
+<WorldLayout world="learning">
+  <ArchiveIndex
+    entries={entries}
+    emptyNote="The notebook is empty. It records notes in the order they were written, with their sources — deliberately not skill levels or completion percentages, which cannot be verified."
+  />
+</WorldLayout>
