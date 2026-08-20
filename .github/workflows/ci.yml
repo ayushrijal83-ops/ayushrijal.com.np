@@ -1,0 +1,62 @@
+name: CI
+
+# V2 lives on its own long-lived branch and does NOT deploy. `main` continues
+# to serve V1 to production untouched, exactly as the migration strategy
+# requires (PROJECT_PROGRESS §10). This workflow verifies; it never publishes.
+on:
+  push:
+    branches: [v2]
+  pull_request:
+    branches: [v2, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Kept in step with `engines.node` in package.json.
+          node-version: '24'
+          cache: npm
+
+      # `npm ci`, not `npm install`: it installs strictly from the committed
+      # lockfile and verifies every package's integrity hash, so CI cannot
+      # silently resolve a different tree than a developer did.
+      - name: Install
+        run: npm ci
+
+      - name: Type check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      # Guards the two things most likely to regress quietly: a page silently
+      # disappearing from the eight-world IA, and the no-JS fallback content
+      # being removed from the static HTML.
+      - name: Verify build output
+        run: |
+          set -euo pipefail
+          for page in index about projects ai cybersecurity learning github contact; do
+            path="dist/${page}/index.html"
+            [ "$page" = "index" ] && path="dist/index.html"
+            test -f "$path" || { echo "MISSING: $path"; exit 1; }
+          done
+          grep -q '<h1 class="wordmark__fallback"' dist/index.html \
+            || { echo "Home lost its no-JS wordmark heading"; exit 1; }
+          grep -q 'data-editorial-source' dist/index.html \
+            || { echo "Home lost its no-JS editorial text"; exit 1; }
+          echo "All 8 worlds built; no-JS fallbacks intact."
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
