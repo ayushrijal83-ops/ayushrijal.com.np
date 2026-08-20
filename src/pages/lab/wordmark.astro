@@ -1,0 +1,101 @@
+---
+/**
+ * ISOLATED PROTOTYPE — System A, the custom wordmark layout.
+ *
+ * Deliberately separate from the Pretext rig. The two systems are evaluated
+ * apart because they answer different questions, and because the brief is
+ * explicit that Pretext must not be made responsible for glyph positions.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Wordmark from '@components/home/Wordmark.astro';
+import '@styles/home.css';
+import '@styles/lab.css';
+---
+
+<BaseLayout title="Wordmark prototype" world="home" bare>
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <main class="lab" id="main">
+    <h1 class="lab__title">Prototype · Custom wordmark layout</h1>
+    <p class="lab__intro">
+      A ~90-line glyph-positioning layer. Pretext is not involved and cannot be:
+      it returns line boxes and grapheme cursors, never glyph coordinates. Drag
+      each stage to resize — the layout is measured once and scaled thereafter,
+      so resizing performs no text measurement at all.
+    </p>
+
+    <section class="lab__section" aria-labelledby="h-live">
+      <h2 class="lab__h" id="h-live">1 · Live at arbitrary width</h2>
+      <p class="lab__note">
+        Hover to see the pointer response: glyphs lift as the pointer passes,
+        the way typebars lift on a mechanical typewriter. Compositor-only
+        transforms; suppressed entirely under reduced motion and on coarse
+        pointers.
+      </p>
+      <div class="lab__stage">
+        <Wordmark text="Ayush Rijal" as="p" />
+      </div>
+      <div class="lab__stage" style="inline-size: 26rem">
+        <Wordmark text="Ayush Rijal" as="p" />
+      </div>
+    </section>
+
+    <section class="lab__section" aria-labelledby="h-metrics">
+      <h2 class="lab__h" id="h-metrics">2 · Does kerning justify the extra work?</h2>
+      <p class="lab__note">
+        The naive implementation sums isolated glyph advances and ignores
+        kerning. This engine measures cumulative prefixes and adds back the one
+        kern pair a prefix cannot contain. The figure below is the worst-case
+        disagreement between the two, in pixels, at a realistic display size —
+        the number that decides whether the extra measurement passes earn their
+        place.
+      </p>
+      <dl class="lab__readout">
+        <div class="lab__metric"><dt>Graphemes</dt><dd data-out="glyphs">—</dd></div>
+        <div class="lab__metric"><dt>Layout cost</dt><dd data-out="layout">—</dd></div>
+        <div class="lab__metric"><dt>Kern error</dt><dd data-out="kern">—</dd></div>
+        <div class="lab__metric"><dt>Natural width</dt><dd data-out="natural">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="lab__section" aria-labelledby="h-fallback">
+      <h2 class="lab__h" id="h-fallback">3 · The fallback path</h2>
+      <p class="lab__note">
+        Without JavaScript, without <code>Intl.Segmenter</code>, or if the
+        webfont never loads, the island does not run and the plain heading below
+        is what a visitor sees. It is styled to be the finished wordmark, not a
+        degraded one.
+      </p>
+      <div class="lab__panel">
+        <h3>CSS baseline</h3>
+        <p class="wordmark__fallback">Ayush Rijal</p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  import { mountWordmarks } from '@scripts/wordmark';
+  import { reportWordmark } from '@scripts/lab-wordmark';
+  import { ms } from '@scripts/lab-pretext';
+  import { fontReady } from '@scripts/motion';
+
+  const out = (key: string, value: string) => {
+    const el = document.querySelector<HTMLElement>(`[data-out="${key}"]`);
+    if (el) el.textContent = value;
+  };
+
+  await mountWordmarks();
+
+  // Report only once the face is genuinely loaded — measuring against fallback
+  // metrics would produce a confident, wrong number.
+  if (await fontReady("700 100px 'IBM Plex Sans Condensed'", 'Ayush Rijal')) {
+    const report = reportWordmark("Ayush Rijal", "'IBM Plex Sans Condensed'", 700, -0.015);
+    if (report) {
+      out('glyphs', String(report.glyphs));
+      out('layout', ms(report.layoutMs));
+      out('kern', `${report.kernErrorPx.toFixed(1)} px @ ${report.atSize}px`);
+      out('natural', `${report.naturalWidth.toFixed(1)} @ 100px`);
+    }
+  }
+</script>

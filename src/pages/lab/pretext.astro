@@ -1,0 +1,193 @@
+---
+/**
+ * ISOLATED PROTOTYPE — Pretext 0.0.8.
+ *
+ * Not wired into the site. Nothing here imports from the Home page and the
+ * Home page imports nothing from here. That isolation is the point: the M02
+ * brief requires Pretext to be evaluated on its own before it is allowed to
+ * influence the design.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import EditorialField from '@components/home/EditorialField.astro';
+import '@styles/home.css';
+import '@styles/lab.css';
+
+const SPECIMEN =
+  'Pretext side-steps DOM measurement entirely. It segments the text with ' +
+  'Intl.Segmenter, measures the segments once through a canvas 2D context, and ' +
+  'then answers every subsequent question about how that text breaks with pure ' +
+  'arithmetic over the cached widths. No getBoundingClientRect, no offsetHeight, ' +
+  'no forced synchronous layout — which is what makes a per-line variable width ' +
+  'affordable at all, rather than something you pay a reflow for on every probe.';
+---
+
+<BaseLayout title="Pretext prototype" world="home" bare>
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <main class="lab" id="main">
+    <h1 class="lab__title">Prototype · Pretext 0.0.8</h1>
+    <p class="lab__intro">
+      An isolated evaluation rig, not a design. Drag the handle at the bottom
+      right of each stage to change its width continuously and watch the text
+      recompose. The readout reports real measured times from this browser.
+    </p>
+
+    <section class="lab__section" aria-labelledby="h-flow">
+      <h2 class="lab__h" id="h-flow">1 · Variable-width flow around an exclusion</h2>
+      <p class="lab__note">
+        The grey block is an exclusion zone. Lines beside it are laid out at a
+        narrower width than lines above and below it, with the width supplied
+        per line by the caller. This is the capability CSS has no equivalent
+        for, and it is the whole justification for the dependency.
+      </p>
+
+      <div class="lab__stage" data-lab-stage>
+        <div class="lab__exclusion" data-lab-exclusion aria-hidden="true"></div>
+        <EditorialField text={SPECIMEN} />
+      </div>
+
+      <dl class="lab__readout">
+        <div class="lab__metric">
+          <dt>Stage width</dt><dd data-out="width">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>prepare()</dt><dd data-out="prepare">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>Re-layout</dt><dd data-out="layout">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>Lines</dt><dd data-out="lines">—</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="lab__section" aria-labelledby="h-bench">
+      <h2 class="lab__h" id="h-bench">2 · Cost against the honest alternative</h2>
+      <p class="lab__note">
+        The alternative to Pretext is not "CSS" — CSS flowing text is free. The
+        alternative is <em>querying</em> CSS: write a width, read the resulting
+        height, and eat a forced synchronous reflow each time. Both sides below
+        answer the same question two hundred times at randomised widths.
+      </p>
+
+      <button class="lab__button" type="button" data-lab-run>Run benchmark</button>
+
+      <dl class="lab__readout">
+        <div class="lab__metric">
+          <dt>Pretext / query</dt><dd data-out="bench-pretext">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>DOM reflow / query</dt><dd data-out="bench-dom">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>Ratio</dt><dd data-out="bench-factor">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>One-time prepare</dt><dd data-out="bench-prepare">—</dd>
+        </div>
+        <div class="lab__metric">
+          <dt>Break-even</dt><dd data-out="bench-breakeven">—</dd>
+        </div>
+      </dl>
+
+      <p class="lab__note">
+        The probe below is the element the DOM side queries. It is left in
+        normal flow, and visible, on purpose: an absolutely-positioned probe
+        invalidates almost nothing and reflows nearly for free, which flatters
+        the DOM side by roughly seven times and makes Pretext look barely worth
+        having. Break-even is the number of width queries needed before
+        <code>prepare()</code> has paid for itself.
+      </p>
+
+      <p class="lab__probe" data-lab-probe>{SPECIMEN}</p>
+    </section>
+
+    <section class="lab__section" aria-labelledby="h-fallback">
+      <h2 class="lab__h" id="h-fallback">3 · The fallback path</h2>
+      <p class="lab__note">
+        Below is the same text with the island disabled — plain CSS flow, which
+        is what every visitor gets without JavaScript, without
+        <code>Intl.Segmenter</code>, or before the webfont resolves. Any
+        proposal that looks worse than this panel has failed.
+      </p>
+      <div class="lab__panel">
+        <h3>CSS baseline</h3>
+        <p class="field__source">{SPECIMEN}</p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .lab__stage {
+    position: relative;
+  }
+
+  /* Stands in for the wordmark: a real box the text has to be set around. */
+  .lab__exclusion {
+    position: absolute;
+    inset-block-start: var(--space-m);
+    inset-inline-start: var(--space-m);
+    inline-size: min(42%, 20rem);
+    block-size: 9rem;
+    background-color: var(--paper-recessed);
+    border: 1px solid var(--rule-strong);
+  }
+</style>
+
+<script>
+  import { mountEditorialFields } from '@scripts/editorial-field';
+  import { ms, runBenchmark } from '@scripts/lab-pretext';
+
+  const out = (key: string, value: string) => {
+    const el = document.querySelector<HTMLElement>(`[data-out="${key}"]`);
+    if (el) el.textContent = value;
+  };
+
+  const stage = document.querySelector<HTMLElement>('[data-lab-stage]');
+  const exclusionBox = document.querySelector<HTMLElement>('[data-lab-exclusion]');
+
+  await mountEditorialFields(document, {
+    observe: exclusionBox ? [exclusionBox] : [],
+    exclusion: (fieldStage) => {
+      if (!exclusionBox) return { top: 0, bottom: 0, width: 0 };
+      const b = exclusionBox.getBoundingClientRect();
+      const s = fieldStage.getBoundingClientRect();
+      if (b.bottom <= s.top || b.right <= s.left) return { top: 0, bottom: 0, width: 0 };
+      return {
+        top: b.top - s.top,
+        bottom: b.bottom - s.top + 16,
+        width: Math.max(0, b.right - s.left + 24),
+      };
+    },
+    onTiming: (t) => {
+      out('prepare', ms(t.prepare));
+      out('layout', ms(t.layout));
+      out('lines', String(t.lineCount));
+      if (stage) out('width', `${Math.round(stage.clientWidth)} px`);
+    },
+  });
+
+  document.querySelector('[data-lab-run]')?.addEventListener('click', () => {
+    const probe = document.querySelector<HTMLElement>('[data-lab-probe]');
+    const source = document.querySelector<HTMLElement>('[data-editorial-source]');
+    if (!probe || !source) return;
+
+    const cs = getComputedStyle(probe);
+    const result = runBenchmark(
+      probe.textContent ?? '',
+      `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`,
+      probe,
+    );
+
+    out('bench-pretext', ms(result.pretextMs));
+    out('bench-dom', ms(result.domMs));
+    out('bench-factor', result.factor ? `${result.factor.toFixed(1)}× faster` : '—');
+    out('bench-prepare', ms(result.prepareMs));
+    out(
+      'bench-breakeven',
+      result.breakEven === null ? 'never' : `${result.breakEven} queries`,
+    );
+  });
+</script>

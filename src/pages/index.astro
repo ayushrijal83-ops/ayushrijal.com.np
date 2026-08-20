@@ -1,0 +1,119 @@
+---
+/**
+ * HOME — the entrance to the archive, and the M02 prototype composition.
+ *
+ * Two cooperating typography systems, per the M02 brief §6:
+ *   System A — a small custom glyph-positioning layer for the wordmark.
+ *   System B — Pretext, driving the editorial text set around it.
+ *
+ * Neither is required for the page to work. Everything below renders complete
+ * and readable as static HTML; the islands only change how it is *set*.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import Wordmark from '@components/home/Wordmark.astro';
+import EditorialField from '@components/home/EditorialField.astro';
+import { SITE } from '@lib/site';
+import '@styles/home.css';
+
+/**
+ * Deliberately a statement about the archive itself, not about its owner.
+ * Biography, timeline and skills copy is unverified (PROJECT_PROGRESS §9.4)
+ * and may not enter V2 until it has been confirmed line by line.
+ */
+const STANDFIRST =
+  'A working archive of software, machine learning and security engineering. ' +
+  'Entries are filed as they are made and dated when they happened. Nothing is ' +
+  'listed here that has not been built, and anything still unconfirmed is ' +
+  'marked as such rather than quietly presented as fact.';
+
+/** The four concepts the archive is organised around, as an index. */
+const CONCEPTS = [
+  { label: 'Software', href: '/projects', ref: 'AR-02' },
+  { label: 'Artificial Intelligence', href: '/ai', ref: 'AR-03' },
+  { label: 'Cybersecurity', href: '/cybersecurity', ref: 'AR-04' },
+  { label: 'Experimentation', href: '/learning', ref: 'AR-05' },
+];
+---
+
+<WorldLayout world="home" title={SITE.title} masthead={false}>
+  <div class="sheet">
+    <section class="hero" aria-labelledby="wordmark-heading">
+      <div class="hero__wordmark">
+        <Wordmark text="Ayush Rijal" headingId="wordmark-heading" />
+      </div>
+      <div class="hero__field">
+        <EditorialField text={STANDFIRST} />
+      </div>
+    </section>
+
+    <hr class="rule rule--strong" />
+
+    <nav class="concepts" aria-label="Archive divisions">
+      <ol class="concepts__list" role="list">
+        {
+          CONCEPTS.map((c) => (
+            <li class="concepts__item">
+              <a class="concepts__link" href={c.href} data-world-link>
+                <span class="t-label concepts__ref">{c.ref}</span>
+                <span class="concepts__label">{c.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </div>
+</WorldLayout>
+
+<script>
+  import '@scripts/home';
+</script>
+
+<style>
+  /* The wordmark supplies the page's accessible <h1>; this label names the
+     section for the landmark without printing a second heading. */
+  .concepts__list {
+    display: grid;
+    gap: 0;
+  }
+
+  .concepts__item + .concepts__item {
+    border-block-start: 1px solid var(--rule-faint);
+  }
+
+  .concepts__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    text-decoration: none;
+    transition: padding-inline-start var(--dur-base) var(--ease-plot);
+  }
+
+  .concepts__link:hover {
+    padding-inline-start: var(--space-s);
+    background-color: var(--world-accent-wash);
+  }
+
+  .concepts__ref {
+    color: var(--world-accent);
+    flex: none;
+  }
+
+  .concepts__label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-3);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .concepts__link,
+    .concepts__link:hover {
+      transition: none;
+      padding-inline-start: 0;
+    }
+  }
+</style>
