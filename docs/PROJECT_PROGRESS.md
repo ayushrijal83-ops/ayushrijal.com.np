@@ -9,10 +9,10 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M01 — Reconnaissance & Technical Assessment** |
-| **M01 status** | Complete — awaiting architectural review |
+| **Current milestone** | **M02 — Foundation & Pretext Prototype** |
+| **M02 status** | Complete — awaiting architectural review of the architecture and the Home prototype |
 | **Last updated** | 2026-08-20 |
-| **Working branch** | `main` (clean, untouched — no production code modified in M01) |
+| **Working branch** | `v2` (all V2 work). `main` still serves V1 to production, unmodified. |
 
 ---
 
@@ -20,13 +20,196 @@
 
 | # | Milestone | Status | Notes |
 |---|---|---|---|
-| M01 | Reconnaissance & technical assessment | **Complete** | This document. No production code touched. |
-| M02 | Architecture decision + Pretext prototype | Blocked | Needs architect sign-off on §9 open decisions |
-| M03 | Design language & token system | Not started | |
-| M04 | Home world (Pretext typography) | Not started | |
-| M05+ | Remaining 7 section worlds | Not started | |
+| M01 | Reconnaissance & technical assessment | **Complete** | §2–§10 below. No production code touched. |
+| M02 | Foundation & Pretext prototype | **Complete** | §1A below. Awaiting review. |
+| M03 | Design review, world build-out, transition choreography | Blocked | Needs sign-off on §1A.9 |
+| M04 | Content verification + GitHub Actions integration | Blocked | Needs the §9.4 content session |
+| M05+ | Remaining section worlds, redirects, cutover | Not started | |
 
-**M01 scope compliance:** no files deleted, no UI replaced, no dependencies installed, no Pretext implementation. The only addition to the repository is this document.
+**M01 scope compliance:** no files deleted, no UI replaced, no dependencies installed, no Pretext implementation.
+
+**M02 scope compliance:** V1 is untouched — every V1 file (`index.html`, `css/`, `js/`, `assets/`, `CNAME`) is byte-identical on this branch, `main` is unmodified, and nothing has been merged. No unverified content was migrated. No page beyond the eight approved routes was built. No animation library, WebGL scene or particle system was added.
+
+---
+
+## 1A. M02 — Foundation & Pretext prototype
+
+### 1A.1 Toolchain (resolves §9.1, R1, K1)
+
+Path A taken: Node installed, Astro + TypeScript adopted.
+
+| Tool | Version |
+|---|---|
+| Node.js | **v24.19.0** (24.x LTS) |
+| npm | 11.17.0 |
+| Astro | **7.2.4** |
+| TypeScript | **5.9.3** |
+| `@astrojs/check` | 0.9.10 |
+| `@types/node` | 24.10.1 |
+| `@chenglou/pretext` | **0.0.8** (exact pin, no range) |
+
+`@chenglou/pretext` has **no runtime dependencies**. Direct dependency count: 2 runtime, 3 dev. Every version is pinned exactly and `package-lock.json` is committed.
+
+> **Note for the next session.** Node is installed at `C:\Program Files\nodejs` but is **not on the shell PATH** in either Git Bash or PowerShell. Prefix commands with `export PATH="/c/Program Files/nodejs:$PATH"`, or add it to PATH permanently.
+
+### 1A.2 Architecture
+
+```
+src/
+├── components/
+│   ├── archive/ArchiveIndex.astro      shared holdings index + empty state
+│   ├── home/{Wordmark,EditorialField}.astro
+│   ├── nav/{SiteHeader,SiteFooter}.astro
+│   └── transition/WorldGate.astro
+├── layouts/{BaseLayout,WorldLayout}.astro
+├── pages/                              8 world routes + /lab/*
+├── content/{projects,labs,learning,experiments}/   empty by instruction
+├── content.config.ts                   4 schemas
+├── data/github.snapshot.json           committed fallback
+├── lib/{worlds,github,site}.ts         typed registries, no I/O
+├── scripts/                            client islands only
+└── styles/{tokens,global,fonts,worlds,gate,home,lab}.css
+```
+
+The default is static rendering. Client JavaScript exists only where interaction requires it, and the build proves it: a content world ships **639 bytes** of JS — the gate's exit half, nothing else. Pretext loads on `/` and `/lab/pretext` and nowhere else.
+
+### 1A.3 Build and CI result
+
+| Check | Result |
+|---|---|
+| `astro build` | **Pass** — 11 pages in 0.83 s |
+| `astro check` (33 files) | **Pass** — 0 errors, 0 warnings, 0 hints |
+| `npm audit` | **Pass** — 0 vulnerabilities |
+| CI output verification | **Pass** — 8/8 worlds present, both no-JS fallbacks intact |
+
+CI (`.github/workflows/ci.yml`) runs on `v2` pushes and PRs and deploys nothing. Every step was also executed locally and passes.
+
+Two expected build warnings: the glob loader reports that the four content collections are empty. That is the intended M02 state, not a defect.
+
+### 1A.4 Bundle weight
+
+| Asset | Raw | Gzip | Loaded on |
+|---|---|---|---|
+| Pretext chunk | 44.2 KB | **14.6 KB** | `/` and `/lab/pretext` only |
+| Shared CSS | 10.9 KB | 3.0 KB | every page |
+| World-gate script | 639 B | — | every page |
+| Home HTML | 10.6 KB | 2.7 KB | — |
+
+For comparison, V1 shipped **255 KB of three.js on every page** (R4). Nothing on this branch imports a 3D engine.
+
+### 1A.5 Pretext prototype — measured result
+
+Chrome, this machine, 200 width-queries per pass, 3 repetitions, medians reported. The DOM baseline writes a width and reads `offsetHeight`, which is what forces synchronous layout.
+
+| Measurement | Result |
+|---|---|
+| `prepareWithSegments()` — one-time | **2.8 – 3.5 ms** |
+| Width query, Pretext | **4 – 10 µs** |
+| Width query, forced DOM reflow (in-flow element) | **103 – 192 µs** |
+| **Ratio** | **16 – 26× faster** |
+| **Break-even** | **19 – 34 queries** |
+| Full re-layout including DOM writes, 7 → 21 lines | 100 – 700 µs |
+
+An independent measurement outside the page's own rig gave 3.5 µs vs 102 µs — **29×**, break-even 53 queries — consistent with the above.
+
+**Two numbers that were wrong before they were right,** recorded because they change the conclusion:
+
+1. The first rig measured **1.8×**, which would have failed the kill criterion. It was probing an absolutely-positioned, `visibility: hidden` element. An out-of-flow element invalidates almost nothing, so reflowing it is nearly free. Moving the probe into normal flow moved the result from 1.8× to ~20×. The rig now keeps its probe in flow, and visible, on purpose.
+2. A single benchmark shot varied between 3.4×, 104× and 20× across three consecutive runs, because JIT warm-up and `performance.now()` coarsening both bite hard at microsecond scale. The rig now takes medians.
+
+**Verdict: PROCEED — but not for the reason the performance numbers suggest.**
+
+A 20× speedup on an operation that costs 100 µs is not, by itself, worth a dependency. Home does not query text width thousands of times. The honest justification is **capability, not speed**: per-line variable width. The editorial text is set *around* the wordmark, each line's width supplied by the caller from the wordmark's measured geometry. CSS has no equivalent — `shape-outside` needs a float whose shape is known in advance and cannot take per-line widths from a sibling island — and the hand-rolled alternative costs a forced reflow per probe, which is where the 20× stops being academic.
+
+If that composition is cut at design review, **Pretext should be cut with it.** Without variable-width flow, `text-wrap: pretty` plus a `max-inline-size` produces an equivalent result for free, and this document should then be read as recommending exactly that. The dependency is justified by one specific design decision and is not otherwise load-bearing.
+
+### 1A.6 Custom wordmark prototype — measured result
+
+| Measurement | Result |
+|---|---|
+| Graphemes | 11 |
+| Full layout — one-time, per font load | **400 – 600 µs** |
+| Natural width at 100 px reference | 462.7 px |
+| **Kerning error if ignored** | **2.4 px at a 160 px display size** |
+| Cost per resize | **zero measurement** — pure scale |
+
+Engine size: 130 lines including comments. It is not a typography framework and must not become one.
+
+The 2.4 px figure justifies the cumulative-prefix approach: on a display wordmark that is a visible loosening, and the fix costs about 22 `measureText` calls, once. It is a modest number honestly reported — an earlier version of this comparison claimed 26.4 px by failing to apply the same letter-spacing to both sides, which measured the tracking setting rather than kerning.
+
+**Verdict: PROCEED.** Small, isolated, cheap, and it does the one thing Pretext structurally cannot.
+
+### 1A.7 Performance and accessibility observations
+
+**Performance.** Text measurement happens once per font load in both systems; resize is arithmetic. The pointer response is a compositor-only `translate3d` and never touches layout. No WebGL is used or assumed anywhere — the Home prototype has no 3D path to fall back from. Only the two above-the-fold faces are preloaded; preloading the whole family would compete with the HTML and make the wordmark arrive later, not sooner.
+
+**Accessibility.**
+
+- Both islands are progressive enhancements over complete static HTML. The real `<h1>` and the real paragraph are always in the DOM, are what assistive technology reads, and are hidden only *after* their replacement has actually rendered.
+- Verified in the built output: `<h1 class="wordmark__fallback">` and the full editorial paragraph are present in `dist/index.html`. CI asserts both on every run.
+- Glyph and line layers are `aria-hidden`; the wordmark contributes exactly one `<h1>` to the document.
+- `prefers-reduced-motion` is honoured at the token source, and additionally suppresses the wordmark entrance, the glyph pointer response, the line stagger, and the gate's exit half.
+- The gate is `aria-hidden` — every word it shows is already the page heading — and is `pointer-events: none` even while visible, so it never blocks interaction.
+- The pointer response is skipped entirely on coarse pointers.
+- Skip link, visible focus ring, `aria-current` on the active world, `forced-colors` handling for the hairline system, and a print path that drops the decorative grounds.
+
+**Not yet measured**, deferred to M03 and deliberately not estimated: Lighthouse scores, real-device frame rate, cross-browser verification beyond Chrome, a screen-reader pass, and mobile testing. Animation timing could not be observed in the automation harness at all, because Chrome pauses CSS animations in a backgrounded tab.
+
+### 1A.8 Defects found and fixed during M02
+
+| # | Defect | Resolution |
+|---|---|---|
+| D1 | ResizeObserver oscillation could **hard-freeze the tab**: writing the stage height summons a scrollbar, which narrows the content box, which changes the layout, which removes the scrollbar. Reproduced twice. | Burst guard in the layout engine, plus `scrollbar-gutter: stable` so the oscillation is not created in the first place. |
+| D2 | The field's first composition ran while its stage was `display: none`, measuring 0 wide, leaving the whole layout dependent on a ResizeObserver rescue. Produced one observed page load with zero lines rendered. | Reveal before composing; hide the fallback only once lines exist. |
+| D3 | Benchmark understated Pretext by ~7× via an out-of-flow probe. | Probe moved into normal flow. |
+| D4 | Kerning comparison measured letter-spacing rather than kerning. | Same tracking applied to both sides. |
+| D5 | Wordmark entrance never resolved on touch devices — the settle handler sat inside a function that returns early on coarse pointers. | Handler moved to the mount path. |
+
+### 1A.9 Open decisions for review
+
+1. **Is the archive / drafting-paper direction approved?** Everything downstream depends on it. §9.2 (dark/light toggle) is currently answered "one committed look" — the system ships a single palette. §9.3 (typography) is currently answered "IBM Plex, self-hosted". Both remain proposals.
+2. **Is the per-line variable-width Home composition approved?** This is the sole justification for keeping Pretext (§1A.5). A "no" here should remove the dependency.
+3. **Is the gate copy right?** The eight gate lines in `lib/worlds.ts` are placeholders — the brief supplied them as conceptual examples. The *system* is the deliverable.
+4. **§9.4 content verification session** remains blocking for all copy. Every content collection is empty until it happens.
+5. **§9.5 redirect map** for the six currently-indexed V1 URLs (R10) — still unaddressed, still required before cutover.
+6. **§9.6 rebuild cadence** and **§9.7 YushaCyber destination** — still open from M01.
+
+### 1A.10 Deferred from M02, on purpose
+
+- The gate's exit choreography is a working capability, not a tuned experience.
+- Scroll-driven composition and the wordmark→navigation transition are not implemented. The brief asks that the typography be *capable* of them; committing to specific choreography before design review would be optimising a detail ahead of the direction.
+- GitHub integration is architecture only, as instructed. No workflow, no fetch.
+- `frame-ancestors` cannot be delivered on GitHub Pages — see `docs/SECURITY.md` §4.
+
+### 1A.11 Commits on `v2`
+
+| Hash | Commit |
+|---|---|
+| `f42314e` | docs: document V1 reconnaissance and V2 migration strategy |
+| `4acef43` | build: establish Astro + TypeScript toolchain on a pinned dependency tree |
+| `b34b591` | feat(design): add the archive design system and eight per-world grounds |
+| `35c956e` | feat(architecture): add layouts, the eight-world registry, and content schemas |
+| `2ead831` | feat(home): add the two cooperating typography systems and their prototypes |
+| `420a897` | ci: verify types, build and no-JS fallbacks on the v2 branch |
+
+### 1A.12 How to review this
+
+```bash
+export PATH="/c/Program Files/nodejs:$PATH"   # Node is not on PATH by default
+npm ci
+npm run verify        # astro check && astro build
+npm run dev           # http://localhost:4321
+```
+
+| Route | What to look at |
+|---|---|
+| `/` | The Home prototype, both typography systems live. Resize the window. |
+| `/lab/wordmark` | System A in isolation, with its metrics and its CSS fallback. |
+| `/lab/pretext` | System B in isolation. **Drag the resize handle** on each stage; press *Run benchmark*. |
+| `/cybersecurity` vs `/learning` vs `/github` | Three grounds that differ structurally, not by colour. |
+| `/about` | The deliberately blank record card. |
+
+To check the no-JS path, disable JavaScript and reload `/`. The page must stay complete and readable.
 
 ---
 
@@ -299,9 +482,13 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 ## 11. Test, build and security status
 
-**Build status: N/A — no build system exists.** Nothing to compile; `git push` publishes.
+> **Superseded for V2 by §1A.3.** The section below is the M01 record of V1 and is kept as the historical baseline.
+>
+> V2 status on `v2`: `astro check` 0 errors / 0 warnings across 33 files, `astro build` 11 pages green, `npm audit` 0 vulnerabilities, CI green.
 
-**Automated test status: none exist.** No test runner, no linting, no type checking, no CI. This is the largest process gap and is addressed in §8.5.
+**Build status (V1): N/A — no build system exists.** Nothing to compile; `git push` publishes.
+
+**Automated test status (V1): none exist.** No test runner, no linting, no type checking, no CI. Addressed for V2 in §1A.3.
 
 **Manual smoke test executed 2026-08-20** (Python `http.server` on port 8765, Chrome, 1512x786 viewport, DPR 1.5):
 
@@ -343,11 +530,15 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 ## 12. Known issues
 
-| ID | Issue | Severity |
+**Resolved in M02:** K1 (Node installed, Astro adopted), K2 (`.gitignore` in place), K3 (no CDN, no three.js, CSP shipped), K5 (component architecture), K8/K10/K13 (do not exist in V2), K9 (V2 escapes all interpolation). K4, K6, K7, K11, K12 remain open — K4 until the Actions workflow lands, K6 until the content session, K7 and K12 until cutover.
+
+**Open on `v2`:** gate choreography untuned; scroll-driven composition unimplemented; `frame-ancestors` undeliverable on GitHub Pages; V1 redirect map (R10) still outstanding; cross-browser, mobile and screen-reader verification not yet performed.
+
+| ID | Issue (V1 baseline, M01) | Severity |
 |---|---|---|
-| K1 | No Node.js on the dev machine — blocks any build-based V2 | **Blocking** |
-| K2 | No `.gitignore` — secret/artifact leak risk the moment a build lands | High |
-| K3 | three.js via CDN, no SRI, no CSP, 58% of page weight | High |
+| K1 | No Node.js on the dev machine — blocks any build-based V2 | ~~Blocking~~ **Resolved M02** |
+| K2 | No `.gitignore` — secret/artifact leak risk the moment a build lands | ~~High~~ **Resolved M02** |
+| K3 | three.js via CDN, no SRI, no CSP, 58% of page weight | ~~High~~ **Resolved M02** |
 | K4 | Client-side GitHub API, 60 req/hr/IP shared across visitors | Medium |
 | K5 | HTML boilerplate copy-pasted x6; 161 duplicated lines between two 3D files | Medium |
 | K6 | Unverified biography, timeline and skills copy | Medium |
@@ -380,11 +571,40 @@ git push origin main
 git tag v1-final && git push origin v1-final
 ```
 
-*No npm/pnpm commands exist yet. This section is updated the moment a toolchain is approved (§9.1).*
+**V2 commands (branch `v2`).** Node is installed at `C:\Program Files\nodejs` but is **not on the shell PATH**:
+
+```bash
+export PATH="/c/Program Files/nodejs:$PATH"
+
+npm ci               # install exactly from the committed lockfile
+npm run dev          # http://localhost:4321
+npm run check        # astro check — types across .astro and .ts
+npm run build        # static output to dist/
+npm run verify       # check && build, the same gate CI runs
+npm run preview      # serve dist/
+npm audit
+```
 
 ---
 
-## 14. Next milestone — M02 recommendation
+## 14. Next milestone — M03 recommendation
+
+**M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
+
+Recommended order:
+
+1. **Review the direction on a real URL** — `/`, `/lab/wordmark`, `/lab/pretext`, and three contrasting worlds. Answer §1A.9.1 and §1A.9.2. The Pretext decision is genuinely reversible today and will not be later.
+2. **Run the §9.4 content verification session with Ayush.** It blocks every content world and it is the longest-lead item. It should start before the design conversation finishes, not after.
+3. **Land the GitHub Actions workflow** — the fetch, the generated snapshot, the scheduled cadence (§9.6). The architecture and fallback contract are already in place; only the workflow is missing.
+4. **Build the worlds**, one reviewable milestone each, in the order content becomes verified.
+5. **Then** tune the gate choreography and add scroll-driven composition, once there is more than one world to move between.
+6. **Build the redirect map** (R10) before any cutover discussion.
+
+**M03 exit criteria:** design direction signed off; the Pretext go/no-go confirmed or reversed; content verification complete; GitHub workflow green; at least two full worlds built and reviewed. V1 still live and unmodified throughout.
+
+---
+
+## 14A. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -408,4 +628,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M01. Awaiting architectural review.*
+*End of M02. Awaiting architectural review of the architecture and the Home prototype. Do not proceed to M03 until §1A.9 is answered.*
