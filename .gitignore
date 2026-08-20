@@ -1,0 +1,82 @@
+# ==========================================================================
+#  Dependencies
+# ==========================================================================
+node_modules/
+.pnpm-store/
+.npm/
+jspm_packages/
+
+# ==========================================================================
+#  Build output
+# ==========================================================================
+dist/
+.output/
+.vercel/
+.netlify/
+build/
+
+# ==========================================================================
+#  Astro
+# ==========================================================================
+.astro/
+
+# ==========================================================================
+#  Environment & credentials  — NEVER COMMIT THESE
+#  GitHub tokens live in GitHub Actions secrets only (see docs/SECURITY.md).
+# ==========================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+.npmrc
+.netrc
+
+# ==========================================================================
+#  Caches & tooling
+# ==========================================================================
+.cache/
+.temp/
+.tmp/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+.lighthouseci/
+
+# ==========================================================================
+#  Editors & OS
+# ==========================================================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================================================
+#  Logs
+# ==========================================================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================================================
+#  Generated GitHub data snapshot
+#  The committed fallback snapshot lives at src/data/github.snapshot.json and
+#  IS tracked on purpose (build-time fetch falls back to it). Anything the
+#  build writes at runtime is not.
+# ==========================================================================
+src/data/github.generated.json
