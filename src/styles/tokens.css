@@ -1,0 +1,183 @@
+/* ==========================================================================
+   DESIGN TOKENS — "The Archive"
+   ==========================================================================
+   Design thesis
+   -------------
+   The site is a technical archive: ink printed on drafting paper. Every
+   surface behaves like a document — ruled, registered, numbered, labelled.
+   Nothing glows, nothing floats, nothing blurs. Depth comes from paper
+   weight and hairline rules, never from shadow or glass.
+
+   Explicitly rejected (hard requirement): neon, cyberpunk, purple/cyan
+   gradients, glowing text, glassmorphism, particle fields, matrix rain,
+   floating shapes, ambient decorative motion.
+
+   Token contract
+   --------------
+   1. GLOBAL tokens below are shared by all eight worlds and are immutable.
+      A world may NOT redefine the type scale, the spacing scale, the paper,
+      the ink, or the motion curves. That shared skeleton is what makes eight
+      different worlds read as one site.
+   2. A world overrides ONLY the variables in the WORLD CHANNEL block, by
+      setting them on its own `[data-world="..."]` root. That is four
+      variables. If a world needs a fifth, that is an architecture decision,
+      not a styling decision.
+   3. Components consume semantic variables only. Never hardcode a colour,
+      a size, or a duration in a component rule.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------
+     PAPER & INK
+     A warm, slightly yellowed drafting stock. The greys are all warm —
+     no neutral or cool greys anywhere, they read as "digital UI" instantly.
+     ------------------------------------------------------------------ */
+  --paper: #ece7dc;
+  --paper-raised: #f4f0e8;
+  --paper-recessed: #e2dccf;
+  --paper-edge: #d8d1c1;
+
+  --ink: #1c1a17;
+  --ink-secondary: #4f4a42;
+  --ink-tertiary: #7d766a;
+  --ink-faint: #a49c8d;
+
+  /* Hairlines. The archive is built out of these. */
+  --rule: #c3bcab;
+  --rule-strong: #9a9280;
+  --rule-faint: #d5cec0;
+
+  /* ------------------------------------------------------------------
+     SPOT COLOUR
+     One spot colour, used the way a technical manual uses red: correction
+     marks, registration, the single thing on the sheet that matters.
+     Never as a fill, never as a gradient, never as a glow.
+     ------------------------------------------------------------------ */
+  --spot: #9c3016;
+  --spot-ink: #f4f0e8;
+  --spot-wash: rgba(156, 48, 22, 0.08);
+
+  /* Structural blue, for blueprint linework only. Never for text. */
+  --blueprint: #2f4858;
+  --blueprint-wash: rgba(47, 72, 88, 0.07);
+
+  /* ------------------------------------------------------------------
+     WORLD CHANNEL
+     The only four variables a world may override. Defaults = HOME.
+     ------------------------------------------------------------------ */
+  --world-accent: var(--spot);
+  --world-accent-wash: var(--spot-wash);
+  --world-grid: var(--blueprint-wash);
+  --world-rule-weight: 1px;
+
+  /* ------------------------------------------------------------------
+     TYPEFACES
+     ------------------------------------------------------------------ */
+  --font-display: 'IBM Plex Sans Condensed', 'Helvetica Neue Condensed',
+    'Arial Narrow', system-ui, sans-serif;
+  --font-text: 'IBM Plex Serif', 'Iowan Old Style', 'Palatino Linotype',
+    Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas,
+    monospace;
+
+  /* ------------------------------------------------------------------
+     TYPE SCALE
+     A printed scale, not a UI scale. Ratio ~1.26 (a slow, editorial
+     progression), clamped for fluidity between 360px and 1440px.
+     ------------------------------------------------------------------ */
+  --step--2: clamp(0.68rem, 0.66rem + 0.10vw, 0.74rem);
+  --step--1: clamp(0.79rem, 0.76rem + 0.14vw, 0.88rem);
+  --step-0: clamp(1rem, 0.96rem + 0.18vw, 1.09rem);
+  --step-1: clamp(1.25rem, 1.18rem + 0.34vw, 1.45rem);
+  --step-2: clamp(1.56rem, 1.44rem + 0.6vw, 1.94rem);
+  --step-3: clamp(1.95rem, 1.75rem + 1vw, 2.58rem);
+  --step-4: clamp(2.44rem, 2.11rem + 1.63vw, 3.44rem);
+  --step-5: clamp(3.05rem, 2.53rem + 2.6vw, 4.58rem);
+
+  --leading-tight: 1.08;
+  --leading-snug: 1.3;
+  --leading-text: 1.62;
+
+  /* Letterspacing. Archival labels are always tracked out. */
+  --tracking-label: 0.16em;
+  --tracking-tight: -0.015em;
+
+  /* ------------------------------------------------------------------
+     SPACING — 4px base, printed rhythm
+     ------------------------------------------------------------------ */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2.25rem;
+  --space-xl: 3.5rem;
+  --space-2xl: 5.5rem;
+  --space-3xl: 8rem;
+
+  /* ------------------------------------------------------------------
+     MEASURE & GRID
+     ------------------------------------------------------------------ */
+  --measure: 66ch;
+  --sheet-max: 82.5rem;
+  --sheet-gutter: clamp(1.25rem, 0.9rem + 1.8vw, 3rem);
+  --grid-columns: 12;
+  --grid-gap: clamp(1rem, 0.6rem + 1.4vw, 1.75rem);
+
+  /* Baseline unit the whole archive snaps to. */
+  --baseline: 0.5rem;
+
+  /* ------------------------------------------------------------------
+     MOTION
+     Mechanical, not organic. Things move the way a plotter arm or a
+     card-catalogue drawer moves: decisive start, hard settle, no bounce,
+     no float, no easing that implies weightlessness.
+     ------------------------------------------------------------------ */
+  --ease-plot: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --ease-drawer: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-step: steps(12, end);
+
+  --dur-instant: 90ms;
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 560ms;
+  --dur-plate: 900ms;
+
+  /* Every animated property in the system reads its duration through one of
+     these. The reduced-motion block below zeroes them at the source, so no
+     component has to remember to opt in. */
+  --motion-scale: 1;
+
+  --radius: 0px; /* The archive has no rounded corners. This is deliberate. */
+  --focus-ring: 2px solid var(--spot);
+  --focus-offset: 3px;
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Zeroed at the token source, so a component cannot forget to respect it.
+   Motion is removed; nothing is hidden and no content depends on it.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-plate: 1ms;
+  }
+}
+
+/* ==========================================================================
+   FORCED COLOURS (Windows High Contrast)
+   Hairline rules are the whole visual system, so they must survive.
+   ========================================================================== */
+@media (forced-colors: active) {
+  :root {
+    --rule: CanvasText;
+    --rule-strong: CanvasText;
+    --rule-faint: CanvasText;
+    --world-accent: LinkText;
+  }
+}

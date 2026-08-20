@@ -1,0 +1,125 @@
+/* ==========================================================================
+   SECTION TRANSITION — the world gate
+   ==========================================================================
+   Crossing between worlds is announced, the way a reading room announces
+   which collection you have walked into. Two lines: the archival
+   classification, then the act of entering.
+
+   FAIL-SAFE BY CONSTRUCTION. The gate's *unanimated* state is `hidden`. The
+   entrance animation runs from visible to hidden, not the other way round. So
+   if animations are disabled, unsupported, or throw, the resolved state is
+   "gate gone, content visible" — never "content trapped behind an overlay".
+   That inversion is the whole reason this file is written this way.
+   ========================================================================== */
+
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-2xs);
+  padding-inline: var(--sheet-gutter);
+
+  background-color: var(--paper);
+  /* Resting state = finished state. See the note above. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.gate__rule {
+  inline-size: min(100%, 22rem);
+  border: 0;
+  border-block-start: 1px solid var(--world-accent);
+}
+
+.gate__title {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--world-accent);
+}
+
+.gate__enter {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: var(--leading-tight);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Entering: the plate is already up when the document paints, then lifts. */
+  .gate {
+    animation: gate-lift var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  .gate__title,
+  .gate__enter {
+    animation: gate-line var(--dur-slow) var(--ease-plot) backwards;
+  }
+
+  .gate__enter {
+    animation-delay: 60ms;
+  }
+
+  /* Leaving: driven by world-gate.ts, which waits for `animationend`. */
+  .gate[data-state='leaving'] {
+    animation: gate-drop var(--dur-base) var(--ease-drawer) forwards;
+  }
+}
+
+@keyframes gate-lift {
+  /* The hold is short on purpose. The gate is a transition, not a splash
+     screen, and it sits over content that has already painted. */
+  0%,
+  40% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    /* Wipes upward like a drawn blind, rather than fading. A fade reads as a
+       loading state; a wipe reads as a mechanism. */
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes gate-drop {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes gate-line {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .gate {
+    display: none;
+  }
+}

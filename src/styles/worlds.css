@@ -1,0 +1,214 @@
+/* ==========================================================================
+   THE EIGHT GROUNDS
+   ==========================================================================
+   Each world is printed on a different *stock*, not painted a different
+   colour. The brief forbids "simply give every section a different background
+   colour", so what changes between worlds here is geometry: the ruling of the
+   paper, the register marks in the margin, the weight of the hairlines.
+
+   The ink, the paper and the type scale never change. That shared skeleton is
+   what makes eight worlds read as one archive.
+
+   Each block sets ONLY the four world-channel variables from tokens.css, plus
+   the ground pattern itself. Anything beyond that is an architecture decision.
+   ========================================================================== */
+
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--paper);
+}
+
+/* --------------------------------------------------------------------------
+   HOME — blueprint module. The registration grid of the whole archive; every
+   other world's geometry is a variation on this 4rem module.
+   -------------------------------------------------------------------------- */
+[data-world='home'] .ground {
+  background-image: linear-gradient(
+      to right,
+      var(--world-grid) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%);
+  background-size: 4rem 4rem;
+}
+
+/* --------------------------------------------------------------------------
+   ABOUT — catalogue-card ruling. Horizontal lines only, at the baseline
+   rhythm, the way a library index card is ruled for handwriting.
+   -------------------------------------------------------------------------- */
+[data-world='about'] {
+  --world-accent: #5c4630;
+  --world-accent-wash: rgba(92, 70, 48, 0.08);
+  --world-grid: rgba(92, 70, 48, 0.09);
+}
+
+[data-world='about'] .ground {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0 calc(2rem - 1px),
+    var(--world-grid) calc(2rem - 1px) 2rem
+  );
+  background-size: 100% 2rem;
+}
+
+/* --------------------------------------------------------------------------
+   PROJECTS — engineering drawing sheet. A coarse module with fine
+   subdivisions inside it, the way a drafting sheet is prepared before a
+   drawing goes down.
+   -------------------------------------------------------------------------- */
+[data-world='projects'] {
+  --world-accent: var(--blueprint);
+  --world-accent-wash: var(--blueprint-wash);
+  --world-grid: rgba(47, 72, 88, 0.08);
+  --world-rule-weight: 1.5px;
+}
+
+[data-world='projects'] .ground {
+  background-image:
+    /* coarse module */
+    linear-gradient(to right, var(--world-grid) 0 1px, transparent 1px 100%),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%),
+    /* fine subdivision */
+      linear-gradient(
+        to right,
+        var(--blueprint-wash) 0 1px,
+        transparent 1px 100%
+      ),
+    linear-gradient(to bottom, var(--blueprint-wash) 0 1px, transparent 1px 100%);
+  background-size: 8rem 8rem, 8rem 8rem, 1rem 1rem, 1rem 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   AI LAB — punch-card perforation. A dot matrix on the card pitch, the
+   machine room's own paper.
+   -------------------------------------------------------------------------- */
+[data-world='ai'] {
+  --world-accent: #4a5c3a;
+  --world-accent-wash: rgba(74, 92, 58, 0.08);
+  --world-grid: rgba(74, 92, 58, 0.16);
+}
+
+[data-world='ai'] .ground {
+  background-image: radial-gradient(
+    circle at center,
+    var(--world-grid) 0 1px,
+    transparent 1.5px
+  );
+  background-size: 1.5rem 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   CYBERSECURITY — the classified folder. No ruling at all: bare stock with
+   heavy register bars top and bottom. The absence of a grid is the effect —
+   this world is the one that will not tell you how it is organised.
+   -------------------------------------------------------------------------- */
+[data-world='cybersecurity'] {
+  --world-accent: #8a5a10;
+  --world-accent-wash: rgba(138, 90, 16, 0.09);
+  --world-grid: transparent;
+  --world-rule-weight: 2px;
+}
+
+[data-world='cybersecurity'] .ground {
+  background-color: var(--paper-recessed);
+  background-image: linear-gradient(
+      to bottom,
+      var(--ink) 0 var(--space-3xs),
+      transparent var(--space-3xs)
+    ),
+    linear-gradient(
+      to top,
+      var(--ink) 0 var(--space-3xs),
+      transparent var(--space-3xs)
+    );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* --------------------------------------------------------------------------
+   LEARNING — laboratory graph paper. A fine grid with every fifth line
+   emphasised, exactly as squared notebook paper is printed.
+   -------------------------------------------------------------------------- */
+[data-world='learning'] {
+  --world-accent: #2f4858;
+  --world-accent-wash: rgba(47, 72, 88, 0.08);
+  --world-grid: rgba(47, 72, 88, 0.16);
+}
+
+[data-world='learning'] .ground {
+  background-image:
+    /* emphasised every 5th */
+    linear-gradient(to right, var(--world-grid) 0 1px, transparent 1px 100%),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%),
+    /* fine ruling */
+      linear-gradient(
+        to right,
+        var(--blueprint-wash) 0 1px,
+        transparent 1px 100%
+      ),
+    linear-gradient(to bottom, var(--blueprint-wash) 0 1px, transparent 1px 100%);
+  background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, 0.5rem 0.5rem, 0.5rem 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   GITHUB — ledger tabulation. Vertical column rules only, the way accounting
+   stock is ruled before anything is entered in it.
+   -------------------------------------------------------------------------- */
+[data-world='github'] {
+  --world-accent: #40484f;
+  --world-accent-wash: rgba(64, 72, 79, 0.08);
+  --world-grid: rgba(64, 72, 79, 0.1);
+}
+
+[data-world='github'] .ground {
+  background-image: linear-gradient(
+    to right,
+    var(--world-grid) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: 6rem 100%;
+}
+
+/* --------------------------------------------------------------------------
+   CONTACT — teletype stock. Sprocket perforations down both margins and
+   nothing in between, because the channel is the message.
+   -------------------------------------------------------------------------- */
+[data-world='contact'] {
+  --world-accent: var(--spot);
+  --world-accent-wash: var(--spot-wash);
+  --world-grid: rgba(28, 26, 23, 0.14);
+}
+
+[data-world='contact'] .ground {
+  background-image: radial-gradient(
+      circle at 1.25rem 50%,
+      var(--world-grid) 0 3px,
+      transparent 3.5px
+    ),
+    radial-gradient(
+      circle at calc(100% - 1.25rem) 50%,
+      var(--world-grid) 0 3px,
+      transparent 3.5px
+    );
+  background-size: 100% 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   The ground is decoration. At these contrast levels the patterns are already
+   near-invisible, but in forced-colours mode they would be promoted to
+   CanvasText and become noise over the content. Remove them outright.
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .ground {
+    background-image: none;
+  }
+}
+
+@media print {
+  .ground {
+    display: none;
+  }
+}

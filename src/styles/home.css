@@ -1,0 +1,160 @@
+/* ==========================================================================
+   HOME — the wordmark and the editorial field
+   ==========================================================================
+   These rules are GLOBAL rather than component-scoped for a specific reason:
+   `.wordmark__glyph` and `.field__line` elements are created by JavaScript at
+   runtime, so they never receive Astro's scoped-style attribute. Scoped rules
+   would silently not apply to them. Anything the islands generate must be
+   styled from here.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   SYSTEM A — the wordmark
+   -------------------------------------------------------------------------- */
+
+.wordmark {
+  container-type: inline-size;
+}
+
+/* The no-JS wordmark, and the accessible heading in every case. Styled to be
+   the real thing, not a placeholder: if the island never boots, this is what
+   the visitor sees, and it has to be good. */
+.wordmark__fallback {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3rem, 15.5cqi, 14rem);
+  line-height: 0.86;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.wordmark__glyphs {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--wm-size, 1rem);
+  line-height: 1;
+  letter-spacing: normal; /* tracking is already baked into the x positions */
+  color: var(--ink);
+}
+
+.wordmark__glyph {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--gx) * var(--wm-width, 0px));
+  /* Compositor-only. The pointer response must never touch layout — this is
+     the property that keeps a per-glyph effect off the main thread's critical
+     path on low-end hardware. */
+  transform: translate3d(0, calc(var(--glift, 0) * -1em), 0);
+  transition: transform var(--dur-fast) var(--ease-plot);
+  white-space: pre;
+}
+
+/* The entrance: each glyph is struck into place, in reading order, the way a
+   typebar hits the platen. Hard settle, no bounce, no float. */
+.wordmark__glyphs[data-state='entering'] .wordmark__glyph {
+  animation: wm-strike var(--dur-base) var(--ease-plot) backwards;
+  animation-delay: calc(var(--gi) * 42ms);
+}
+
+@keyframes wm-strike {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -0.14em, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmark__glyph {
+    transition: none;
+  }
+
+  .wordmark__glyphs[data-state='entering'] .wordmark__glyph {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   SYSTEM B — the Pretext editorial field
+   -------------------------------------------------------------------------- */
+
+.field__source {
+  font-family: var(--font-text);
+  font-size: var(--step-1);
+  line-height: 1.5;
+  max-inline-size: none;
+}
+
+/* The laid-out stage inherits the *exact* typography the source paragraph has,
+   because that is what Pretext measured. Any divergence between these two
+   declarations shows up as mis-wrapped lines, so they are kept adjacent. */
+.field__stage {
+  position: relative;
+  font-family: var(--font-text);
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.field__line {
+  position: absolute;
+  inset-block-start: var(--ly, 0);
+  inset-inline-start: var(--lx, 0);
+  white-space: pre;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .field__line {
+    animation: field-set var(--dur-base) var(--ease-plot) backwards;
+    /* Capped so a long block does not take seconds to finish setting. */
+    animation-delay: calc(min(var(--li), 14) * 28ms);
+  }
+}
+
+@keyframes field-set {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The hero composition
+   -------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  padding-block: var(--space-2xl) var(--space-xl);
+}
+
+.hero__wordmark {
+  inline-size: 100%;
+}
+
+.hero__field {
+  margin-block-start: var(--space-l);
+}
+
+/* At this width the wordmark moves out of the flow and the editorial text is
+   set *around* it. Below it, the two simply stack — a narrow column has no
+   room for an exclusion, and forcing one would produce two-word lines. */
+@media (min-width: 60rem) {
+  .hero__wordmark {
+    position: absolute;
+    inset-block-start: var(--space-2xl);
+    inset-inline-start: 0;
+    inline-size: min(52%, 40rem);
+  }
+
+  .hero__field {
+    margin-block-start: 0;
+    padding-block-start: var(--space-3xs);
+  }
+}

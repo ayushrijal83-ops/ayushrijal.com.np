@@ -1,0 +1,220 @@
+/* ==========================================================================
+   GLOBAL — reset, base typography, and the shared archive primitives.
+   Loaded on every page. Consumes tokens.css only; defines no raw colours.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-block-start: var(--space-xl);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+
+ol[role='list'],
+ul[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+img,
+picture,
+svg,
+video,
+canvas {
+  display: block;
+  max-inline-size: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+:where(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--step-0);
+  line-height: var(--leading-text);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  min-block-size: 100vh;
+
+  /* The paper substrate is painted by `.ground` (styles/worlds.css), a single
+     fixed layer behind the content. Keeping it off `body` means the pattern
+     does not scroll, does not repaint on every scroll frame, and can differ
+     per world without any component knowing which world it is in. */
+}
+
+/* --------------------------------------------------------------------------
+   Typographic roles
+   -------------------------------------------------------------------------- */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+.t-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.t-text {
+  font-family: var(--font-text);
+  max-inline-size: var(--measure);
+}
+
+.t-text + .t-text {
+  margin-block-start: var(--space-s);
+}
+
+/* The archival label. Every plate, figure, sheet and reference number on the
+   site uses this one role — it is the connective tissue between the worlds. */
+.t-label {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.t-meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Archive primitives
+   -------------------------------------------------------------------------- */
+
+/* The sheet: the printed page every world composes onto. */
+.sheet {
+  inline-size: min(100% - (var(--sheet-gutter) * 2), var(--sheet-max));
+  margin-inline: auto;
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+/* Hairline rule. The single most-used mark in the system. */
+.rule {
+  border: 0;
+  border-block-start: var(--world-rule-weight) solid var(--rule);
+  margin: 0;
+}
+
+.rule--strong {
+  border-block-start-color: var(--rule-strong);
+}
+
+.rule--faint {
+  border-block-start-color: var(--rule-faint);
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+.visually-hidden:not(:focus):not(:active) {
+  clip-path: inset(50%);
+  block-size: 1px;
+  inline-size: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--space-2xs);
+  inset-inline-start: var(--space-2xs);
+  z-index: 100;
+  background-color: var(--ink);
+  color: var(--paper);
+  padding: var(--space-2xs) var(--space-s);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Progressive enhancement
+   Anything that only makes sense once its island has booted is hidden until
+   the script marks it ready. Every such element MUST have a no-JS fallback
+   sibling — see Wordmark.astro for the pattern.
+   -------------------------------------------------------------------------- */
+[data-enhanced='pending'] {
+  display: none;
+}

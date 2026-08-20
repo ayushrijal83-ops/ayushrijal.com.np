@@ -1,0 +1,159 @@
+/* ==========================================================================
+   PROTOTYPE LAB
+   ==========================================================================
+   Instrument styling, not design. These pages are a measuring rig; they are
+   deliberately plain so nothing about the visual treatment flatters or
+   disguises the result. They are `noindex` and are not linked from the site.
+   ========================================================================== */
+
+.lab {
+  padding: var(--space-l) var(--sheet-gutter) var(--space-3xl);
+  max-inline-size: 74rem;
+  margin-inline: auto;
+}
+
+.lab__title {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.lab__intro {
+  max-inline-size: var(--measure);
+  margin-block-start: var(--space-s);
+  color: var(--ink-secondary);
+}
+
+.lab__section {
+  margin-block-start: var(--space-2xl);
+}
+
+.lab__h {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--spot);
+  padding-block-end: var(--space-2xs);
+  border-block-end: 1px solid var(--rule);
+}
+
+.lab__note {
+  max-inline-size: var(--measure);
+  margin-block-start: var(--space-s);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+/* The resizable stage. `resize` gives a real, continuous width change driven
+   by the pointer — a far better test than stepping through fixed breakpoints. */
+.lab__stage {
+  margin-block-start: var(--space-m);
+  padding: var(--space-m);
+  border: 1px solid var(--rule-strong);
+  background-color: var(--paper-raised);
+  resize: horizontal;
+  overflow: auto;
+  /* Reserve the scrollbar gutter permanently. Without this, a stage that grows
+     tall enough to scroll narrows its own content box, which changes the line
+     layout, which changes the height again. The engine's oscillation guard
+     catches that, but not creating the oscillation is better than surviving
+     it. */
+  scrollbar-gutter: stable;
+  min-inline-size: 18rem;
+  max-inline-size: 100%;
+  inline-size: 100%;
+}
+
+.lab__readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-s);
+  margin-block-start: var(--space-m);
+  padding-block: var(--space-s);
+  border-block: 1px solid var(--rule);
+}
+
+.lab__metric dt {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.lab__metric dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab__button {
+  margin-block-start: var(--space-m);
+  padding: var(--space-2xs) var(--space-m);
+  border: 1px solid var(--ink);
+  background-color: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.lab__button:hover {
+  background-color: var(--spot);
+  border-color: var(--spot);
+}
+
+.lab__compare {
+  display: grid;
+  gap: var(--space-m);
+  margin-block-start: var(--space-m);
+}
+
+@media (min-width: 56rem) {
+  .lab__compare {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lab__panel {
+  padding: var(--space-m);
+  border: 1px solid var(--rule);
+}
+
+.lab__panel > h3 {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+  margin-block-end: var(--space-s);
+}
+
+/* The benchmark probe is deliberately IN NORMAL FLOW and visible.
+   An out-of-flow probe invalidates almost nothing, so reflowing it is nearly
+   free and the comparison flatters the DOM by roughly 7x. Keeping it in flow,
+   with siblings above and below it, is what makes the number honest. */
+.lab__probe {
+  margin-block-start: var(--space-s);
+  padding: var(--space-s);
+  border: 1px dashed var(--rule-strong);
+  font-size: var(--step--1);
+  color: var(--ink-tertiary);
+  max-inline-size: 100%;
+}
+
+.lab__list {
+  margin-block-start: var(--space-s);
+  padding-inline-start: var(--space-m);
+  max-inline-size: var(--measure);
+  color: var(--ink-secondary);
+}
+
+.lab__list li + li {
+  margin-block-start: var(--space-2xs);
+}
