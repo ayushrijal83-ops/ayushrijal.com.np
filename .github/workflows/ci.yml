@@ -35,28 +35,15 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Type check
-        run: npm run check
-
-      - name: Build
-        run: npm run build
-
-      # Guards the two things most likely to regress quietly: a page silently
-      # disappearing from the eight-world IA, and the no-JS fallback content
-      # being removed from the static HTML.
-      - name: Verify build output
-        run: |
-          set -euo pipefail
-          for page in index about projects ai cybersecurity learning github contact; do
-            path="dist/${page}/index.html"
-            [ "$page" = "index" ] && path="dist/index.html"
-            test -f "$path" || { echo "MISSING: $path"; exit 1; }
-          done
-          grep -q '<h1 class="wordmark__fallback"' dist/index.html \
-            || { echo "Home lost its no-JS wordmark heading"; exit 1; }
-          grep -q 'data-editorial-source' dist/index.html \
-            || { echo "Home lost its no-JS editorial text"; exit 1; }
-          echo "All 8 worlds built; no-JS fallbacks intact."
+      # `npm run verify` = astro check + astro build + scripts/verify-output.mjs.
+      # CI runs the exact command a developer runs locally, so the two can
+      # never drift: the assertions live in the script, not in this file.
+      # What the script guards is documented at the top of it — briefly: a page
+      # silently vanishing from the eight-world IA, the no-JS fallback content
+      # being dropped from the static HTML, an inline script the CSP would kill
+      # at runtime with no build error, and any third-party origin.
+      - name: Verify
+        run: npm run verify
 
       - name: Audit dependencies
         run: npm audit --audit-level=high

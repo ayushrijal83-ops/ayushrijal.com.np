@@ -12,7 +12,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "verify": "astro check && astro build",
+    "verify": "astro check && astro build && node scripts/verify-output.mjs",
+    "verify:output": "node scripts/verify-output.mjs",
     "astro": "astro"
   },
   "dependencies": {

@@ -23,6 +23,36 @@ export default defineConfig({
     format: 'directory',
     inlineStylesheets: 'auto',
   },
+
+  vite: {
+    build: {
+      /**
+       * Never inline a script; always emit an external module.
+       *
+       * Astro inlines any client script whose bundled chunk is under 4 KB.
+       * Our Content-Security-Policy is `script-src 'self'`, which blocks
+       * inline scripts outright — so a small script is silently dropped by the
+       * browser with no build error and nothing visible to the author. The
+       * page just does nothing. That cost real debugging time on
+       * /lab/viewports during M03-B.
+       *
+       * Weakening the CSP with 'unsafe-inline' would "fix" it and defeat the
+       * point of having one. Fixing it here means the policy and the output
+       * cannot disagree, for any page anyone adds later.
+       *
+       * This must live under `vite.build`, not `build`: Astro's script and
+       * style plugins read the limit from the resolved VITE config in
+       * `configResolved`, so an `assetsInlineLimit` set on Astro's own `build`
+       * object is silently ignored. `npm run verify` asserts the result rather
+       * than trusting this comment.
+       *
+       * Returning `undefined` for everything else keeps the default 4 KB
+       * behaviour for stylesheets and assets, which the CSP does permit.
+       */
+      assetsInlineLimit: (filePath) =>
+        filePath.endsWith('.js') ? false : undefined,
+    },
+  },
   devToolbar: {
     enabled: false,
   },
