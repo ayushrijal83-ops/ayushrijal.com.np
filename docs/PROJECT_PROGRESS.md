@@ -22,11 +22,14 @@
 |---|---|---|---|
 | M01 | Reconnaissance & technical assessment | **Complete** | §2–§10 below. No production code touched. |
 | M02 | Foundation & Pretext prototype | **Complete** | §1A below. Awaiting review. |
-| M03 | Design review, world build-out, transition choreography | Blocked | Needs sign-off on §1A.9 |
+| M03-B | Home world implementation | **Complete** | §1B below. Awaiting review. |
+| M03 | Remaining world build-out, transition choreography | Blocked | Needs sign-off on §1A.9 and §1B.10 |
 | M04 | Content verification + GitHub Actions integration | Blocked | Needs the §9.4 content session |
 | M05+ | Remaining section worlds, redirects, cutover | Not started | |
 
 **M01 scope compliance:** no files deleted, no UI replaced, no dependencies installed, no Pretext implementation.
+
+**M03-B scope compliance:** Home only. V1 remains byte-identical, `main` is unmodified, nothing is merged. No other world was implemented, no CDN or third-party runtime origin was added, and the CSP was not weakened. See §1B.11.
 
 **M02 scope compliance:** V1 is untouched — every V1 file (`index.html`, `css/`, `js/`, `assets/`, `CNAME`) is byte-identical on this branch, `main` is unmodified, and nothing has been merged. No unverified content was migrated. No page beyond the eight approved routes was built. No animation library, WebGL scene or particle system was added.
 
@@ -210,6 +213,290 @@ npm run dev           # http://localhost:4321
 | `/about` | The deliberately blank record card. |
 
 To check the no-JS path, disable JavaScript and reload `/`. The page must stay complete and readable.
+
+---
+
+## 1B. M03-B — Home world implementation
+
+Home is built as a complete vertical slice: one world, its entrance, its
+typography, its responsive redesign and its no-JS path. The other seven worlds
+are deliberately untouched — they still render their M02 placeholder shells.
+
+### 1B.1 The headline decision — Pretext is removed from Home
+
+M02 selected Pretext for one specific job, and the M03-B brief scoped its
+licence precisely: *"Pretext is justified ONLY by the variable-width multiline
+typography composition… If the variable-width composition is removed during
+implementation, REMOVE PRETEXT as a dependency."*
+
+Instrumenting the live composition retired that justification:
+
+```json
+{ "lineCount": 3, "textBandBottom": 104.4, "blockHeight": 241,
+  "linesBelowBlock": 0, "charCount": 84 }
+```
+
+84 characters set to three lines, occupying 104px inside a 241px masthead
+block, with **zero lines falling below the block**. Every line is therefore
+laid at the same width. A "variable-width" layout with exactly one width is not
+a variable-width layout, and the whole case for the dependency rested on it.
+
+What replaced it:
+
+| Was doing | Now done by |
+|---|---|
+| Wrapping text around the masthead | `float: inline-start` + `display: flow-root` |
+| Killing the `"work."` orphan | `text-wrap: balance` |
+| Measuring the exclusion in JS | Nothing — the browser does it during layout |
+
+The CSS version is better on the merits, not merely cheaper. The float works
+with JavaScript disabled, where the Pretext field could not; it reflows during
+layout rather than after it, so it cannot contribute to CLS; and `flow-root`
+makes the hero reserve the masthead's real height, which fixed an overlap bug
+the absolutely-positioned version had.
+
+**Result on Home's payload:** ~15 KB gzip of Pretext → **2.7 KB gzip total**
+(WorldLayout 486 B + index 122 B + motion 364 B + wordmark 1767 B).
+
+Pretext, `EditorialField.astro` and `/lab/pretext` are all **retained**, moved
+under `src/components/lab/`. They are the evidence behind this call and cost
+Home nothing: the 15 KB is now reachable only from `/lab/pretext`. If the
+architect disagrees with the reading, the composition can be restored from the
+lab in one commit. If the architect agrees, deleting the dependency is a
+one-line change to `package.json`.
+
+### 1B.2 Content — structurally impossible to embellish
+
+Every factual claim on Home resolves through `src/lib/profile.ts`, a single
+frozen object holding the approved identity content verbatim. No component
+contains a biographical string literal. The build asserts the philosophy
+sentence survives into the shipped HTML (`scripts/verify-output.mjs`).
+
+The five motivation statements are **stored but not rendered**. They are
+about-page material, and Home is not the place to spend them.
+
+Nothing was invented: no achievements, employers, degrees, certifications,
+clients, awards, skills or experience beyond the approved list.
+
+### 1B.3 The composition
+
+| Band | What it is |
+|---|---|
+| Sheetmark | `AR-00 · GENERAL ARCHIVE` / `SHEET 1 OF 1` — the sheet identifies itself |
+| Hero | The wordmark, the identity list, and the about statement flowed beside it |
+| Fig. 01 — Method | The philosophy as a four-stage process diagram with a return path |
+| Record | An engineering title block: status, current learning, subjects |
+| Contents | The archive's table of contents, generated from `WORLDS` |
+
+The philosophy is set as a **diagram**, not a slogan: four numbered stages
+(01 BUILD → 02 EXPERIMENT → 03 BREAK → 04 LEARN) over a return rule reading
+`RETURNS TO 01`, with the approved sentence beneath as a figure caption. It is
+a cycle, which is what the sentence describes, and the drawing says so before
+the sentence is read.
+
+### 1B.4 The entrance
+
+`OPENING ARCHIVE → DRAFTING TABLE → TYPOGRAPHY COMPOSES → NAME REVEALS →
+INTERACTIVE`, staged from five tokens in `tokens.css`:
+
+| Token | ms | Stage |
+|---|---|---|
+| `--enter-marks` | 160 | Registration marks find the four corners |
+| `--enter-rules` | 300 | Rules are drawn (`scaleX`) |
+| `--enter-type` | 440 | Glyphs are struck in reading order, 42ms apart |
+| `--enter-body` | 620 | The standfirst and identity are set |
+| `--enter-index` | 760 | The figure, record and contents are filed in |
+
+No fade-and-scale-and-blur anywhere. The gate opens centre-out on a `clip-path`
+like a sheet being registered onto a board.
+
+**Fail-safe by inversion.** Every entrance animation uses
+`animation-fill-mode: backwards`, so the *unanimated* state is the *finished*
+state. Verified rather than asserted: with `animation: none !important` and
+`transition: none !important` forced onto every element and pseudo-element,
+all nine animated selectors report `opacity: 1`, no `transform`, no
+`translate`, and `document.getAnimations()` reports zero running. A dropped
+stylesheet, a paused tab or a reduced-motion preference cannot strand content
+at `opacity: 0`.
+
+### 1B.5 The transition architecture (built once, used once)
+
+`Entrance` is a union of eight kinds in `worlds.ts`, one per world, selected
+by `[data-gate-kind]` on a shared gate component. Only `register` — Home's —
+is implemented. The other seven are declared and fall through to the base gate,
+which is a complete entrance in its own right, not a stub.
+
+Adding a world's entrance later is a CSS block keyed on its kind. It is not a
+new component and not a new script. Per the brief, **no other world was built.**
+
+### 1B.6 Responsive — three compositions, not one shrunk
+
+`/lab/viewports` renders a route at all seven matrix sizes at once in
+same-origin iframes, so media queries resolve against a real viewport. It
+exists because Chrome will not resize a window below ~500px.
+
+| Width | Wordmark | Method figure | About statement |
+|---|---|---|---|
+| ≥ 1280px | One line | Four across | Flowed beside the masthead |
+| 768–1279px | One line | Two-up, two rows | Beneath, full measure |
+| < 768px | Stacked `Ayush` / `Rijal` | Vertical numbered list | Beneath, full measure |
+
+Measured at every matrix size — 1920×1080, 1440×900, 1366×768, 1024×768,
+768×1024, 390×844, 375×812 — with **zero horizontal overflow** at all seven.
+
+### 1B.7 Defects found and fixed during M03-B
+
+1. **`"AR-00 · ARCHIVE AR-00"`** — the sheetmark prints `ref · gateTitle`, and
+   `gateTitle` had been changed to include the ref. Reverted.
+2. **Stranded leading middot** — the identity list wrapped mid-list. It is now
+   a stacked grid at every width, with no `li + li::before` separator.
+3. **Masthead overlapped the next section** — an absolutely-positioned hero
+   block reserves no height. `float: inline-start` + `display: flow-root`.
+4. **About statement pushed below the float** — a `max-inline-size: 30ch` box
+   was narrower than the space beside the float, so no line box fit. Removed
+   the cap in the wide band.
+5. **Viewport harness iframes stayed blank.** The real cause was two layers
+   deep: Astro inlines any client script bundling under 4 KB, and the CSP is
+   `script-src 'self'`, which drops inline scripts **silently** — no build
+   error, no console error, the page simply does nothing. The first fix
+   attempt set `build.assetsInlineLimit`, which Astro ignores: its script
+   plugin reads the limit from the resolved *Vite* config. Correct fix is
+   `vite.build.assetsInlineLimit`. Weakening the CSP to `'unsafe-inline'`
+   would also have "worked" and was rejected. `npm run verify` now asserts no
+   inline script exists in any page, because the failure is invisible and easy
+   to reintroduce.
+6. **`"2026 ·github"` in the colophon** — Astro's `compressHTML` collapses a
+   newline between text and an element to nothing. The separator is now the
+   expression `{' · '}`, which cannot be collapsed.
+7. **"EXPERIMENT" overlapped "BREAK" between 768px and 1279px.** Four grid
+   tracks were narrower than the widest verb, and text overflows a grid track
+   silently. Measured: the verb sets 5.63em wide and needs ~1230px of sheet
+   before a quarter-width track holds it. Fixed with a two-up band, and
+   `overflow-wrap: anywhere` as insurance so a wider fallback face breaks a
+   word rather than overlapping a neighbour.
+8. **Eighteen WCAG AA contrast failures.** `--ink-tertiary` measured 3.65:1 and
+   `--ink-faint` 2.21:1 against `--paper` — both set by eye. They carry the
+   figure glosses, the contents summaries, the title-block labels and the
+   sheetmark, so a large share of the page's actual reading matter was below
+   AA. Both were re-derived at constant hue and saturation to sit at 5.45:1 and
+   4.62:1. Re-measured: 67 text elements, **zero failures, minimum 4.62:1**.
+
+### 1B.8 Verification — what was measured
+
+Run `npm run verify` (CI runs the identical command).
+
+**Build:** `astro check` — 0 errors, 0 warnings, 0 hints across 40 files.
+`astro build` — 12 pages. `scripts/verify-output.mjs` asserts, on the built
+output: all eight worlds exist and carry their `data-world` id; Home retains
+its no-JS `<h1>`, its standfirst and the verbatim philosophy string; no page
+contains an inline script; no page loads a third-party origin.
+
+**Performance** (Chrome, `astro preview`, Home):
+
+| Metric | Value |
+|---|---|
+| Requests | 13, all same-origin |
+| HTML | 17.6 KB decoded / 4.3 KB transferred |
+| CSS | 2 files, 4.6 KB |
+| JS | 4 modules, **2.7 KB gzip** |
+| Fonts | 6 woff2, 106.7 KB, self-hosted |
+| FCP | 120ms |
+| DOMContentLoaded / load | 87ms / 114ms |
+| **Cumulative Layout Shift** | **0** |
+
+CLS of 0 is the number that matters here: the M02 D1 defect was a
+ResizeObserver/scrollbar oscillation that froze the tab. It has not returned,
+and the burst-signature guard plus `scrollbar-gutter: stable` remain in place.
+
+LCP reports 968ms and is **animation-bound by design** — the LCP element is the
+standfirst, which is scheduled at `--enter-body` (620ms) plus its duration.
+Under `prefers-reduced-motion: reduce` those tokens are zero and LCP collapses
+to roughly first paint. Flagged for the architect in §1B.10 rather than
+silently tuned.
+
+**Accessibility:** one `<h1>`, no skipped heading levels (h1 → h2 ×3),
+`lang="en"`, header/nav/main/footer landmarks, no image without `alt`, no link
+without an accessible name, nothing focusable inside `aria-hidden`. Sixteen
+focus stops, every one with a visible 2px accent outline at a 2.67px offset and
+`:focus-visible` true. Skip link present and reachable first. Contrast as
+§1B.7.8.
+
+**No-JS:** tested by serving the built HTML with every `<script>` stripped.
+Home stays complete — the real `<h1>` sets at display size, the about
+statement flows beside it through the float, and the figure, record and
+contents are all present. The progressive-enhancement contract is that the
+fallback heading is demoted to `visually-hidden` only *after* the island has
+rendered; confirmed in the DOM (1×1 clipped, still the accessible heading).
+
+**Browsers:** Chrome 1440×900 and at all seven matrix widths through the
+harness — no console messages of any kind on Home. Firefox (Windows, current
+release) — Home renders correctly: the wordmark island runs, the float
+composition holds, the four-across method figure sets without collision.
+
+### 1B.9 Not tested — stated rather than implied
+
+- **Safari / WebKit** — unavailable on this machine. Not tested, not claimed.
+- **`prefers-reduced-motion` under a live OS/browser preference.** The CSS is
+  verified structurally (every entrance animation is declared *inside*
+  `@media (prefers-reduced-motion: no-preference)`, so under `reduce` it is
+  never declared at all; the remaining tokens are zeroed) and the fail-safe
+  inversion is verified empirically as in §1B.4. But the media query was never
+  observed matching: Chrome's emulation is not reachable through the tooling
+  here, Firefox's headless screenshot pipeline fails on this machine, and
+  changing the Windows animation setting is a system-settings change I did not
+  make. **A human should load Home once with the OS animation setting off.**
+- **Real hardware.** All figures are from a desktop Chrome on localhost. No
+  phone, no throttled network.
+
+### 1B.10 Open decisions for review
+
+1. **Delete Pretext, or restore the composition?** §1B.1. The dependency is
+   still installed and still exercised by `/lab/pretext`. This is the
+   architect's call, and it is one commit either way.
+2. **The phone masthead occupies the first screen.** At 390×844 the stacked
+   wordmark plus identity runs 774px, so the about statement begins at 757px —
+   below the fold. It is a deliberate poster composition and it is striking,
+   but a visitor's first screen holds only a name. Capping it is a design
+   decision, not a bug fix, so it was left alone and measured instead.
+3. **The stacked wordmark sets its two lines at different sizes** (129px
+   `Ayush`, 177px `Rijal` at 390px) because each line is fitted to the full
+   measure independently. This is the documented justified-masthead device and
+   it reads as intentional — confirming that reading is an architect's call.
+4. **The no-JS wordmark is uppercase; the enhanced one is mixed case.** The
+   fallback is styled to be a finished thing rather than an apology, and
+   uppercase is what works at that size without measured kerning. Two visitors
+   can therefore see two different — both correct — mastheads.
+5. **LCP is animation-bound at ~968ms.** §1B.8. Reducing `--enter-body` would
+   trade entrance choreography for the metric.
+6. **IBM Plex is still a prototype selection**, per the M03-B brief. The
+   two-layer FACE → ROLE token split and the `[data-type-set]` audition harness
+   are in place so a serif or mono display face can be compared without
+   touching a component.
+
+### 1B.11 Scope compliance
+
+V1 is untouched and byte-identical; `main` is unmodified; nothing is merged.
+No world beyond Home was implemented. No third-party runtime origin, no CDN,
+no WebGL, no animation library, no client-side GitHub API call, no secret and
+no credential were introduced. The CSP was not weakened — it caused real
+debugging cost during this milestone and was upheld anyway. Dependencies are
+still exactly pinned with a committed lockfile.
+
+### 1B.12 How to review this
+
+```bash
+export PATH="/c/Program Files/nodejs:$PATH"   # Node is not on PATH by default
+npm ci
+npm run verify        # astro check && astro build && verify-output.mjs
+npm run preview       # http://localhost:4321
+```
+
+| Route | What to look at |
+|---|---|
+| `/` | Home. Reload to watch the entrance. Resize across 1280px and 768px. |
+| `/lab/viewports` | All seven matrix viewports at once. `?route=/about` to review another page. |
+| `/lab/wordmark` | The wordmark island in isolation, with its metrics and its CSS fallback. |
+| `/lab/pretext` | The retired Pretext composition, kept as the evidence behind §1B.1. |
 
 ---
 
