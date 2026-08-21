@@ -1,198 +1,160 @@
 ---
 /**
- * ISOLATED PROTOTYPE — Pretext 0.0.8.
+ * EXPERIMENT RECORD — Pretext 0.0.8. NOT PRODUCTION.
  *
- * Not wired into the site. Nothing here imports from the Home page and the
- * Home page imports nothing from here.
+ * This page used to be a live evaluation rig: it imported `@chenglou/pretext`,
+ * composed text around an exclusion zone and benchmarked the library against a
+ * forced-reflow DOM baseline. M03-B.1 removed the dependency from the project,
+ * so the rig went with it and what remains is the record of what it measured.
  *
- * As of M03-B this is the ONLY consumer of Pretext anywhere in the project.
- * Home was measured and does not need it: with the approved copy the
- * standfirst never leaves the masthead's vertical band, so every line is laid
- * at one width and a CSS float is the correct tool. This page is retained as
- * the evidence behind that call, and as the place to re-test it if a future
- * world turns out to have text long enough for the capability to matter.
- * See PROJECT_PROGRESS §1B.5.
+ * That is deliberate, and it is the only arrangement that satisfies both
+ * halves of the instruction. The experiment is retained as evidence; the
+ * dependency is not retained at all. A page that still ran the rig would have
+ * to keep the package installed and would ship its 44.8 KB into `dist/` on
+ * every deploy — which is the dependency remaining in production, wearing a
+ * lab coat. Evidence does not need a runtime; it needs to be written down.
+ *
+ * The executable rig is preserved in git and can be restored in one command:
+ *
+ *   git show 8a5f95f:src/pages/lab/pretext.astro
+ *   git show 8a5f95f:src/scripts/lab-pretext.ts
+ *   git show 8a5f95f:src/scripts/editorial-field.ts
+ *   git show 8a5f95f:src/components/lab/EditorialField.astro
+ *
+ * Every number quoted below was produced by that rig on this machine and is
+ * recorded in PROJECT_PROGRESS §1A.5 and §1B.1. Nothing here is estimated.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
-import EditorialField from '@components/lab/EditorialField.astro';
 import '@styles/lab.css';
-
-const SPECIMEN =
-  'Pretext side-steps DOM measurement entirely. It segments the text with ' +
-  'Intl.Segmenter, measures the segments once through a canvas 2D context, and ' +
-  'then answers every subsequent question about how that text breaks with pure ' +
-  'arithmetic over the cached widths. No getBoundingClientRect, no offsetHeight, ' +
-  'no forced synchronous layout — which is what makes a per-line variable width ' +
-  'affordable at all, rather than something you pay a reflow for on every probe.';
 ---
 
-<BaseLayout title="Pretext prototype" world="home" bare>
+<BaseLayout title="Pretext — experiment record" world="home" bare>
   <meta name="robots" content="noindex, nofollow" slot="head" />
 
   <main class="lab" id="main">
-    <h1 class="lab__title">Prototype · Pretext 0.0.8</h1>
+    <p class="lab__stamp">Experiment record · not production</p>
+    <h1 class="lab__title">Pretext 0.0.8 — evaluated, then removed</h1>
     <p class="lab__intro">
-      An isolated evaluation rig, not a design. Drag the handle at the bottom
-      right of each stage to change its width continuously and watch the text
-      recompose. The readout reports real measured times from this browser.
+      Pretext was evaluated against the actual Home composition. The live
+      composition did not require variable-width line widths, so the approved
+      load-bearing justification was not present. Native CSS provided the
+      required layout. Pretext was therefore removed from production rather
+      than retained as an unnecessary dependency. The experiment is retained
+      temporarily as evidence.
     </p>
 
-    <section class="lab__section" aria-labelledby="h-flow">
-      <h2 class="lab__h" id="h-flow">1 · Variable-width flow around an exclusion</h2>
+    <section class="lab__section" aria-labelledby="h-claim">
+      <h2 class="lab__h" id="h-claim">1 · What the dependency was approved for</h2>
       <p class="lab__note">
-        The grey block is an exclusion zone. Lines beside it are laid out at a
-        narrower width than lines above and below it, with the width supplied
-        per line by the caller. This is the capability CSS has no equivalent
-        for, and it is the whole justification for the dependency.
+        One capability, not speed: <strong>per-line variable width</strong>.
+        The about statement was to be set <em>around</em> the wordmark, each
+        line's width supplied by the caller from the wordmark's measured
+        geometry. CSS has no equivalent — <code>shape-outside</code> needs a
+        float whose shape is known in advance and cannot take per-line widths
+        from a sibling island. The M02 record was explicit that this was the
+        whole justification, and that if the composition were cut, the
+        dependency should be cut with it.
+      </p>
+    </section>
+
+    <section class="lab__section" aria-labelledby="h-measure">
+      <h2 class="lab__h" id="h-measure">2 · What the finished composition actually did</h2>
+      <p class="lab__note">
+        Measured on the live Home page with the approved copy, at the
+        composition's design width:
       </p>
 
-      <div class="lab__stage" data-lab-stage>
-        <div class="lab__exclusion" data-lab-exclusion aria-hidden="true"></div>
-        <EditorialField text={SPECIMEN} />
-      </div>
-
       <dl class="lab__readout">
-        <div class="lab__metric">
-          <dt>Stage width</dt><dd data-out="width">—</dd>
-        </div>
-        <div class="lab__metric">
-          <dt>prepare()</dt><dd data-out="prepare">—</dd>
-        </div>
-        <div class="lab__metric">
-          <dt>Re-layout</dt><dd data-out="layout">—</dd>
-        </div>
-        <div class="lab__metric">
-          <dt>Lines</dt><dd data-out="lines">—</dd>
-        </div>
+        <div class="lab__metric"><dt>Characters</dt><dd>84</dd></div>
+        <div class="lab__metric"><dt>Lines</dt><dd>3</dd></div>
+        <div class="lab__metric"><dt>Text band</dt><dd>104.4 px</dd></div>
+        <div class="lab__metric"><dt>Masthead block</dt><dd>241 px</dd></div>
+        <div class="lab__metric"><dt>Lines below the block</dt><dd>0</dd></div>
       </dl>
+
+      <p class="lab__note">
+        Zero lines fall below the masthead block, so every line is laid at the
+        same width. A variable-width composition with exactly one width is not
+        a variable-width composition. The capability the dependency was
+        approved for was never exercised.
+      </p>
+    </section>
+
+    <section class="lab__section" aria-labelledby="h-replacement">
+      <h2 class="lab__h" id="h-replacement">3 · What replaced it</h2>
+      <div class="lab__panel">
+        <h3>Home, now</h3>
+        <pre class="lab__code"><code>.hero &lbrace; display: flow-root; &rbrace;
+.hero__block &lbrace; float: inline-start; inline-size: min(52%, 40rem); &rbrace;
+.standfirst &lbrace; text-wrap: balance; &rbrace;</code></pre>
+      </div>
+      <p class="lab__note">
+        Better on the merits, not merely cheaper. The float works with
+        JavaScript disabled, where the island could not. It resolves during
+        layout rather than after it, so it cannot contribute to CLS.
+        <code>flow-root</code> makes the hero reserve the masthead's real
+        height, which fixed an overlap the absolutely-positioned version had.
+        And <code>text-wrap: balance</code> removes the orphan that was the
+        other thing the library was earning its keep on.
+      </p>
     </section>
 
     <section class="lab__section" aria-labelledby="h-bench">
-      <h2 class="lab__h" id="h-bench">2 · Cost against the honest alternative</h2>
+      <h2 class="lab__h" id="h-bench">4 · The benchmark, for the record</h2>
       <p class="lab__note">
-        The alternative to Pretext is not "CSS" — CSS flowing text is free. The
-        alternative is <em>querying</em> CSS: write a width, read the resulting
-        height, and eat a forced synchronous reflow each time. Both sides below
-        answer the same question two hundred times at randomised widths.
+        Chrome, this machine, 200 width-queries per pass, 3 repetitions,
+        medians. The DOM baseline writes a width and reads
+        <code>offsetHeight</code>, which is what forces synchronous layout. The
+        library is genuinely fast; speed was never the question.
       </p>
-
-      <button class="lab__button" type="button" data-lab-run>Run benchmark</button>
 
       <dl class="lab__readout">
         <div class="lab__metric">
-          <dt>Pretext / query</dt><dd data-out="bench-pretext">—</dd>
+          <dt>prepare(), one-time</dt><dd>2.8 – 3.5 ms</dd>
         </div>
         <div class="lab__metric">
-          <dt>DOM reflow / query</dt><dd data-out="bench-dom">—</dd>
+          <dt>Width query, Pretext</dt><dd>4 – 10 µs</dd>
         </div>
         <div class="lab__metric">
-          <dt>Ratio</dt><dd data-out="bench-factor">—</dd>
+          <dt>Width query, DOM reflow</dt><dd>103 – 192 µs</dd>
         </div>
         <div class="lab__metric">
-          <dt>One-time prepare</dt><dd data-out="bench-prepare">—</dd>
+          <dt>Ratio</dt><dd>16 – 26× faster</dd>
         </div>
         <div class="lab__metric">
-          <dt>Break-even</dt><dd data-out="bench-breakeven">—</dd>
+          <dt>Break-even</dt><dd>19 – 34 queries</dd>
         </div>
       </dl>
 
       <p class="lab__note">
-        The probe below is the element the DOM side queries. It is left in
-        normal flow, and visible, on purpose: an absolutely-positioned probe
-        invalidates almost nothing and reflows nearly for free, which flatters
-        the DOM side by roughly seven times and makes Pretext look barely worth
-        having. Break-even is the number of width queries needed before
-        <code>prepare()</code> has paid for itself.
+        Two figures that were wrong before they were right, kept because they
+        changed the conclusion. The first rig reported <strong>1.8×</strong>,
+        which would have failed the kill criterion — it probed an
+        absolutely-positioned, <code>visibility: hidden</code> element, which
+        invalidates almost nothing and reflows nearly for free. Moving the
+        probe into normal flow moved the result to ~20×. And a single shot
+        varied between 3.4×, 104× and 20× across three consecutive runs,
+        because JIT warm-up and <code>performance.now()</code> coarsening both
+        bite hard at microsecond scale; the rig took medians thereafter.
       </p>
-
-      <p class="lab__probe" data-lab-probe>{SPECIMEN}</p>
     </section>
 
-    <section class="lab__section" aria-labelledby="h-fallback">
-      <h2 class="lab__h" id="h-fallback">3 · The fallback path</h2>
+    <section class="lab__section" aria-labelledby="h-restore">
+      <h2 class="lab__h" id="h-restore">5 · Restoring the rig</h2>
       <p class="lab__note">
-        Below is the same text with the island disabled — plain CSS flow, which
-        is what every visitor gets without JavaScript, without
-        <code>Intl.Segmenter</code>, or before the webfont resolves. Any
-        proposal that looks worse than this panel has failed.
+        The executable version is in git, not deleted. If a future world turns
+        out to have text long enough for per-line variable width to matter, the
+        experiment comes back with:
       </p>
-      <div class="lab__panel">
-        <h3>CSS baseline</h3>
-        <p class="field__source">{SPECIMEN}</p>
-      </div>
+      <pre class="lab__code"><code>git show 8a5f95f:src/pages/lab/pretext.astro
+git show 8a5f95f:src/scripts/lab-pretext.ts
+git show 8a5f95f:src/scripts/editorial-field.ts
+git show 8a5f95f:src/components/lab/EditorialField.astro
+npm install --save-exact @chenglou/pretext@0.0.8</code></pre>
+      <p class="lab__note">
+        Until then the project carries no runtime it does not use. See
+        PROJECT_PROGRESS §1C.1 for the decision record.
+      </p>
     </section>
   </main>
 </BaseLayout>
-
-<style is:global>
-  .lab__stage {
-    position: relative;
-  }
-
-  /* Stands in for the wordmark: a real box the text has to be set around. */
-  .lab__exclusion {
-    position: absolute;
-    inset-block-start: var(--space-m);
-    inset-inline-start: var(--space-m);
-    inline-size: min(42%, 20rem);
-    block-size: 9rem;
-    background-color: var(--paper-recessed);
-    border: 1px solid var(--rule-strong);
-  }
-</style>
-
-<script>
-  import { mountEditorialFields } from '@scripts/editorial-field';
-  import { ms, runBenchmark } from '@scripts/lab-pretext';
-
-  const out = (key: string, value: string) => {
-    const el = document.querySelector<HTMLElement>(`[data-out="${key}"]`);
-    if (el) el.textContent = value;
-  };
-
-  const stage = document.querySelector<HTMLElement>('[data-lab-stage]');
-  const exclusionBox = document.querySelector<HTMLElement>('[data-lab-exclusion]');
-
-  await mountEditorialFields(document, {
-    observe: exclusionBox ? [exclusionBox] : [],
-    exclusion: (fieldStage) => {
-      if (!exclusionBox) return { top: 0, bottom: 0, width: 0 };
-      const b = exclusionBox.getBoundingClientRect();
-      const s = fieldStage.getBoundingClientRect();
-      if (b.bottom <= s.top || b.right <= s.left) return { top: 0, bottom: 0, width: 0 };
-      return {
-        top: b.top - s.top,
-        bottom: b.bottom - s.top + 16,
-        width: Math.max(0, b.right - s.left + 24),
-      };
-    },
-    onTiming: (t) => {
-      out('prepare', ms(t.prepare));
-      out('layout', ms(t.layout));
-      out('lines', String(t.lineCount));
-      if (stage) out('width', `${Math.round(stage.clientWidth)} px`);
-    },
-  });
-
-  document.querySelector('[data-lab-run]')?.addEventListener('click', () => {
-    const probe = document.querySelector<HTMLElement>('[data-lab-probe]');
-    const source = document.querySelector<HTMLElement>('[data-editorial-source]');
-    if (!probe || !source) return;
-
-    const cs = getComputedStyle(probe);
-    const result = runBenchmark(
-      probe.textContent ?? '',
-      `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`,
-      probe,
-    );
-
-    out('bench-pretext', ms(result.pretextMs));
-    out('bench-dom', ms(result.domMs));
-    out('bench-factor', result.factor ? `${result.factor.toFixed(1)}× faster` : '—');
-    out('bench-prepare', ms(result.prepareMs));
-    out(
-      'bench-breakeven',
-      result.breakEven === null ? 'never' : `${result.breakEven} queries`,
-    );
-  });
-</script>

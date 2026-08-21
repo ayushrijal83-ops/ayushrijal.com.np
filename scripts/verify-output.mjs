@@ -99,6 +99,25 @@ for (const page of pages) {
   }
 }
 
+// ── 5. Pretext has not come back ───────────────────────────────────────────
+// M03-B.1 removed `@chenglou/pretext` after measuring that the composition it
+// was approved for did not exist in the finished page (docs §1C.1). The risk
+// is not that someone re-adds it deliberately — it is that an import added for
+// a lab page pulls 44.8 KB back into `dist/` where nobody looks for it. This
+// asserts the outcome, not the intention: no shipped byte mentions it, and the
+// manifest does not list it.
+const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
+for (const field of ['dependencies', 'devDependencies']) {
+  if (manifest[field]?.['@chenglou/pretext']) {
+    fail(`@chenglou/pretext is back in package.json ${field} — see docs §1C.1`);
+  }
+}
+for (const asset of globSync(`${DIST}/**/*.{js,css}`)) {
+  if (readFileSync(asset, 'utf8').includes('@chenglou/pretext')) {
+    fail(`Pretext code shipped in ${asset}`);
+  }
+}
+
 // ── Report ─────────────────────────────────────────────────────────────────
 if (failures.length > 0) {
   console.error('\nBuild output verification FAILED:\n');
@@ -109,5 +128,6 @@ if (failures.length > 0) {
 
 console.log(
   `Build output verified: ${WORLDS.length} worlds, no-JS fallbacks intact, ` +
-    `no inline scripts, no third-party origins (${pages.length} pages).`,
+    `no inline scripts, no third-party origins, no Pretext ` +
+    `(${pages.length} pages).`,
 );

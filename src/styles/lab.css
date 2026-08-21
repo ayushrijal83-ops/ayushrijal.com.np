@@ -47,26 +47,6 @@
   color: var(--ink-secondary);
 }
 
-/* The resizable stage. `resize` gives a real, continuous width change driven
-   by the pointer — a far better test than stepping through fixed breakpoints. */
-.lab__stage {
-  margin-block-start: var(--space-m);
-  padding: var(--space-m);
-  border: 1px solid var(--rule-strong);
-  background-color: var(--paper-raised);
-  resize: horizontal;
-  overflow: auto;
-  /* Reserve the scrollbar gutter permanently. Without this, a stage that grows
-     tall enough to scroll narrows its own content box, which changes the line
-     layout, which changes the height again. The engine's oscillation guard
-     catches that, but not creating the oscillation is better than surviving
-     it. */
-  scrollbar-gutter: stable;
-  min-inline-size: 18rem;
-  max-inline-size: 100%;
-  inline-size: 100%;
-}
-
 .lab__readout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
@@ -89,23 +69,6 @@
   font-family: var(--font-mono);
   font-size: var(--step-1);
   font-variant-numeric: tabular-nums;
-}
-
-.lab__button {
-  margin-block-start: var(--space-m);
-  padding: var(--space-2xs) var(--space-m);
-  border: 1px solid var(--ink);
-  background-color: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-mono);
-  font-size: var(--step--1);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-}
-
-.lab__button:hover {
-  background-color: var(--spot);
-  border-color: var(--spot);
 }
 
 .lab__compare {
@@ -134,19 +97,6 @@
   margin-block-end: var(--space-s);
 }
 
-/* The benchmark probe is deliberately IN NORMAL FLOW and visible.
-   An out-of-flow probe invalidates almost nothing, so reflowing it is nearly
-   free and the comparison flatters the DOM by roughly 7x. Keeping it in flow,
-   with siblings above and below it, is what makes the number honest. */
-.lab__probe {
-  margin-block-start: var(--space-s);
-  padding: var(--space-s);
-  border: 1px dashed var(--rule-strong);
-  font-size: var(--step--1);
-  color: var(--ink-tertiary);
-  max-inline-size: 100%;
-}
-
 .lab__list {
   margin-block-start: var(--space-s);
   padding-inline-start: var(--space-m);
@@ -158,56 +108,31 @@
   margin-block-start: var(--space-2xs);
 }
 
-/* ==========================================================================
-   THE PRETEXT FIELD
-   ==========================================================================
-   Moved here from home.css when Home stopped using Pretext (M03-B). The
-   /lab/pretext prototype is now the only consumer, and it is a measuring
-   instrument rather than a shipped page — so these rules no longer reach a
-   visitor at all.
 
-   Kept, rather than deleted with the Home usage, because the prototype is the
-   evidence behind that decision and the architect may overrule it. Deleting it
-   is one commit whenever the call is confirmed.
-   ========================================================================== */
-
-.field__source {
-  font-family: var(--font-text);
-  font-size: var(--step-1);
-  line-height: 1.5;
-  max-inline-size: none;
+/* A stamp, in the archival sense: this sheet is not the record of record.
+   /lab is unlinked and `noindex`, but an unlabelled page that looks like the
+   rest of the site is one screenshot away from being mistaken for it. */
+.lab__stamp {
+  display: inline-block;
+  margin-block-end: var(--space-s);
+  padding: var(--space-3xs) var(--space-2xs);
+  border: 1px solid var(--spot);
+  color: var(--spot);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
 }
 
-/* The laid-out stage inherits the *exact* typography the source paragraph has,
-   because that is what Pretext measured. Any divergence between these two
-   declarations shows up as mis-wrapped lines, so they are kept adjacent. */
-.field__stage {
-  position: relative;
-  font-family: var(--font-text);
-  font-size: var(--step-1);
-  line-height: 1.5;
-  color: var(--ink-secondary);
-}
-
-.field__line {
-  position: absolute;
-  inset-block-start: var(--ly, 0);
-  inset-inline-start: var(--lx, 0);
-  white-space: pre;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .field__line {
-    animation: field-set var(--dur-base) var(--ease-plot) backwards;
-    animation-delay: calc(min(var(--li), 14) * 28ms);
-  }
-}
-
-@keyframes field-set {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.lab__code {
+  margin-block-start: var(--space-s);
+  padding: var(--space-s);
+  border: 1px solid var(--rule);
+  background-color: var(--paper-recessed);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  /* Code is the one thing on the page allowed its own scrollbar. The page body
+     must never scroll sideways; a long command line must not force it to. */
+  overflow-x: auto;
 }

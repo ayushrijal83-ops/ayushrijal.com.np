@@ -66,3 +66,16 @@ export function reportWordmark(
     atSize,
   };
 }
+
+/**
+ * Format a millisecond duration the way a measurement should read: ms when the
+ * number is comfortable in ms, µs when it would otherwise be `0.00`.
+ *
+ * Lived in `lab-pretext.ts` until M03-B.1 deleted that module along with the
+ * Pretext dependency. It is a formatter and has nothing to do with either
+ * prototype, so it moved here rather than earning a module of its own.
+ */
+export function ms(value: number): string {
+  if (value >= 1) return `${value.toFixed(2)} ms`;
+  return `${(value * 1000).toFixed(0)} µs`;
+}
