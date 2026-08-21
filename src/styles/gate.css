@@ -77,10 +77,13 @@
 }
 
 @keyframes gate-lift {
-  /* The hold is short on purpose. The gate is a transition, not a splash
-     screen, and it sits over content that has already painted. */
+  /* The hold is short on purpose, and got shorter in M03-B.1. The gate is a
+     transition, not a splash screen. It sits over content that has already
+     painted — so every millisecond it stays opaque is a millisecond the
+     visitor waits to see a page the browser had finished. 15% of --dur-slow
+     is long enough to register as an act and short enough not to be one. */
   0%,
-  40% {
+  15% {
     opacity: 1;
     visibility: visible;
     clip-path: inset(0 0 0 0);

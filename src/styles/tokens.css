@@ -217,14 +217,21 @@
      world's entrance reads these; it does not define new ones.
 
      Order is the concept: the surface arrives, the sheet is registered onto
-     it, the rules are drawn, then the type is set. Everything is finished
-     inside ~1.1s. Zeroed under reduced motion by --motion-scale below.
+     it, the rules are drawn, then the type is set. Zeroed under reduced motion
+     by --motion-scale below.
+
+     These are SETTLE delays, not reveal delays. Content is already painted and
+     already opaque at 0ms; a stage's delay only decides when its small
+     positional offset resolves (see the entrance policy note in home.css).
+     They were roughly halved in M03-B.1: with nothing fading in, a long wait
+     no longer builds anticipation, it just leaves text sitting fractionally
+     out of place. Everything is finished inside ~700ms.
      ------------------------------------------------------------------ */
-  --enter-marks: 160ms; /* registration marks find the corners */
-  --enter-rules: 300ms; /* hairlines draw across the sheet */
-  --enter-type: 440ms; /* wordmark glyphs strike */
-  --enter-body: 620ms; /* editorial text sets */
-  --enter-index: 760ms; /* contents index files in */
+  --enter-marks: 90ms; /* registration marks find the corners */
+  --enter-rules: 170ms; /* hairlines draw across the sheet */
+  --enter-type: 240ms; /* wordmark glyphs strike */
+  --enter-body: 320ms; /* editorial text settles */
+  --enter-index: 400ms; /* contents index files in */
 }
 
 /* ==========================================================================
