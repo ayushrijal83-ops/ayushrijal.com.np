@@ -1,12 +1,63 @@
 /* ==========================================================================
-   HOME — the wordmark and the editorial field
+   HOME — the drafting table
    ==========================================================================
    These rules are GLOBAL rather than component-scoped for a specific reason:
-   `.wordmark__glyph` and `.field__line` elements are created by JavaScript at
-   runtime, so they never receive Astro's scoped-style attribute. Scoped rules
-   would silently not apply to them. Anything the islands generate must be
-   styled from here.
+   `.wordmark__line`, `.wordmark__glyph` and `.field__line` are created by
+   JavaScript at runtime, so they never receive Astro's scoped-style attribute.
+   Scoped rules would silently not apply to them. Anything the islands generate
+   must be styled from here.
+
+   The Pretext field's own rules used to live here too. They now live in
+   lab.css, because /lab/pretext is their only remaining consumer and Home
+   should not ship rules for a system it no longer uses.
+
+   ── The entrance ───────────────────────────────────────────────────────────
+   One schedule, defined in tokens.css, played in the order the concept
+   requires: the marks find the corners, the rules are drawn, the name is
+   struck, the text is set, the index is filed.
+
+   Every stage uses `backwards` fill, so the UNANIMATED state is the FINISHED
+   state. Reduced motion, an unsupported engine or a CSS failure all land on
+   "composition complete", never on "content invisible". No stage hides
+   anything that a later stage is responsible for revealing.
    ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   The sheet header — drafting furniture above the composition
+   -------------------------------------------------------------------------- */
+
+.sheetmark {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block: var(--space-m) var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+/* --------------------------------------------------------------------------
+   Rules that draw themselves
+   -------------------------------------------------------------------------- */
+
+.rule--drawn {
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rule--drawn {
+    animation: rule-draw var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-rules);
+  }
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
 
 /* --------------------------------------------------------------------------
    SYSTEM A — the wordmark
@@ -18,7 +69,7 @@
 
 /* The no-JS wordmark, and the accessible heading in every case. Styled to be
    the real thing, not a placeholder: if the island never boots, this is what
-   the visitor sees, and it has to be good. */
+   the visitor sees, and it has to be good on its own. */
 .wordmark__fallback {
   font-family: var(--font-display);
   font-weight: 700;
@@ -33,10 +84,17 @@
   position: relative;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--wm-size, 1rem);
   line-height: 1;
   letter-spacing: normal; /* tracking is already baked into the x positions */
   color: var(--ink);
+}
+
+/* One row per line of the arrangement. Each carries its own measured size, so
+   a stacked wordmark can set each line to the full measure independently. */
+.wordmark__line {
+  display: block;
+  position: relative;
+  font-size: var(--wm-size, 1rem);
 }
 
 .wordmark__glyph {
@@ -44,18 +102,18 @@
   inset-block-start: 0;
   inset-inline-start: calc(var(--gx) * var(--wm-width, 0px));
   /* Compositor-only. The pointer response must never touch layout — this is
-     the property that keeps a per-glyph effect off the main thread's critical
-     path on low-end hardware. */
+     what keeps a per-glyph effect off the main thread's critical path on
+     exactly the low-end hardware where it would hurt most. */
   transform: translate3d(0, calc(var(--glift, 0) * -1em), 0);
   transition: transform var(--dur-fast) var(--ease-plot);
   white-space: pre;
 }
 
-/* The entrance: each glyph is struck into place, in reading order, the way a
+/* Stage 3: each glyph is struck into place, in reading order, the way a
    typebar hits the platen. Hard settle, no bounce, no float. */
 .wordmark__glyphs[data-state='entering'] .wordmark__glyph {
   animation: wm-strike var(--dur-base) var(--ease-plot) backwards;
-  animation-delay: calc(var(--gi) * 42ms);
+  animation-delay: calc(var(--enter-type) + var(--gi) * 42ms);
 }
 
 @keyframes wm-strike {
@@ -80,43 +138,44 @@
 }
 
 /* --------------------------------------------------------------------------
-   SYSTEM B — the Pretext editorial field
+   The identity line
    -------------------------------------------------------------------------- */
 
-.field__source {
-  font-family: var(--font-text);
-  font-size: var(--step-1);
-  line-height: 1.5;
-  max-inline-size: none;
+.identity {
+  margin-block-start: var(--space-s);
 }
 
-/* The laid-out stage inherits the *exact* typography the source paragraph has,
-   because that is what Pretext measured. Any divergence between these two
-   declarations shows up as mis-wrapped lines, so they are kept adjacent. */
-.field__stage {
-  position: relative;
-  font-family: var(--font-text);
-  font-size: var(--step-1);
-  line-height: 1.5;
+/*
+   Stacked at every width, not wrapped. The masthead column is deliberately
+   narrow, and an inline run of middot-separated roles wrapped mid-list —
+   leaving a separator stranded at the head of the second line. A stacked
+   classification is also simply better title-block language: one fact per row.
+*/
+.identity__list {
+  display: grid;
+  gap: var(--space-3xs);
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   color: var(--ink-secondary);
 }
 
-.field__line {
-  position: absolute;
-  inset-block-start: var(--ly, 0);
-  inset-inline-start: var(--lx, 0);
-  white-space: pre;
+.identity__item--secondary {
+  color: var(--world-accent);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .field__line {
-    animation: field-set var(--dur-base) var(--ease-plot) backwards;
-    /* Capped so a long block does not take seconds to finish setting. */
-    animation-delay: calc(min(var(--li), 14) * 28ms);
+  .identity {
+    animation: identity-set var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-body);
   }
 }
 
-@keyframes field-set {
+@keyframes identity-set {
   from {
     opacity: 0;
   }
@@ -125,36 +184,128 @@
   }
 }
 
+/* On a phone the classification carries more of the composition, so it is set
+   a step larger — the name and the roles together are the whole first screen. */
+@media (max-width: 47.99rem) {
+  .identity__list {
+    font-size: var(--step-0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The standfirst
+   --------------------------------------------------------------------------
+   Plain CSS-flowed text, deliberately.
+
+   This paragraph was previously laid out by Pretext, one line at a time, at a
+   width computed per line from the masthead's measured geometry. Measurement
+   ended that: the approved copy is a single 84-character sentence which sets
+   in three lines totalling 104px, inside a masthead block 241px tall. NOT ONE
+   LINE falls below the block, so every line is laid at the same width. A
+   "variable width" composition with exactly one width is a float — and the
+   float below does it natively, with no island, no ResizeObserver and no
+   14.6 KB dependency.
+
+   `text-wrap: balance` handles the other thing Pretext was earning its place
+   on here: without it the third line was the single orphaned word "work.".
+   Full note in PROJECT_PROGRESS §1B.5.
+   -------------------------------------------------------------------------- */
+
+.standfirst {
+  font-family: var(--font-text);
+  font-size: var(--step-2);
+  line-height: 1.4;
+  color: var(--ink-secondary);
+  /* Evens the rag and kills the orphaned last word. Ignored by engines that
+     do not support it, which costs nothing but the orphan. */
+  text-wrap: balance;
+  margin: 0;
+  /* Narrow only. Beside the float this must be unset — see the note in the
+     wide block below, where getting it wrong pushed the whole paragraph
+     underneath the masthead. */
+  max-inline-size: 34ch;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .standfirst {
+    animation: standfirst-set var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-body);
+  }
+}
+
+@keyframes standfirst-set {
+  from {
+    opacity: 0;
+    translate: 0 0.4rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
 /* --------------------------------------------------------------------------
    The hero composition
+   --------------------------------------------------------------------------
+   Two genuinely different arrangements, not one scaled.
+
+   WIDE  — the name is taken out of the flow and the standfirst is *set around
+           it*, with per-line widths supplied from the wordmark's measured
+           geometry. This is the composition Pretext exists for.
+
+   NARROW— the name stacks, each line set to the full measure, and the text
+           runs beneath it at full width. There is no room for an exclusion on
+           a phone, and forcing one produces two-word lines; so the phone gets
+           a masthead block instead of a squeezed column.
    -------------------------------------------------------------------------- */
 
 .hero {
-  position: relative;
-  padding-block: var(--space-2xl) var(--space-xl);
+  /* `flow-root` contains the float below, so the hero reserves the masthead
+     block's full height. With the block absolutely positioned it did not, and
+     a tall wordmark overlapped the next section. */
+  display: flow-root;
+  padding-block: var(--space-l) var(--space-xl);
 }
 
-.hero__wordmark {
+.hero__block {
   inline-size: 100%;
 }
 
-.hero__field {
+.hero .standfirst {
   margin-block-start: var(--space-l);
 }
 
-/* At this width the wordmark moves out of the flow and the editorial text is
-   set *around* it. Below it, the two simply stack — a narrow column has no
-   room for an exclusion, and forcing one would produce two-word lines. */
 @media (min-width: 60rem) {
-  .hero__wordmark {
-    position: absolute;
-    inset-block-start: var(--space-2xl);
-    inset-inline-start: 0;
+  /*
+     A float rather than absolute positioning, for three reasons that all
+     matter:
+       1. the hero reserves the block's height automatically;
+       2. WITHOUT JavaScript the browser flows the standfirst around the
+          masthead natively — so the no-JS composition is the same idea, not a
+          stacked approximation of it;
+       3. with JavaScript, Pretext refines that flow with per-line widths taken
+          from the block's measured geometry, which is the capability the
+          dependency exists for.
+     The enhancement improves the fallback rather than replacing it.
+  */
+  .hero__block {
+    float: inline-start;
     inline-size: min(52%, 40rem);
+    margin-inline-end: var(--space-l);
   }
 
-  .hero__field {
+  .hero .standfirst {
     margin-block-start: 0;
-    padding-block-start: var(--space-3xs);
+    padding-block-start: var(--space-2xs);
+    /*
+       Critical, and non-obvious. A block beside a float keeps its FULL width
+       as a box; only its line boxes are shortened by the float. Constraining
+       it to a measure narrower than the float leaves no room for a line box
+       beside the float at all, so the browser pushes the entire paragraph
+       below it — which is exactly what happened here first time.
+
+       Beside a float, the float sets the measure. Anything else fights it.
+    */
+    max-inline-size: none;
   }
 }

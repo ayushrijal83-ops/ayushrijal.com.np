@@ -1,0 +1,135 @@
+---
+/**
+ * The contents of the archive — the seven other worlds, as a table of contents
+ * on a drawing sheet.
+ *
+ * Reads straight from the world registry, so a world can never be added to the
+ * IA and forgotten here, and the reference numbers can never disagree with the
+ * ones the worlds print on themselves.
+ *
+ * `data-world-link` marks each row as a crossing between worlds, which is what
+ * the exit half of the transition system binds to.
+ */
+import { WORLDS } from '@lib/worlds';
+
+type Props = { headingId: string };
+const { headingId } = Astro.props;
+
+const entries = WORLDS.filter((w) => w.id !== 'home');
+---
+
+<nav class="contents" aria-labelledby={headingId}>
+  <h2 class="t-label contents__heading" id={headingId}>Contents</h2>
+
+  <ol class="contents__list" role="list">
+    {
+      entries.map((world, i) => (
+        <li class="contents__row" style={`--ri:${i}`}>
+          <a class="contents__link" href={world.href} data-world-link>
+            <span class="t-label contents__ref">{world.ref}</span>
+            <span class="contents__name">{world.world}</span>
+            <span class="t-meta contents__summary">{world.summary}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .contents {
+    padding-block-end: var(--space-2xl);
+  }
+
+  .contents__heading {
+    color: var(--world-accent);
+  }
+
+  .contents__list {
+    margin-block-start: var(--space-m);
+    border-block-start: 2px solid var(--rule-strong);
+  }
+
+  .contents__row {
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  .contents__link {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3xs) var(--space-s);
+    padding-block: var(--space-s);
+    text-decoration: none;
+    /* Animating the inset rather than a background keeps the hover reading as
+       a physical nudge of the row against its rule, which is the mechanical
+       register this world uses everywhere else. */
+    padding-inline: 0;
+    transition:
+      padding-inline var(--dur-fast) var(--ease-plot),
+      background-color var(--dur-fast) var(--ease-plot);
+  }
+
+  .contents__link:hover,
+  .contents__link:focus-visible {
+    padding-inline: var(--space-2xs);
+    background-color: var(--world-accent-wash);
+  }
+
+  .contents__ref {
+    color: var(--world-accent);
+  }
+
+  .contents__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-2);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+
+  .contents__summary {
+    grid-column: 2;
+    color: var(--ink-tertiary);
+  }
+
+  @media (min-width: 60rem) {
+    .contents__link {
+      grid-template-columns: 4rem minmax(0, 18rem) minmax(0, 1fr);
+      align-items: baseline;
+    }
+
+    .contents__summary {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  /* Final entrance stage: the contents file in, one row after another. */
+  @media (prefers-reduced-motion: no-preference) {
+    .contents__row {
+      animation: row-file var(--dur-base) var(--ease-plot) backwards;
+      animation-delay: calc(var(--enter-index) + var(--ri) * 45ms);
+    }
+  }
+
+  @keyframes row-file {
+    from {
+      opacity: 0;
+      translate: 0 0.4rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contents__link,
+    .contents__link:hover,
+    .contents__link:focus-visible {
+      transition: none;
+    }
+  }
+</style>

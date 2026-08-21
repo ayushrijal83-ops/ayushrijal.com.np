@@ -1,0 +1,201 @@
+---
+/**
+ * The core philosophy, set as a cycle rather than printed as a slogan.
+ *
+ * "I build, experiment, break, and learn" describes a loop: what breaking
+ * something teaches you is what you build next. Rendering it as four numbered
+ * stages with a return path — the visual language of a process diagram on an
+ * engineering drawing — *shows* that idea instead of asserting it. A quoted
+ * sentence in large type would be a slogan; a diagram is a claim about how the
+ * work is actually done.
+ *
+ * The verbatim sentence is still on the page, as the figure caption beneath.
+ * That is not a fallback: engineering drawings caption their figures, and it
+ * means the owner's exact words are present and readable while the stages
+ * carry the composition.
+ */
+import { PHILOSOPHY_STAGES, PROFILE } from '@lib/profile';
+
+type Props = { headingId: string };
+const { headingId } = Astro.props;
+---
+
+<section class="cycle" aria-labelledby={headingId}>
+  <h2 class="t-label cycle__heading" id={headingId}>Fig. 01 — Method</h2>
+
+  <ol class="cycle__list" role="list">
+    {
+      PHILOSOPHY_STAGES.map((stage, i) => (
+        <li class="cycle__stage" style={`--ci:${i}`}>
+          <span class="t-label cycle__no">{String(i + 1).padStart(2, '0')}</span>
+          <span class="cycle__verb">{stage.verb}</span>
+          <span class="t-meta cycle__gloss">{stage.gloss}</span>
+        </li>
+      ))
+    }
+  </ol>
+
+  {/* The return path. Decorative — the numbering and the caption already carry
+      the meaning — so it is hidden from assistive technology rather than
+      announced as an empty element. */}
+  <div class="cycle__return" aria-hidden="true">
+    <span class="cycle__return-line"></span>
+    <span class="t-label cycle__return-label">returns to 01</span>
+  </div>
+
+  <p class="cycle__caption">{PROFILE.philosophy}</p>
+</section>
+
+<style>
+  .cycle {
+    padding-block: var(--space-2xl);
+  }
+
+  .cycle__heading {
+    color: var(--world-accent);
+  }
+
+  .cycle__list {
+    display: grid;
+    gap: 0;
+    margin-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .cycle__stage {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3xs) var(--space-s);
+    padding-block: var(--space-s);
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  .cycle__no {
+    color: var(--world-accent);
+  }
+
+  .cycle__verb {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-3);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .cycle__gloss {
+    grid-column: 2;
+    color: var(--ink-tertiary);
+  }
+
+  .cycle__return {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding-block-start: var(--space-2xs);
+  }
+
+  .cycle__return-line {
+    flex: 1;
+    block-size: 1px;
+    background-color: var(--world-accent);
+  }
+
+  .cycle__return-label {
+    color: var(--world-accent);
+    flex: none;
+  }
+
+  .cycle__caption {
+    margin-block-start: var(--space-m);
+    font-family: var(--font-text);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--ink-secondary);
+    max-inline-size: var(--measure);
+  }
+
+  /* From here the stages read ACROSS the sheet as a sequence rather than down
+     it as a list — which is what makes it a process diagram and not four
+     bullet points. Below this width there is no room for that, and a vertical
+     numbered list is the honest composition, not a degraded one.
+
+     Two-up first, four-up later. The intermediate band is not a compromise:
+     four tracks between 768px and ~1230px are narrower than the widest verb
+     sets, so "EXPERIMENT" silently overlapped "BREAK" — the stage box grew a
+     scrollWidth its grid track never granted it. Two tracks hold every verb
+     with room to spare at every width in that band. */
+  @media (min-width: 48rem) {
+    .cycle__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-block-start: 0;
+    }
+
+    .cycle__stage {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2xs);
+      padding-block: var(--space-s) var(--space-m);
+      padding-inline-end: var(--space-s);
+      border-block-start: 2px solid var(--rule-strong);
+      border-block-end: 0;
+      position: relative;
+    }
+
+    .cycle__gloss {
+      grid-column: 1;
+    }
+
+    /* Insurance, not layout. The breakpoints below are measured against the
+       webfont; a fallback face is wider. Breaking a word is ugly, overlapping
+       the next stage is a defect — so fail towards the ugly one. */
+    .cycle__verb {
+      overflow-wrap: anywhere;
+    }
+  }
+
+  /* Four across. 80rem is measured rather than chosen: "EXPERIMENT" sets 5.63em
+     wide, and a quarter of the sheet stops holding that at display size at
+     roughly 1230px. 1280px leaves the margin that a measurement taken in one
+     browser at one zoom level ought to carry. */
+  @media (min-width: 80rem) {
+    .cycle__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* The vertical tick that separates one stage from the next, drawn only
+       between stages — the first needs no divider before it. It belongs to the
+       four-across arrangement only: in the two-up grid the third stage starts a
+       new row, where a leading tick would sit against the sheet margin and read
+       as a mistake. */
+    .cycle__stage + .cycle__stage::before {
+      content: '';
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: calc(var(--space-s) * -0.5);
+      block-size: var(--space-s);
+      border-inline-start: 1px solid var(--rule);
+    }
+  }
+
+  /* Stage 5 of the entrance: the stages are indexed in, left to right, after
+     the wordmark has set. `backwards` fill keeps the unanimated state the
+     finished state. */
+  @media (prefers-reduced-motion: no-preference) {
+    .cycle__stage {
+      animation: stage-index var(--dur-base) var(--ease-plot) backwards;
+      animation-delay: calc(var(--enter-index) + var(--ci) * 70ms);
+    }
+  }
+
+  @keyframes stage-index {
+    from {
+      opacity: 0;
+      translate: 0 0.5rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+</style>

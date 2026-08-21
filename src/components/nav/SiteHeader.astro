@@ -6,6 +6,12 @@
  * `data-world-link` marks a link as a crossing between worlds, which is what
  * the exit half of the transition system binds to. Links without it navigate
  * normally.
+ *
+ * On HOME the strip does not repeat the name. The Home sheet *is* the masthead
+ * — printing `AYUSH RIJAL` in the chrome directly above the wordmark competes
+ * with the one thing the page is built to reveal. The rule lives here rather
+ * than as a per-page prop because it is a property of the design, not a
+ * decision a page should be able to make differently.
  */
 import { WORLDS } from '@lib/worlds';
 import { SITE } from '@lib/site';
@@ -16,10 +22,16 @@ const { current } = Astro.props;
 
 <header class="masthead">
   <div class="sheet masthead__inner">
-    <a class="masthead__mark" href="/" data-world-link>
-      <span class="masthead__name">{SITE.title}</span>
-      <span class="t-label masthead__ref">ARCHIVE</span>
-    </a>
+    {
+      current === 'home' ? (
+        <p class="t-label masthead__here">Index</p>
+      ) : (
+        <a class="masthead__mark" href="/" data-world-link>
+          <span class="masthead__name">{SITE.title}</span>
+          <span class="t-label masthead__ref">Archive</span>
+        </a>
+      )
+    }
 
     <nav aria-label="Archive sections">
       <ul class="masthead__list" role="list">
@@ -74,6 +86,10 @@ const { current } = Astro.props;
   }
 
   .masthead__ref {
+    color: var(--ink-faint);
+  }
+
+  .masthead__here {
     color: var(--ink-faint);
   }
 

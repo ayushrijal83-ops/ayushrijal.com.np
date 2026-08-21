@@ -1,119 +1,83 @@
 ---
 /**
- * HOME — the entrance to the archive, and the M02 prototype composition.
+ * HOME — the drafting table.
  *
- * Two cooperating typography systems, per the M02 brief §6:
- *   System A — a small custom glyph-positioning layer for the wordmark.
- *   System B — Pretext, driving the editorial text set around it.
+ * The page is composed as a registered sheet: drafting furniture at the head,
+ * the name set as the primary drawing, the method as a figure, the record as a
+ * title block, and the archive's contents as an index.
  *
- * Neither is required for the page to work. Everything below renders complete
- * and readable as static HTML; the islands only change how it is *set*.
+ * The wordmark is set by System A, a small custom glyph-positioning layer.
+ *
+ * The standfirst is set by CSS. It was previously laid out by Pretext, and
+ * measurement removed it: see the note on `.standfirst` in styles/home.css and
+ * PROJECT_PROGRESS §1B.5. In short, the approved copy is one 84-character
+ * sentence that occupies three lines inside a 241px masthead block, so no line
+ * ever leaves the block's vertical band — there is only one width, and a
+ * "variable width" layout has nothing to vary. A float does it natively, with
+ * no JavaScript at all.
+ *
+ * Nothing here is required. The page renders complete, readable and correctly
+ * ordered as static HTML; the one island only changes how the name is *set*.
+ *
+ * Every factual claim comes from `lib/profile.ts`. No biography is written
+ * here, which is what makes "do not invent content" enforceable rather than
+ * merely intended.
  */
 import WorldLayout from '@layouts/WorldLayout.astro';
 import Wordmark from '@components/home/Wordmark.astro';
-import EditorialField from '@components/home/EditorialField.astro';
-import { SITE } from '@lib/site';
+import ProcessCycle from '@components/home/ProcessCycle.astro';
+import TitleBlock from '@components/home/TitleBlock.astro';
+import ArchiveContents from '@components/home/ArchiveContents.astro';
+import { PROFILE } from '@lib/profile';
+import { getWorld } from '@lib/worlds';
 import '@styles/home.css';
 
-/**
- * Deliberately a statement about the archive itself, not about its owner.
- * Biography, timeline and skills copy is unverified (PROJECT_PROGRESS §9.4)
- * and may not enter V2 until it has been confirmed line by line.
- */
-const STANDFIRST =
-  'A working archive of software, machine learning and security engineering. ' +
-  'Entries are filed as they are made and dated when they happened. Nothing is ' +
-  'listed here that has not been built, and anything still unconfirmed is ' +
-  'marked as such rather than quietly presented as fact.';
-
-/** The four concepts the archive is organised around, as an index. */
-const CONCEPTS = [
-  { label: 'Software', href: '/projects', ref: 'AR-02' },
-  { label: 'Artificial Intelligence', href: '/ai', ref: 'AR-03' },
-  { label: 'Cybersecurity', href: '/cybersecurity', ref: 'AR-04' },
-  { label: 'Experimentation', href: '/learning', ref: 'AR-05' },
-];
+const home = getWorld('home');
 ---
 
-<WorldLayout world="home" title={SITE.title} masthead={false}>
+<WorldLayout world="home" title={PROFILE.name} masthead={false} surface>
   <div class="sheet">
+    {/* Drafting furniture: which sheet this is, and what it records. */}
+    <p class="t-label sheetmark">
+      <span>{home.ref} · {home.gateTitle}</span>
+      <span>Sheet 1 of 1</span>
+    </p>
+    <hr class="rule rule--strong rule--drawn" />
+
     <section class="hero" aria-labelledby="wordmark-heading">
-      <div class="hero__wordmark">
-        <Wordmark text="Ayush Rijal" headingId="wordmark-heading" />
+      <div class="hero__block" data-hero-block>
+        <Wordmark
+          text={PROFILE.name}
+          headingId="wordmark-heading"
+          stack="Ayush|Rijal"
+        />
+
+        <div class="identity">
+          <hr class="rule rule--drawn" />
+          {/* The classification, as parts rather than a pre-joined string, so
+              the separators are drawn by CSS and the list stays a list. */}
+          <ul class="identity__list" role="list">
+            {PROFILE.identity.primary.map((role) => <li>{role}</li>)}
+            <li class="identity__item--secondary">{PROFILE.identity.secondary}</li>
+          </ul>
+        </div>
       </div>
-      <div class="hero__field">
-        <EditorialField text={STANDFIRST} />
-      </div>
+
+      <p class="standfirst">{PROFILE.about}</p>
     </section>
 
     <hr class="rule rule--strong" />
 
-    <nav class="concepts" aria-label="Archive divisions">
-      <ol class="concepts__list" role="list">
-        {
-          CONCEPTS.map((c) => (
-            <li class="concepts__item">
-              <a class="concepts__link" href={c.href} data-world-link>
-                <span class="t-label concepts__ref">{c.ref}</span>
-                <span class="concepts__label">{c.label}</span>
-              </a>
-            </li>
-          ))
-        }
-      </ol>
-    </nav>
+    <ProcessCycle headingId="method-heading" />
+
+    <hr class="rule" />
+
+    <TitleBlock headingId="record-heading" />
+
+    <ArchiveContents headingId="contents-heading" />
   </div>
 </WorldLayout>
 
 <script>
   import '@scripts/home';
 </script>
-
-<style>
-  /* The wordmark supplies the page's accessible <h1>; this label names the
-     section for the landmark without printing a second heading. */
-  .concepts__list {
-    display: grid;
-    gap: 0;
-  }
-
-  .concepts__item + .concepts__item {
-    border-block-start: 1px solid var(--rule-faint);
-  }
-
-  .concepts__link {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-m);
-    padding-block: var(--space-m);
-    text-decoration: none;
-    transition: padding-inline-start var(--dur-base) var(--ease-plot);
-  }
-
-  .concepts__link:hover {
-    padding-inline-start: var(--space-s);
-    background-color: var(--world-accent-wash);
-  }
-
-  .concepts__ref {
-    color: var(--world-accent);
-    flex: none;
-  }
-
-  .concepts__label {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: var(--step-3);
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
-    line-height: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .concepts__link,
-    .concepts__link:hover {
-      transition: none;
-      padding-inline-start: 0;
-    }
-  }
-</style>

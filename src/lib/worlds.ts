@@ -39,6 +39,37 @@ export type Ground =
   /** Teletype stock with sprocket-perforated margins. */
   | 'tape';
 
+/**
+ * Which entrance choreography a world's gate plays.
+ *
+ * The gate component and `gate.css` are shared; only the *character* of the
+ * entrance differs per world, selected by `[data-gate-kind]`. That is the
+ * reusable half of the transition system: adding a world's entrance is a CSS
+ * block keyed on its kind, not a new component and not a new script.
+ *
+ * As of M03-B only `register` is implemented — Home. Every other kind is
+ * declared and falls through to the base gate behaviour, which is a complete,
+ * fail-safe entrance in its own right, not a stub. Building the remaining
+ * seven is M04+ and deliberately out of scope here.
+ */
+export type Entrance =
+  /** HOME — a sheet registered onto a drafting table. Implemented. */
+  | 'register'
+  /** ABOUT — a catalogue drawer drawn open. Declared, not implemented. */
+  | 'drawer'
+  /** PROJECTS — a drawing sheet laid onto the board. Declared. */
+  | 'sheet'
+  /** AI LAB — a machine-room shutter raised. Declared. */
+  | 'shutter'
+  /** CYBERSECURITY — a sealed folder broken open. Declared. */
+  | 'seal'
+  /** LEARNING — a notebook leaf turned. Declared. */
+  | 'leaf'
+  /** GITHUB — a ledger column ruled in. Declared. */
+  | 'ledger'
+  /** CONTACT — a line opened. Declared. */
+  | 'transmit';
+
 export type World = {
   /** Stable key. Also the `data-world` attribute value. */
   readonly id: string;
@@ -58,6 +89,8 @@ export type World = {
   /** One-sentence description. Used for `<meta name="description">`. */
   readonly summary: string;
   readonly ground: Ground;
+  /** The character of this world's gate entrance. */
+  readonly entrance: Entrance;
   /** Registration number printed on the sheet, e.g. `AR-03`. */
   readonly ref: string;
 };
@@ -74,10 +107,11 @@ export const WORLDS: readonly World[] = [
     nav: 'Home',
     world: 'The Living Archive',
     gateTitle: 'GENERAL ARCHIVE',
-    gateEnter: 'ENTERING THE COLLECTION',
+    gateEnter: 'OPENING THE ARCHIVE',
     summary:
       'A working archive of software, machine-learning and security engineering by Ayush Rijal.',
     ground: 'grid',
+    entrance: 'register',
     ref: 'AR-00',
   },
   {
@@ -89,6 +123,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'ENTERING THE ARCHIVE',
     summary: 'Background, working method and current focus.',
     ground: 'ruled',
+    entrance: 'drawer',
     ref: 'AR-01',
   },
   {
@@ -100,6 +135,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'ENTERING THE WORKSHOP',
     summary: 'Engineering work, in build order, with the reasoning kept in.',
     ground: 'drafting',
+    entrance: 'sheet',
     ref: 'AR-02',
   },
   {
@@ -111,6 +147,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'ENTERING THE MACHINE ROOM',
     summary: 'Machine-learning experiments, their setups and their results.',
     ground: 'matrix',
+    entrance: 'shutter',
     ref: 'AR-03',
   },
   {
@@ -122,6 +159,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'ENTERING THE SECURITY ARCHIVE',
     summary: 'Defensive security research, lab write-ups and findings.',
     ground: 'dossier',
+    entrance: 'seal',
     ref: 'AR-04',
   },
   {
@@ -133,6 +171,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'OPENING THE NOTEBOOK',
     summary: 'Notes taken while learning, kept in the order they were written.',
     ground: 'graph',
+    entrance: 'leaf',
     ref: 'AR-05',
   },
   {
@@ -144,6 +183,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'ENTERING THE REPOSITORY',
     summary: 'Public repositories and activity, compiled at build time.',
     ground: 'ledger',
+    entrance: 'ledger',
     ref: 'AR-06',
   },
   {
@@ -155,6 +195,7 @@ export const WORLDS: readonly World[] = [
     gateEnter: 'ENTERING THE TRANSMISSION ROOM',
     summary: 'How to make contact.',
     ground: 'tape',
+    entrance: 'transmit',
     ref: 'AR-07',
   },
 ] as const;

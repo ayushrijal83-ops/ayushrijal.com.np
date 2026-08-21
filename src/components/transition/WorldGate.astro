@@ -7,6 +7,11 @@
  * fail-safe (see styles/gate.css); the optional exit half is bound by
  * WorldLayout only when motion is allowed.
  *
+ * `data-gate-kind` carries the world's declared entrance character, which is
+ * the whole extension point of the transition system: a new world's entrance
+ * is a CSS block keyed on its kind, not a new component. Kinds with no block
+ * of their own inherit the base behaviour, which is already complete.
+ *
  * `aria-hidden` because it is announcement, not content — every word it shows
  * is already the page's <h1> and its world label. A screen reader reading the
  * gate would repeat the page title twice before reaching anything new.
@@ -17,7 +22,7 @@ type Props = { world: World };
 const { world } = Astro.props;
 ---
 
-<div class="gate" data-gate aria-hidden="true">
+<div class="gate" data-gate data-gate-kind={world.entrance} aria-hidden="true">
   <hr class="gate__rule" />
   <p class="gate__title">{world.gateTitle}</p>
   <p class="gate__enter">{world.gateEnter}</p>

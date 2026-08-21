@@ -21,6 +21,108 @@
   background-color: var(--paper);
 }
 
+/* ==========================================================================
+   THE SURFACE — table and sheet
+   ==========================================================================
+   Opt-in per world via `surface` on WorldLayout, which stamps
+   `data-surface="plate"` on <html>.
+
+   The brief's caution — do not make the whole site literally look like beige
+   paper — is answered structurally rather than with a colour change. Paper
+   stops being the background and becomes an OBJECT: a sheet registered onto a
+   dark working surface, with its own edge and its own corner marks. The tonal
+   step between table and sheet is what gives the page material depth. There is
+   still no shadow, no blur and nothing that appears to hover.
+
+   The world's ground pattern moves onto the sheet, because the ruling belongs
+   to the paper, not to the table.
+   ========================================================================== */
+
+[data-surface='plate'] body {
+  /* Painted on `body` as well as `.ground` so overscroll, and the moment
+     before the ground element is parsed, both show the table rather than a
+     flash of paper. */
+  background-color: var(--table);
+}
+
+[data-surface='plate'] .ground {
+  background-color: var(--table);
+  /* The table has its own ruling — coarser than any sheet's, and much lower in
+     contrast. It reads as the surface under the work, not as more work. */
+  background-image: linear-gradient(
+      to right,
+      var(--table-line) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--table-line) 0 1px, transparent 1px 100%);
+  background-size: 8rem 8rem;
+  background-position: center center;
+}
+
+.plate {
+  position: relative;
+  /* Space for the table to show around the sheet. Collapses to nothing on
+     narrow screens: a phone has no room for a margin, and a sheet that fills
+     the viewport is the correct composition there rather than a compromise. */
+  margin-inline: auto;
+  margin-block: 0;
+  inline-size: 100%;
+  min-block-size: 100vh;
+  background-color: var(--paper);
+  --regmark-inset: var(--space-s);
+}
+
+@media (min-width: 60rem) {
+  .plate {
+    inline-size: min(100% - (var(--space-2xl) * 2), 108rem);
+    margin-block: var(--space-l);
+    min-block-size: auto;
+    border: 1px solid var(--sheet-edge-line);
+    --regmark-inset: var(--space-m);
+  }
+}
+
+/* The world's ruling belongs to the sheet. Repeated here rather than reusing
+   the `.ground` rules because the plate scrolls with the content while the
+   ground is fixed — the same pattern, anchored to a different thing. */
+[data-surface='plate'][data-world='home'] .plate {
+  background-image: linear-gradient(
+      to right,
+      var(--world-grid) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%);
+  background-size: 4rem 4rem;
+  background-position: center top;
+}
+
+[data-surface='plate'][data-world='home'] .ground {
+  /* The sheet carries the blueprint grid now; the table must not repeat it. */
+  background-image: linear-gradient(
+      to right,
+      var(--table-line) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--table-line) 0 1px, transparent 1px 100%);
+  background-size: 8rem 8rem;
+}
+
+@media (forced-colors: active) {
+  .plate {
+    background-image: none;
+    border-color: CanvasText;
+  }
+}
+
+@media print {
+  .plate {
+    border: 0;
+    margin: 0;
+    inline-size: 100%;
+    background-image: none;
+  }
+}
+
 /* --------------------------------------------------------------------------
    HOME — blueprint module. The registration grid of the whole archive; every
    other world's geometry is a variation on this 4rem module.

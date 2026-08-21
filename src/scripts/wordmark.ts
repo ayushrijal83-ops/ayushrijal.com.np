@@ -4,74 +4,137 @@
  * Renders one absolutely-positioned element per grapheme, then never measures
  * text again. Resize is a scale multiply; pointer response is a compositor-only
  * transform. Both are deliberate: text measurement is the expensive thing here,
- * so it happens exactly once per font load.
+ * so it happens exactly once per font, per arrangement.
  *
- * Accessibility contract: the glyph layer is `aria-hidden`. The real, readable
- * heading is always in the DOM and is what assistive technology and search
- * engines get. Without JS — or without `Intl.Segmenter`, or if the webfont
- * never loads — that heading is simply the visible wordmark, styled by CSS.
- * Nothing is hidden that has no replacement.
+ * ── Two arrangements, not one shrunk ───────────────────────────────────────
+ * On a wide viewport the wordmark is one line. On a narrow one it is stacked —
+ * `Ayush` over `Rijal` — with each line independently scaled to fill the full
+ * measure. Because the two names are almost exactly the same width, that
+ * produces a flush-both-edges masthead block instead of a thin line of type
+ * shrunk to fit a phone. It is a different composition, which is what the
+ * brief asks for; scaling the desktop layout down is what it asks us not to do.
+ *
+ * Both arrangements are measured up front (four `layoutWordmark` calls, ~1 ms
+ * total) so crossing the breakpoint is a repaint, never a measurement.
+ *
+ * ── Accessibility contract ─────────────────────────────────────────────────
+ * The glyph layer is `aria-hidden`. The real, readable heading is always in the
+ * DOM and is what assistive technology and search engines get. Without JS —
+ * or without `Intl.Segmenter`, or if the webfont never loads — that heading is
+ * simply the visible wordmark, styled by CSS. Nothing is hidden that has no
+ * replacement, and the fallback is demoted only once glyphs actually exist.
  */
 
 import { canMeasureText, fontReady, onFrame, prefersReducedMotion } from './motion.js';
-import { layoutWordmark, renderedCount, type WordmarkLayout } from './wordmark-layout.js';
+import { layoutWordmark, type WordmarkLayout } from './wordmark-layout.js';
 
-const FAMILY = "'IBM Plex Sans Condensed'";
-const WEIGHT = 700;
-const TRACKING = -0.015; // matches --tracking-tight
+/** Matches --tracking-tight. */
+const TRACKING = -0.015;
 
-/** Any size works for a webfont load probe; the layout declares its own. */
-const REF_PROBE = 100;
+/** Below this the stacked arrangement is used. Matches home.css. */
+const WIDE = '(min-width: 48rem)';
 
 /** Peak vertical displacement under the pointer, in em. Deliberately tiny. */
 const LIFT_EM = 0.05;
-/** How far the pointer's influence reaches, as a fraction of wordmark width. */
+/** How far the pointer's influence reaches, as a fraction of line width. */
 const LIFT_REACH = 0.18;
+
+/** One measured arrangement: the lines it is composed of, in order. */
+type Arrangement = WordmarkLayout[];
+
+type Mounted = {
+  host: HTMLElement;
+  stage: HTMLElement;
+  wide: Arrangement;
+  narrow: Arrangement;
+  /** Which arrangement is currently painted, so we only repaint on a change. */
+  current: Arrangement | null;
+  /** Painted line elements and their glyphs, for scaling and pointer work. */
+  rows: { line: HTMLElement; glyphs: HTMLElement[]; layout: WordmarkLayout }[];
+};
+
+/**
+ * The face is read from the cascade rather than hardcoded, so the type-set
+ * comparison harness in tokens.css moves the measured glyph layout with it.
+ * A wordmark measured in one family and painted in another is silently,
+ * confidently wrong — this keeps the two definitionally in step.
+ */
+function typeFace(): { family: string; weight: number } {
+  const root = getComputedStyle(document.documentElement);
+  const family = root.getPropertyValue('--wordmark-family').trim();
+  const weight = Number(root.getPropertyValue('--wordmark-weight').trim());
+  return {
+    family: family || "'IBM Plex Sans Condensed'",
+    weight: Number.isFinite(weight) && weight > 0 ? weight : 700,
+  };
+}
 
 export async function mountWordmarks(root: ParentNode = document): Promise<void> {
   const hosts = [...root.querySelectorAll<HTMLElement>('[data-wordmark]')];
   if (hosts.length === 0) return;
-  if (!canMeasureText()) return; // static heading stands; nothing to do.
+  if (!canMeasureText()) return; // the static heading stands; nothing to do.
 
-  const ok = await fontReady(`${WEIGHT} ${REF_PROBE}px ${FAMILY}`, 'AYUSH RIJAL');
-  if (!ok) return; // measuring against fallback metrics would bake in a wrong layout.
+  const { family, weight } = typeFace();
 
-  for (const host of hosts) mount(host);
+  // Measuring before the face resolves bakes in the *fallback* metrics, and
+  // because the layout is then cached the wordmark stays wrong all session.
+  if (!(await fontReady(`${weight} 100px ${family}`, 'Ayush Rijal'))) return;
+
+  const mounted = hosts
+    .map((host) => mount(host, family, weight))
+    .filter((m): m is Mounted => m !== null);
+
+  if (mounted.length === 0) return;
+
+  // One listener for every wordmark on the page, rather than one each.
+  matchMedia(WIDE).addEventListener('change', () => {
+    for (const m of mounted) render(m);
+  });
 }
 
-function mount(host: HTMLElement): void {
+function mount(host: HTMLElement, family: string, weight: number): Mounted | null {
   const text = host.dataset.wordmark?.trim();
   const stage = host.querySelector<HTMLElement>('[data-wordmark-glyphs]');
-  if (!text || !stage) return;
+  if (!text || !stage) return null;
 
-  const layout = layoutWordmark(text, FAMILY, WEIGHT, TRACKING);
-  if (!layout || layout.naturalWidth <= 0) return;
+  const lay = (s: string) => layoutWordmark(s, family, weight, TRACKING);
 
-  const nodes = paint(stage, layout);
-  const fit = () => scale(host, stage, layout);
+  const wide = [lay(text)].filter((l): l is WordmarkLayout => l !== null);
+  // `data-wordmark-stack` is optional. Absent, both arrangements are the same
+  // single line and the breakpoint simply has no effect.
+  const stackSource = host.dataset.wordmarkStack?.trim();
+  const narrow = stackSource
+    ? stackSource
+        .split('|')
+        .map((s) => lay(s.trim()))
+        .filter((l): l is WordmarkLayout => l !== null)
+    : wide;
 
-  // Reveal before fitting: the stage is `display: none` until `data-enhanced`
-  // is cleared, and a hidden host measures 0 wide.
+  if (wide.length === 0 || wide.some((l) => l.naturalWidth <= 0)) return null;
+  if (narrow.some((l) => l.naturalWidth <= 0)) return null;
+
+  const m: Mounted = { host, stage, wide, narrow, current: null, rows: [] };
+
+  // Reveal before measuring the host: the stage is `display: none` while it
+  // carries `data-enhanced`, and a hidden host measures 0 wide.
   stage.removeAttribute('data-enhanced');
-  fit();
+  render(m);
 
-  // Only now is it safe to demote the real heading. If nothing was painted,
-  // the static <h1> stays visible and this island simply never happened.
-  if (nodes.length === 0) {
+  if (m.rows.length === 0) {
     stage.setAttribute('data-enhanced', 'pending');
-    return;
+    return null;
   }
   host.querySelector('[data-wordmark-fallback]')?.classList.add('visually-hidden');
 
   // Observing the host rather than listening for `resize` also catches layout
   // changes that never touch the viewport — a sidebar opening, a font swap.
-  new ResizeObserver(onFrame(fit)).observe(host);
+  new ResizeObserver(onFrame(() => fit(m))).observe(host);
 
   if (!prefersReducedMotion()) {
     stage.dataset.state = 'entering';
-    // Bubbles from the last glyph. Registered here rather than inside
-    // `bindPointer`, which returns early on coarse pointers — the entrance
-    // still has to resolve on a touch device.
+    // Bubbles from whichever glyph finishes first. Registered here rather than
+    // inside `bindPointer`, which returns early on coarse pointers — the
+    // entrance still has to resolve on a touch device.
     stage.addEventListener(
       'animationend',
       () => {
@@ -79,50 +142,78 @@ function mount(host: HTMLElement): void {
       },
       { once: true },
     );
-    bindPointer(host, nodes, layout);
+    bindPointer(m);
   }
+
+  return m;
 }
 
-/** One element per grapheme. Whitespace advances the cursor but paints nothing. */
-function paint(stage: HTMLElement, layout: WordmarkLayout): HTMLElement[] {
-  const total = renderedCount(layout);
-  const frag = document.createDocumentFragment();
-  const nodes: HTMLElement[] = [];
+/** Paint the arrangement the current viewport calls for, then fit it. */
+function render(m: Mounted): void {
+  const next = matchMedia(WIDE).matches ? m.wide : m.narrow;
+  if (next === m.current) return;
+  m.current = next;
 
-  for (const g of layout.glyphs) {
-    if (g.isSpace) continue;
-    const el = document.createElement('span');
-    el.className = 'wordmark__glyph';
-    el.textContent = g.char;
-    // Positions are expressed as a fraction of the wordmark's natural width,
-    // so the CSS needs no unit conversion and the layer stays resolution- and
-    // size-independent. One multiply in the compositor, no JS on resize.
-    el.style.setProperty('--gx', String(g.x / layout.naturalWidth));
-    el.style.setProperty('--gi', String(g.order));
-    el.style.setProperty('--gn', String(total));
-    frag.append(el);
-    nodes.push(el);
+  const frag = document.createDocumentFragment();
+  const rows: Mounted['rows'] = [];
+
+  // The strike stagger runs continuously across lines, so a stacked wordmark
+  // reads as one sequence rather than two restarts.
+  let order = 0;
+  const total = next.reduce(
+    (n, l) => n + l.glyphs.filter((g) => !g.isSpace).length,
+    0,
+  );
+
+  for (const layout of next) {
+    const line = document.createElement('span');
+    line.className = 'wordmark__line';
+    const glyphs: HTMLElement[] = [];
+
+    for (const g of layout.glyphs) {
+      if (g.isSpace) continue;
+      const el = document.createElement('span');
+      el.className = 'wordmark__glyph';
+      el.textContent = g.char;
+      // Positions are a fraction of the line's natural width, so CSS needs no
+      // unit conversion and the layer stays size- and resolution-independent.
+      el.style.setProperty('--gx', String(g.x / layout.naturalWidth));
+      el.style.setProperty('--gi', String(order++));
+      el.style.setProperty('--gn', String(total));
+      line.append(el);
+      glyphs.push(el);
+    }
+
+    frag.append(line);
+    rows.push({ line, glyphs, layout });
   }
 
-  stage.replaceChildren(frag);
-  return nodes;
+  m.stage.replaceChildren(frag);
+  m.rows = rows;
+  fit(m);
 }
 
 /**
- * Fit the wordmark to its host. Pure arithmetic — `layoutWordmark` is never
- * called again for the life of the page.
+ * Fit every line to the host. Pure arithmetic — `layoutWordmark` is never
+ * called again for the life of the page, in either arrangement.
  */
-function scale(host: HTMLElement, stage: HTMLElement, layout: WordmarkLayout): void {
-  const width = host.clientWidth;
+function fit(m: Mounted): void {
+  const width = m.host.clientWidth;
   if (width <= 0) return;
-  const size = (width / layout.naturalWidth) * layout.refSize;
-  stage.style.setProperty('--wm-size', `${size}px`);
-  stage.style.setProperty('--wm-width', `${width}px`);
-  stage.style.blockSize = `${((layout.ascent + layout.descent) / layout.refSize) * size}px`;
-  stage.style.setProperty(
-    '--wm-baseline',
-    `${(layout.ascent / layout.refSize) * size}px`,
-  );
+
+  let stageHeight = 0;
+  for (const { line, layout } of m.rows) {
+    const size = (width / layout.naturalWidth) * layout.refSize;
+    const height = ((layout.ascent + layout.descent) / layout.refSize) * size;
+    line.style.setProperty('--wm-size', `${size}px`);
+    line.style.setProperty('--wm-width', `${width}px`);
+    // Lines are stacked by their own measured height, tightened by the display
+    // leading so a stacked wordmark sets as a solid block rather than as two
+    // separate headings that happen to be adjacent.
+    line.style.blockSize = `${height}px`;
+    stageHeight += height;
+  }
+  m.stage.style.blockSize = `${stageHeight}px`;
 }
 
 /**
@@ -133,34 +224,32 @@ function scale(host: HTMLElement, stage: HTMLElement, layout: WordmarkLayout): v
  * Skipped entirely for reduced-motion users and for coarse pointers, where a
  * hover-driven effect has no meaning and would only cost battery.
  */
-function bindPointer(
-  host: HTMLElement,
-  nodes: HTMLElement[],
-  layout: WordmarkLayout,
-): void {
+function bindPointer(m: Mounted): void {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
-  const centres = layout.glyphs
-    .filter((g) => !g.isSpace)
-    .map((g) => (g.x + g.width / 2) / layout.naturalWidth);
-
   const apply = onFrame((ratio: number | null) => {
-    for (let i = 0; i < nodes.length; i++) {
-      const lift =
-        ratio === null
-          ? 0
-          : Math.max(0, 1 - Math.abs(centres[i]! - ratio) / LIFT_REACH) ** 2;
-      nodes[i]!.style.setProperty('--glift', String(lift * LIFT_EM));
+    for (const { glyphs, layout } of m.rows) {
+      const centres = layout.glyphs.filter((g) => !g.isSpace);
+      for (let i = 0; i < glyphs.length; i++) {
+        const g = centres[i];
+        if (!g) continue;
+        const centre = (g.x + g.width / 2) / layout.naturalWidth;
+        const lift =
+          ratio === null
+            ? 0
+            : Math.max(0, 1 - Math.abs(centre - ratio) / LIFT_REACH) ** 2;
+        glyphs[i]!.style.setProperty('--glift', String(lift * LIFT_EM));
+      }
     }
   });
 
-  host.addEventListener(
+  m.host.addEventListener(
     'pointermove',
     (e) => {
-      const box = host.getBoundingClientRect();
+      const box = m.host.getBoundingClientRect();
       apply(box.width > 0 ? (e.clientX - box.left) / box.width : null);
     },
     { passive: true },
   );
-  host.addEventListener('pointerleave', () => apply(null), { passive: true });
+  m.host.addEventListener('pointerleave', () => apply(null), { passive: true });
 }

@@ -118,6 +118,65 @@
   }
 }
 
+/* ==========================================================================
+   PER-WORLD ENTRANCES
+   ==========================================================================
+   Selected by `[data-gate-kind]`, which each world declares in lib/worlds.ts.
+   A kind with no block here inherits the base entrance above — which is a
+   finished behaviour, not a placeholder — so declaring a world's kind and
+   implementing it are separate steps and neither blocks the other.
+
+   Implemented so far: `register` (HOME). The remaining seven are declared and
+   inherit the base wipe until their own world is built.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   HOME — `register`
+   The sheet is aligned to the table before it is revealed. The plate does not
+   lift; it opens from the centre outward, the way a mask is drawn back from a
+   registered sheet. Paired with the corner marks that converge on the sheet
+   itself (styles/home.css), the whole entrance reads as one act: align, then
+   uncover.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='register'] {
+    animation: gate-register var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  /* Leaving HOME closes the same way it opened, so a return read backwards. */
+  .gate[data-gate-kind='register'][data-state='leaving'] {
+    animation: gate-register-close var(--dur-base) var(--ease-drawer) forwards;
+  }
+}
+
+@keyframes gate-register {
+  0%,
+  38% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    /* Opens from the centre outward: the two halves withdraw to the margins. */
+    clip-path: inset(0 50% 0 50%);
+  }
+}
+
+@keyframes gate-register-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 50% 0 50%);
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 @media print {
   .gate {
     display: none;

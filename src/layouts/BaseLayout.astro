@@ -21,16 +21,33 @@ type Props = {
   world?: string;
   /** Suppresses the site chrome. Used by the isolated prototypes in /lab. */
   bare?: boolean;
+  /**
+   * Stamps `data-surface="plate"` on <html>, which switches the page ground
+   * from paper to the dark drafting table and turns the content column into a
+   * sheet registered onto it.
+   *
+   * Set from the root element rather than inferred with `:has(.plate)` so the
+   * material is decided by the layout that knows, deterministically, in every
+   * engine — and so `body` itself is painted correctly before any content is
+   * parsed, which `:has()` cannot guarantee.
+   */
+  surface?: boolean;
 };
 
-const { title, description = SITE.description, world = 'home', bare = false } = Astro.props;
+const {
+  title,
+  description = SITE.description,
+  world = 'home',
+  bare = false,
+  surface = false,
+} = Astro.props;
 
 const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', SITE.url);
 const fullTitle = title === SITE.title ? `${SITE.title} — ${SITE.role}` : `${title} — ${SITE.title}`;
 ---
 
 <!doctype html>
-<html lang={SITE.lang} data-world={world}>
+<html lang={SITE.lang} data-world={world} data-surface={surface ? 'plate' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

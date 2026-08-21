@@ -123,8 +123,3 @@ export function layoutWordmark(
     refSize: REF_PX,
   };
 }
-
-/** Count of rendered (non-whitespace) glyphs — the length of a stagger. */
-export function renderedCount(layout: WordmarkLayout): number {
-  return layout.glyphs.reduce((n, g) => (g.isSpace ? n : n + 1), 0);
-}

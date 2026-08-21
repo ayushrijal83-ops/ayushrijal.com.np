@@ -1,0 +1,159 @@
+---
+/**
+ * The title block.
+ *
+ * Every engineering drawing carries one: a ruled grid of cells in the corner
+ * of the sheet recording who made it, what it is, which sheet it is, and its
+ * revision. It is the single most recognisable piece of drafting furniture
+ * there is, and it lets the page state real facts — education, current study,
+ * subjects — as *data* rather than as prose.
+ *
+ * That distinction is the point. The brief warns that Home must not become a
+ * text wall; a title block is dense but reads as an instrument panel, because
+ * the eye scans cells rather than sentences.
+ *
+ * Every value comes from `lib/profile.ts`. Nothing is composed here, so no
+ * biographical claim can enter the site through this component.
+ */
+import { PROFILE } from '@lib/profile';
+
+type Props = { headingId: string };
+const { headingId } = Astro.props;
+
+/**
+ * Deliberately does NOT repeat the name or the classification. Both are set
+ * directly above in the masthead — printing them again here would make the
+ * block look full while telling the reader nothing new, which is the failure
+ * mode of most "stats" panels. A title block records what the drawing itself
+ * does not.
+ */
+const cells = [
+  {
+    field: 'Status',
+    value: `${PROFILE.education.level} — ${PROFILE.education.institution}`,
+  },
+  { field: 'Currently learning', value: PROFILE.learning.join(' · ') },
+];
+---
+
+<section class="titleblock" aria-labelledby={headingId}>
+  <h2 class="t-label titleblock__heading" id={headingId}>Record</h2>
+
+  <dl class="titleblock__grid">
+    {
+      cells.map((cell) => (
+        <div class="titleblock__cell">
+          <dt class="t-label titleblock__field">{cell.field}</dt>
+          <dd class="titleblock__value">{cell.value}</dd>
+        </div>
+      ))
+    }
+
+    <div class="titleblock__cell titleblock__cell--wide">
+      <dt class="t-label titleblock__field">Subjects</dt>
+      <dd class="titleblock__value">
+        <ul class="titleblock__subjects" role="list">
+          {PROFILE.interests.map((item) => <li>{item}</li>)}
+        </ul>
+      </dd>
+    </div>
+  </dl>
+</section>
+
+<style>
+  .titleblock {
+    padding-block-end: var(--space-2xl);
+  }
+
+  .titleblock__heading {
+    color: var(--world-accent);
+  }
+
+  .titleblock__grid {
+    margin-block-start: var(--space-m);
+    /* The ruled cell grid. Collapsed borders are faked with a single outer
+       border plus per-cell start borders, so no cell doubles a hairline
+       against its neighbour — a doubled rule is instantly readable as a
+       mistake at this weight. */
+    border: 1px solid var(--rule-strong);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .titleblock__cell {
+    padding: var(--space-s) var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .titleblock__cell:first-child {
+    border-block-start: 0;
+  }
+
+  .titleblock__value {
+    margin: 0;
+    margin-block-start: var(--space-3xs);
+    font-family: var(--font-text);
+    font-size: var(--step-0);
+    color: var(--ink);
+  }
+
+  .titleblock__subjects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-s);
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  /* Subjects are separated by a printed middot rather than by punctuation in
+     the content, so the list stays a list for assistive technology while
+     reading as a single tracked line. */
+  .titleblock__subjects li + li::before {
+    content: '·';
+    color: var(--ink-faint);
+    margin-inline-end: var(--space-s);
+  }
+
+  @media (min-width: 48rem) {
+    .titleblock__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .titleblock__cell {
+      border-block-start: 1px solid var(--rule);
+    }
+
+    /* Two per row: only the first row has no rule above it, and only the
+       first column has no rule to its left. */
+    .titleblock__cell:nth-child(-n + 2) {
+      border-block-start: 0;
+    }
+
+    .titleblock__cell:nth-child(odd) {
+      border-inline-end: 1px solid var(--rule);
+    }
+
+    .titleblock__cell--wide {
+      grid-column: 1 / -1;
+      border-inline-end: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .titleblock__grid {
+      animation: block-ink var(--dur-slow) var(--ease-plot) backwards;
+      animation-delay: var(--enter-index);
+    }
+  }
+
+  @keyframes block-ink {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

@@ -157,3 +157,57 @@
 .lab__list li + li {
   margin-block-start: var(--space-2xs);
 }
+
+/* ==========================================================================
+   THE PRETEXT FIELD
+   ==========================================================================
+   Moved here from home.css when Home stopped using Pretext (M03-B). The
+   /lab/pretext prototype is now the only consumer, and it is a measuring
+   instrument rather than a shipped page — so these rules no longer reach a
+   visitor at all.
+
+   Kept, rather than deleted with the Home usage, because the prototype is the
+   evidence behind that decision and the architect may overrule it. Deleting it
+   is one commit whenever the call is confirmed.
+   ========================================================================== */
+
+.field__source {
+  font-family: var(--font-text);
+  font-size: var(--step-1);
+  line-height: 1.5;
+  max-inline-size: none;
+}
+
+/* The laid-out stage inherits the *exact* typography the source paragraph has,
+   because that is what Pretext measured. Any divergence between these two
+   declarations shows up as mis-wrapped lines, so they are kept adjacent. */
+.field__stage {
+  position: relative;
+  font-family: var(--font-text);
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.field__line {
+  position: absolute;
+  inset-block-start: var(--ly, 0);
+  inset-inline-start: var(--lx, 0);
+  white-space: pre;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .field__line {
+    animation: field-set var(--dur-base) var(--ease-plot) backwards;
+    animation-delay: calc(min(var(--li), 14) * 28ms);
+  }
+}
+
+@keyframes field-set {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

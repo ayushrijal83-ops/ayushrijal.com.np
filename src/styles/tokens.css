@@ -37,10 +37,26 @@
   --paper-recessed: #e2dccf;
   --paper-edge: #d8d1c1;
 
+  /* The ink ramp. Every step carries TEXT, so every step clears WCAG AA
+     (4.5:1) against `--paper` — the ramp's floor is the AA threshold, not the
+     lightest tone that still looked like ink. The two lower steps were
+     originally set by eye at 3.65:1 and 2.21:1, which is how the sheetmark and
+     the figure glosses ended up unreadable to anyone the design was not
+     already easy for. Contrast against --paper, measured:
+
+       --ink            14.08:1
+       --ink-secondary   7.12:1
+       --ink-tertiary    5.45:1
+       --ink-faint       4.62:1
+
+     Hue and saturation are unchanged; only lightness moved, so the ramp still
+     reads as one ink at four dilutions. Anything genuinely decorative belongs
+     in the hairline tokens below, which carry no text and are free to be
+     faint. Re-derive these before changing `--paper`. */
   --ink: #1c1a17;
   --ink-secondary: #4f4a42;
-  --ink-tertiary: #7d766a;
-  --ink-faint: #a49c8d;
+  --ink-tertiary: #615b52;
+  --ink-faint: #6d6657;
 
   /* Hairlines. The archive is built out of these. */
   --rule: #c3bcab;
@@ -72,13 +88,38 @@
 
   /* ------------------------------------------------------------------
      TYPEFACES
+     ------------------------------------------------------------------
+     Two layers on purpose. The FACE layer names concrete font stacks; the
+     ROLE layer says which face plays which part. Components only ever touch
+     the role layer, so swapping a face is a one-line change here and never a
+     search-and-replace across components.
+
+     IBM Plex is approved for the prototype but is NOT locked. To audition an
+     alternative, add a face stack below and repoint the role — or stamp
+     `data-type-set` on <html> and use the comparison block further down,
+     which overrides the roles without touching any component.
      ------------------------------------------------------------------ */
-  --font-display: 'IBM Plex Sans Condensed', 'Helvetica Neue Condensed',
+  --face-plex-condensed: 'IBM Plex Sans Condensed', 'Helvetica Neue Condensed',
     'Arial Narrow', system-ui, sans-serif;
-  --font-text: 'IBM Plex Serif', 'Iowan Old Style', 'Palatino Linotype',
+  --face-plex-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --face-plex-serif: 'IBM Plex Serif', 'Iowan Old Style', 'Palatino Linotype',
     Georgia, serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas,
+  --face-plex-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas,
     monospace;
+
+  /* Roles. This is the only typography surface components are allowed to use. */
+  --font-display: var(--face-plex-condensed);
+  --font-text: var(--face-plex-serif);
+  --font-mono: var(--face-plex-mono);
+
+  /*
+     The wordmark reads its face from here, and `src/scripts/wordmark.ts`
+     reads this same variable at runtime rather than hardcoding a family —
+     so a face swap moves the measured glyph layout with it automatically.
+     Kept as a bare family name because the canvas `font` shorthand needs one.
+  */
+  --wordmark-family: 'IBM Plex Sans Condensed';
+  --wordmark-weight: 700;
 
   /* ------------------------------------------------------------------
      TYPE SCALE
@@ -151,6 +192,39 @@
   --radius: 0px; /* The archive has no rounded corners. This is deliberate. */
   --focus-ring: 2px solid var(--spot);
   --focus-offset: 3px;
+
+  /* ------------------------------------------------------------------
+     MATERIAL — the table and the sheet
+     ------------------------------------------------------------------
+     The brief's caution is that the site must not simply *be* beige paper.
+     So paper is not the ground; paper is an OBJECT. A sheet is registered
+     onto a dark drafting surface, and the contrast between the two is what
+     stops the page reading as an undifferentiated wash.
+
+     Still no shadow and no blur. The sheet reads as a physical object because
+     of the tonal step and a hairline edge, exactly the way a printed plate
+     does — not because it appears to hover.
+     ------------------------------------------------------------------ */
+  --table: #17161a;
+  --table-line: #262429;
+  --sheet-edge-line: #cbc3b1;
+
+  /* ------------------------------------------------------------------
+     ENTRANCE CHOREOGRAPHY
+     ------------------------------------------------------------------
+     One shared timeline, so every stage of an entrance is scheduled against
+     the same clock instead of each component inventing its own delays. A
+     world's entrance reads these; it does not define new ones.
+
+     Order is the concept: the surface arrives, the sheet is registered onto
+     it, the rules are drawn, then the type is set. Everything is finished
+     inside ~1.1s. Zeroed under reduced motion by --motion-scale below.
+     ------------------------------------------------------------------ */
+  --enter-marks: 160ms; /* registration marks find the corners */
+  --enter-rules: 300ms; /* hairlines draw across the sheet */
+  --enter-type: 440ms; /* wordmark glyphs strike */
+  --enter-body: 620ms; /* editorial text sets */
+  --enter-index: 760ms; /* contents index files in */
 }
 
 /* ==========================================================================
@@ -166,7 +240,49 @@
     --dur-base: 1ms;
     --dur-slow: 1ms;
     --dur-plate: 1ms;
+
+    /* The entrance keeps its ORDER but loses its duration. Collapsing the
+       schedule here means a reduced-motion visitor sees the finished
+       composition immediately, with full hierarchy and no staging — rather
+       than the same choreography played fast, which is what "reduce" is
+       usually mistaken for. */
+    --enter-marks: 0ms;
+    --enter-rules: 0ms;
+    --enter-type: 0ms;
+    --enter-body: 0ms;
+    --enter-index: 0ms;
   }
+}
+
+/* ==========================================================================
+   TYPE-SET COMPARISON
+   ==========================================================================
+   Typography is a primary visual element here, and the face pairing is
+   explicitly not locked. Stamping `data-type-set` on <html> repoints the role
+   layer so a candidate can be judged on the real composition rather than in a
+   specimen — no component changes, no rebuild of the wordmark logic.
+
+   These are audition harnesses. Adding one to the shipped markup is a design
+   decision, not a styling one.
+   ========================================================================== */
+:root[data-type-set='sans'] {
+  /* Plex Sans in the display role: less compressed, more neutral, closer to
+     technical documentation than to a printed masthead. */
+  --font-display: var(--face-plex-sans);
+  --wordmark-family: 'IBM Plex Sans';
+}
+
+:root[data-type-set='mono-display'] {
+  /* Mono in the display role: pushes hardest toward the machine-room
+     register, at real cost to the wordmark's density. */
+  --font-display: var(--face-plex-mono);
+  --wordmark-family: 'IBM Plex Mono';
+}
+
+:root[data-type-set='serif-body'] {
+  /* Serif everywhere but the labels — the most editorial of the three. */
+  --font-display: var(--face-plex-serif);
+  --wordmark-family: 'IBM Plex Serif';
 }
 
 /* ==========================================================================

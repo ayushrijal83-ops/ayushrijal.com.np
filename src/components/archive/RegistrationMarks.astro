@@ -1,0 +1,127 @@
+---
+/**
+ * Registration marks at the four corners of a sheet.
+ *
+ * Real print and drafting language: the crosses a press or a drawing board
+ * uses to align a sheet. They carry the whole "this is a physical document on
+ * a working surface" idea in four hairline crosses, which is a cheaper and far
+ * more specific signal than any amount of texture or shadow.
+ *
+ * They are also the first stage of the entrance — the marks find the corners
+ * before anything is printed between them — so the choreography starts with an
+ * act of alignment rather than with a fade.
+ *
+ * Purely decorative, so `aria-hidden`, no text, and removed entirely in
+ * forced-colours mode where hairlines would be promoted to solid CanvasText.
+ */
+---
+
+<div class="regmarks" aria-hidden="true">
+  <span class="regmarks__mark regmarks__mark--tl"></span>
+  <span class="regmarks__mark regmarks__mark--tr"></span>
+  <span class="regmarks__mark regmarks__mark--bl"></span>
+  <span class="regmarks__mark regmarks__mark--br"></span>
+</div>
+
+<style>
+  .regmarks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .regmarks__mark {
+    position: absolute;
+    inline-size: var(--regmark-size, 1.25rem);
+    block-size: var(--regmark-size, 1.25rem);
+    /* Two hairlines crossing — an L, not a box. A closed rectangle would read
+       as a border; an open corner reads as a mark. */
+    border-color: var(--rule-strong);
+    border-style: solid;
+    border-width: 0;
+  }
+
+  .regmarks__mark--tl {
+    inset-block-start: var(--regmark-inset);
+    inset-inline-start: var(--regmark-inset);
+    border-block-start-width: 1px;
+    border-inline-start-width: 1px;
+  }
+
+  .regmarks__mark--tr {
+    inset-block-start: var(--regmark-inset);
+    inset-inline-end: var(--regmark-inset);
+    border-block-start-width: 1px;
+    border-inline-end-width: 1px;
+  }
+
+  .regmarks__mark--bl {
+    inset-block-end: var(--regmark-inset);
+    inset-inline-start: var(--regmark-inset);
+    border-block-end-width: 1px;
+    border-inline-start-width: 1px;
+  }
+
+  .regmarks__mark--br {
+    inset-block-end: var(--regmark-inset);
+    inset-inline-end: var(--regmark-inset);
+    border-block-end-width: 1px;
+    border-inline-end-width: 1px;
+  }
+
+  /* Stage 1 of the entrance: the marks travel in from outside the sheet and
+     settle on their corners. `backwards` fill means the resting state is the
+     settled state, so with animations unavailable they are simply already in
+     position — the same fail-safe inversion the gate uses. */
+  @media (prefers-reduced-motion: no-preference) {
+    .regmarks__mark {
+      animation: regmark-settle var(--dur-slow) var(--ease-plot) backwards;
+      animation-delay: var(--enter-marks);
+    }
+  }
+
+  @keyframes regmark-settle {
+    from {
+      opacity: 0;
+      /* Each mark arrives from beyond its own corner. `translate` composes
+         with the per-corner direction below without a transform-origin trick. */
+      translate: var(--regmark-from-x, 0) var(--regmark-from-y, 0);
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .regmarks__mark--tl {
+    --regmark-from-x: -0.75rem;
+    --regmark-from-y: -0.75rem;
+  }
+
+  .regmarks__mark--tr {
+    --regmark-from-x: 0.75rem;
+    --regmark-from-y: -0.75rem;
+  }
+
+  .regmarks__mark--bl {
+    --regmark-from-x: -0.75rem;
+    --regmark-from-y: 0.75rem;
+  }
+
+  .regmarks__mark--br {
+    --regmark-from-x: 0.75rem;
+    --regmark-from-y: 0.75rem;
+  }
+
+  @media (forced-colors: active) {
+    .regmarks {
+      display: none;
+    }
+  }
+
+  @media print {
+    .regmarks {
+      display: none;
+    }
+  }
+</style>

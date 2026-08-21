@@ -3,13 +3,18 @@
  * ISOLATED PROTOTYPE — Pretext 0.0.8.
  *
  * Not wired into the site. Nothing here imports from the Home page and the
- * Home page imports nothing from here. That isolation is the point: the M02
- * brief requires Pretext to be evaluated on its own before it is allowed to
- * influence the design.
+ * Home page imports nothing from here.
+ *
+ * As of M03-B this is the ONLY consumer of Pretext anywhere in the project.
+ * Home was measured and does not need it: with the approved copy the
+ * standfirst never leaves the masthead's vertical band, so every line is laid
+ * at one width and a CSS float is the correct tool. This page is retained as
+ * the evidence behind that call, and as the place to re-test it if a future
+ * world turns out to have text long enough for the capability to matter.
+ * See PROJECT_PROGRESS §1B.5.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
-import EditorialField from '@components/home/EditorialField.astro';
-import '@styles/home.css';
+import EditorialField from '@components/lab/EditorialField.astro';
 import '@styles/lab.css';
 
 const SPECIMEN =

@@ -1,5 +1,11 @@
 ---
-/** The colophon. One line of provenance, the way an archive stamps a sheet. */
+/**
+ * The colophon. One line of provenance, the way an archive stamps a sheet.
+ *
+ * The separator before the link is `{' · '}`, not literal whitespace: Astro's
+ * `compressHTML` collapses a newline between text and an element to nothing,
+ * which silently glued "2026 ·" to "github". An expression cannot be collapsed.
+ */
 import { SITE } from '@lib/site';
 import type { World } from '@lib/worlds';
 
@@ -13,10 +19,9 @@ const year = new Date().getFullYear();
   <div class="sheet colophon__inner">
     <p class="t-label">{world.ref} · {world.world}</p>
     <p class="t-label">
-      {SITE.title} · {year} ·
-      <a href={`https://github.com/${SITE.github}`} rel="noopener noreferrer">
-        github
-      </a>
+      {SITE.title} · {year}{' · '}<a
+        href={`https://github.com/${SITE.github}`}
+        rel="noopener noreferrer">github</a>
     </p>
   </div>
 </footer>

@@ -8,6 +8,7 @@ import BaseLayout from './BaseLayout.astro';
 import SiteHeader from '@components/nav/SiteHeader.astro';
 import SiteFooter from '@components/nav/SiteFooter.astro';
 import WorldGate from '@components/transition/WorldGate.astro';
+import RegistrationMarks from '@components/archive/RegistrationMarks.astro';
 import { getWorld } from '@lib/worlds';
 
 type Props = {
@@ -16,9 +17,20 @@ type Props = {
   title?: string;
   /** Suppress the standard sheet masthead when a world composes its own. */
   masthead?: boolean;
+  /**
+   * Present the world as a physical sheet registered onto the drafting table,
+   * rather than as ink directly on the page ground.
+   *
+   * This is the answer to "do not make the whole site literally look like
+   * beige paper": paper stops being the background and becomes an object, with
+   * a darker working surface behind it and registration marks at its corners.
+   * Opt-in per world, so each world keeps its own visual language — HOME uses
+   * it; the others currently do not.
+   */
+  surface?: boolean;
 };
 
-const { world: id, title, masthead = true } = Astro.props;
+const { world: id, title, masthead = true, surface = false } = Astro.props;
 const world = getWorld(id);
 ---
 
@@ -26,29 +38,36 @@ const world = getWorld(id);
   title={title ?? world.world}
   description={world.summary}
   world={world.id}
+  surface={surface}
 >
   <slot name="head" slot="head" />
 
+  {/* The gate is a viewport overlay and deliberately sits OUTSIDE the plate,
+      so it covers the table as well as the sheet. */}
   <WorldGate world={world} />
-  <SiteHeader current={world.id} />
 
-  <main id="main">
-    {
-      masthead && (
-        <div class="sheet world-head">
-          <p class="t-label">
-            {world.ref} · {world.gateTitle}
-          </p>
-          <h1 class="t-display world-title">{world.world}</h1>
-          <p class="t-text world-summary">{world.summary}</p>
-          <hr class="rule rule--strong world-rule" />
-        </div>
-      )
-    }
-    <slot />
-  </main>
+  <div class:list={['world-body', { plate: surface }]}>
+    {surface && <RegistrationMarks />}
+    <SiteHeader current={world.id} />
 
-  <SiteFooter world={world} />
+    <main id="main">
+      {
+        masthead && (
+          <div class="sheet world-head">
+            <p class="t-label">
+              {world.ref} · {world.gateTitle}
+            </p>
+            <h1 class="t-display world-title">{world.world}</h1>
+            <p class="t-text world-summary">{world.summary}</p>
+            <hr class="rule rule--strong world-rule" />
+          </div>
+        )
+      }
+      <slot />
+    </main>
+
+    <SiteFooter world={world} />
+  </div>
 </BaseLayout>
 
 <script>
