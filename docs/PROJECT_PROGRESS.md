@@ -22,12 +22,15 @@
 |---|---|---|---|
 | M01 | Reconnaissance & technical assessment | **Complete** | §2–§10 below. No production code touched. |
 | M02 | Foundation & Pretext prototype | **Complete** | §1A below. Awaiting review. |
-| M03-B | Home world implementation | **Complete** | §1B below. Awaiting review. |
+| M03-B | Home world implementation | **Complete** | §1B below. Approved. |
+| M03-B.1 | Home polish & Pretext decision | **Complete** | §1C below. Awaiting review. |
 | M03 | Remaining world build-out, transition choreography | Blocked | Needs sign-off on §1A.9 and §1B.10 |
-| M04 | Content verification + GitHub Actions integration | Blocked | Needs the §9.4 content session |
+| M04 | Content verification + GitHub Actions integration | **Not started** | Blocked on the §9.4 content session and §1C review |
 | M05+ | Remaining section worlds, redirects, cutover | Not started | |
 
 **M01 scope compliance:** no files deleted, no UI replaced, no dependencies installed, no Pretext implementation.
+
+**M03-B.1 scope compliance:** A polish pass on Home only. **M04 has not started** — no world beyond Home was built and no content collection was populated. `@chenglou/pretext` was removed from production; `astro` is now the only production dependency. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1C.
 
 **M03-B scope compliance:** Home only. V1 remains byte-identical, `main` is unmodified, nothing is merged. No other world was implemented, no CDN or third-party runtime origin was added, and the CSP was not weakened. See §1B.11.
 
@@ -52,6 +55,8 @@ Path A taken: Node installed, Astro + TypeScript adopted.
 | `@chenglou/pretext` | **0.0.8** (exact pin, no range) |
 
 `@chenglou/pretext` has **no runtime dependencies**. Direct dependency count: 2 runtime, 3 dev. Every version is pinned exactly and `package-lock.json` is committed.
+
+> **Superseded by §1C.1.** `@chenglou/pretext` was removed in M03-B.1. The current tree has **one** production dependency, `astro`. Everything in §1A and §1B below is the record as it stood at the time and is left unedited.
 
 > **Note for the next session.** Node is installed at `C:\Program Files\nodejs` but is **not on the shell PATH** in either Git Bash or PowerShell. Prefix commands with `export PATH="/c/Program Files/nodejs:$PATH"`, or add it to PATH permanently.
 
@@ -208,7 +213,7 @@ npm run dev           # http://localhost:4321
 |---|---|
 | `/` | The Home prototype, both typography systems live. Resize the window. |
 | `/lab/wordmark` | System A in isolation, with its metrics and its CSS fallback. |
-| `/lab/pretext` | System B in isolation. **Drag the resize handle** on each stage; press *Run benchmark*. |
+| `/lab/pretext` | ~~System B in isolation.~~ Now a static experiment record — see §1C.1. The rig is at `8a5f95f`. |
 | `/cybersecurity` vs `/learning` vs `/github` | Three grounds that differ structurally, not by colour. |
 | `/about` | The deliberately blank record card. |
 
@@ -450,9 +455,8 @@ composition holds, the four-across method figure sets without collision.
 
 ### 1B.10 Open decisions for review
 
-1. **Delete Pretext, or restore the composition?** §1B.1. The dependency is
-   still installed and still exercised by `/lab/pretext`. This is the
-   architect's call, and it is one commit either way.
+1. ~~**Delete Pretext, or restore the composition?**~~ **RESOLVED** — the
+   architect chose removal. Carried out in M03-B.1; see §1C.1.
 2. **The phone masthead occupies the first screen.** At 390×844 the stacked
    wordmark plus identity runs 774px, so the about statement begins at 757px —
    below the fold. It is a deliberate poster composition and it is striking,
@@ -496,7 +500,314 @@ npm run preview       # http://localhost:4321
 | `/` | Home. Reload to watch the entrance. Resize across 1280px and 768px. |
 | `/lab/viewports` | All seven matrix viewports at once. `?route=/about` to review another page. |
 | `/lab/wordmark` | The wordmark island in isolation, with its metrics and its CSS fallback. |
-| `/lab/pretext` | The retired Pretext composition, kept as the evidence behind §1B.1. |
+| `/lab/pretext` | The experiment record. Static as of §1C.1 — the executable rig is at `8a5f95f`. |
+
+---
+
+## 1C. M03-B.1 — Home polish & the Pretext decision
+
+A refinement pass, not a feature pass. Home did not get bigger; it got more
+precise, more readable, more responsive and faster. **M04 has not started.** No
+world other than Home was touched.
+
+### 1C.1 Pretext — removed from production
+
+**Decision: removed.** The package is gone from `package.json` and the
+lockfile.
+
+> Pretext was evaluated against the actual Home composition. The live
+> composition did not require variable-width line widths, so the approved
+> load-bearing justification was not present. Native CSS provided the required
+> layout. Pretext was therefore removed from production rather than retained as
+> an unnecessary dependency. The experiment is retained temporarily as
+> evidence.
+
+The measurement behind it (§1B.1): 84 characters → 3 lines → 104px of content
+inside a 241px block, **every line at the same effective width**. What replaced
+it is `display: flow-root` plus `float: inline-start`, with `text-wrap: balance`
+for the rag — no runtime dependency, no JavaScript, no CLS contribution, no
+per-probe measurement, nothing to maintain.
+
+**What was deleted:** `src/scripts/lab-pretext.ts`,
+`src/scripts/editorial-field.ts`, `src/components/lab/EditorialField.astro`,
+and the `@chenglou/pretext` dependency.
+
+**What `/lab/pretext` is now.** The brief asked for the page to be kept "if it
+remains technically isolated". It is kept — as a **record** rather than a rig,
+which is the only arrangement that satisfies both halves of the instruction. A
+page that still ran the benchmark would need the package installed and would
+ship its 44.8 KB into `dist/` on every deploy, which is the dependency
+remaining in production wearing a lab coat. Evidence does not need a runtime;
+it needs to be written down, and every figure on the page was measured before
+it was written. The page is stamped **EXPERIMENT RECORD · NOT PRODUCTION**,
+stays `noindex` and unlinked, and prints the commands to restore the executable
+rig from `8a5f95f`.
+
+**What stops it coming back.** `scripts/verify-output.mjs` asserts the outcome
+rather than the intention: the package appears in neither dependency field, and
+no shipped `.js`/`.css` contains its code. The realistic regression was never
+someone re-adding it deliberately — it was a lab-page import quietly pulling it
+back into `dist/` where nobody looks.
+
+**Effect on the bundle:**
+
+| | Before | After |
+|---|---|---|
+| Home JavaScript | 2.7 KB gzip | **2.7 KB gzip** (unchanged — Home never shipped it) |
+| Site-wide JavaScript | 6.2 KB + 15.0 KB Pretext chunk | **3.6 KB gzip total** |
+| Production dependencies | `astro`, `@chenglou/pretext` | **`astro`** |
+
+### 1C.2 Mobile masthead — 92% → 65%
+
+The masthead ran 774px of an 844px viewport. Recomposed, not scaled:
+
+| Viewport | Hero | % of first screen |
+|---|---|---|
+| 1920 × 1080 | 571px | 52.9% |
+| 1440 × 900 | 562px | 62.4% |
+| 1366 × 768 | 551px | 71.7% |
+| 1024 × 768 | 498px | 64.8% |
+| 768 × 1024 | 694px | 67.8% |
+| **390 × 844** | **550px** | **65.2%** |
+| **375 × 812** | **601px** | **74.0%** |
+
+Three changes, in order of what they returned:
+
+1. **The name sets on one line at every width.** The stacked `Ayush` / `Rijal`
+   arrangement was the whole problem: two lines each fitted to the full measure
+   cost ~400px on a phone *whatever type size you pick*, because the height
+   follows from the width. One line at the same measure is ~94px, still
+   full-bleed, and returns 300px. The stacking capability stays in the
+   component; Home no longer passes `stack`.
+2. **The philosophy moved into the hero as a strapline.** It had been the
+   caption under Fig. 01, two screens down — the one sentence saying how this
+   person works, invisible on the screen where it mattered. Fig. 01 draws the
+   same idea as a cycle and no longer repeats the words. The sentence is on the
+   page **exactly once**, asserted by the build.
+3. **The phone gets its own vertical rhythm:** tighter masthead gaps, tighter
+   hero padding, and the about statement one type step down — worth 50px at
+   375px, where the larger size bought an extra line and nothing else.
+
+**First-screen contents, verified at all seven viewports:** the name, both
+identity lines, the Cybersecurity Learner line, the philosophy, the about
+statement, and the next section's label visible beneath them. That label is the
+"more below" indicator: it is content rather than a decorative cue, and it
+cannot lie about whether there is anything there.
+
+**Zero horizontal overflow at all seven sizes.**
+
+### 1C.3 Wordmark — the two states are one wordmark
+
+The no-JS fallback was `text-transform: uppercase` while the island set mixed
+case, so the two states were two different logos: `AYUSH RIJAL` without
+JavaScript, `Ayush Rijal` with it. The case now matches, and the only remaining
+difference is what the island actually adds — measured per-glyph positions and
+real kerning. The enhanced state reads as the static wordmark set more
+precisely, which is what it is.
+
+Unchanged and re-verified: the accessible `<h1>` is always in the DOM, the
+fallback is demoted to `visually-hidden` only after the island renders,
+keyboard access is unaffected (the wordmark is not focusable), and the whole
+thing is inert under reduced motion.
+
+### 1C.4 LCP — content no longer waits for the entrance
+
+**Cause.** The standfirst was the LCP element and was held at `opacity: 0`
+until `--enter-body`. A browser cannot report an element as painted while it is
+transparent, so the animation was not decorating the content — it was deciding
+when the content was allowed to exist.
+
+**Fix.** The entrance is now built out of **movement and drawing, not fading**.
+Every content stage starts fully opaque and slightly out of position; the
+browser paints finished text on the first frame and the choreography settles it
+afterwards. That is truer to the concept as well: a typebar striking a platen
+and a rule drawn across a sheet are both movements — nothing in a drafting room
+fades in. Glyph travel went from 0.14em to 0.24em so the settle reads without a
+fade carrying it.
+
+`opacity` survives on exactly two things, both furniture: the registration
+marks and the gate plate. The gate's opaque hold dropped from 40% of its
+duration to 15%, and the stage delays were roughly halved — with nothing fading
+in, a long wait no longer builds anticipation, it just leaves text sitting
+fractionally out of place. Everything now finishes inside ~700ms.
+
+**Result.**
+
+| | M03-B | M03-B.1 |
+|---|---|---|
+| LCP − FCP | 848ms | **0ms** (3 loads) |
+| LCP element | `.standfirst` | `.standfirst` |
+| Content opaque at load event | no | **yes, all of it** |
+| CLS | 0 | **0** |
+
+The second row is the measurement that matters and the one that is free of
+harness artifacts: sampling every content element at the load event returns
+`opacity: 1, visibility: visible` for the heading, identity, strapline,
+standfirst, method stages, title block and contents rows.
+
+The rule is written down as an **entrance policy** at the top of `home.css`,
+because the failure it prevents is silent: an `opacity: 0` added to a keyframe
+looks harmless in review and costs a second of LCP.
+
+**Absolute FCP/LCP figures are not reported.** The automation tab loads
+backgrounded, and Chrome defers first paint in hidden tabs — every run put FCP
+in the 3–12s range, tracking the moment the tab became visible rather than
+anything about the page. `LCP − FCP` is immune to that offset because both
+marks sit on the same clock behind the same visibility gate, which is why it is
+the figure quoted.
+
+### 1C.5 Reduced motion — TESTED
+
+**Tested, not merely verified structurally.** M03-B could not run this test;
+M03-B.1 could, using headless Chrome's `--force-prefers-reduced-motion`.
+
+The switch was confirmed to actually reach CSS before trusting it: a JS-free
+probe page whose `content` differs per branch rendered `REDUCE` under the flag
+and `no-preference` in a control profile with the same binary.
+
+Home was then rendered under the flag at **all seven matrix viewports**, using
+the `/lab/viewports` harness so the phone frames are real 390px and 375px
+viewports rather than a clamped window. Results:
+
+- No entrance movement, and no gate plate.
+- No delayed content — everything present at first paint.
+- No infinite or decorative animation running.
+- Hierarchy intact: masthead, sheetmark, name, identity, strapline, about
+  statement, Fig. 01, Record, Contents, all in order and all legible.
+- Immediately understandable at every size.
+
+This works because nearly every entrance animation is declared *inside*
+`@media (prefers-reduced-motion: no-preference)` — under `reduce` it is never
+declared at all — and the handful that are not have their duration and delay
+tokens zeroed at the token source.
+
+**Harness note worth keeping:** a first attempt rendered Home directly at
+`--window-size=390` and produced a clipped page that looked like a real
+overflow bug. It was not. Headless Chrome clamps its window to ~512px, so the
+page laid out at 512 and was captured at 390. A width probe confirmed
+`innerWidth=512`. This is the same clamp that made `/lab/viewports` necessary
+in the first place, and it will fool the next person too.
+
+### 1C.6 Accessibility — no regression
+
+Re-run against the M03-B baseline:
+
+| Check | M03-B | M03-B.1 |
+|---|---|---|
+| Text elements checked | 67 | 67 |
+| Contrast failures | 0 | **0** |
+| Minimum contrast | 4.62:1 | **4.62:1** |
+| Focus stops | 16 | **16** |
+| All `:focus-visible` with a visible outline | yes | **yes** (2px solid accent) |
+| `<h1>` count / skipped heading levels | 1 / none | 1 / none |
+| Landmarks, skip link, `lang` | present | present |
+| Images without `alt`, links without a name | 0 / 0 | 0 / 0 |
+| Focusable inside `aria-hidden` | 0 | **0** |
+| Philosophy sentence occurrences | 1 | **1** |
+
+Nothing is conveyed by animation alone: the entrance now only moves content
+that is already painted and already readable, which strengthens this rather
+than weakening it.
+
+**Method note:** synthetic Tab keypresses did not reach the page in this
+session because the automation window was not OS-focused, so the tab order was
+walked programmatically with `focus({ focusVisible: true })` and each stop's
+computed outline read. The order returned matches DOM order exactly — skip link
+→ seven masthead links → seven contents rows → footer link.
+
+### 1C.7 Performance — no replacement complexity
+
+| Metric | M03-B | M03-B.1 |
+|---|---|---|
+| Requests | 13 | **13** |
+| HTML | 17.6 KB decoded / 4.3 KB transferred | 18.3 KB / 4.4 KB |
+| Home JavaScript | 2.7 KB gzip | **2.7 KB gzip** |
+| Site-wide JavaScript | 6.2 KB + a 15.0 KB Pretext chunk | **3.6 KB gzip** |
+| Production dependencies | 2 | **1** |
+| CLS | 0 | **0** |
+| LCP − FCP | 848ms | **0ms** |
+| TTFB / DCL / load | — | 40ms / 141ms / 147ms |
+| Console messages on Home | 0 | **0** |
+
+The HTML grew 0.7 KB: the strapline moved into the hero and Fig. 01's caption
+was removed, netting slightly more markup in the head of the document. Removing
+Pretext introduced no replacement code at all — the deletion was three modules
+and a dependency, and nothing was written to stand in for them.
+
+### 1C.8 Build / CI
+
+All run, none claimed without running:
+
+| Command | Result |
+|---|---|
+| `npm ci` | 272 packages, clean install from the lockfile |
+| `astro check` | **0 errors, 0 warnings, 0 hints** |
+| `astro build` | 12 pages |
+| `node scripts/verify-output.mjs` | 8 worlds, no-JS fallbacks intact, no inline scripts, no third-party origins, **no Pretext** |
+| `npm audit --audit-level=high` | **0 vulnerabilities** |
+
+CI runs `npm run verify`, which is the same three-step command, so the CI
+checks and the local checks cannot drift.
+
+### 1C.9 Browser testing
+
+- **Chrome** — Home at 1440×900 and at all seven matrix widths through the
+  harness. No console messages of any kind. Reduced motion at all seven
+  viewports via headless Chrome with the forcing switch.
+- **Firefox** (Windows, current release) — Home renders correctly: the wordmark
+  island runs and sets mixed case, the float composition holds, the drafting
+  ground and identity list are correct. Verified visually at the top of the
+  page.
+- **Safari / WebKit** — unavailable on this machine. **Not tested, not
+  claimed.**
+
+### 1C.10 Known limitations
+
+1. **Safari/WebKit untested.** No macOS or iOS device available here.
+2. **Absolute FCP/LCP unmeasured** (§1C.4). The relative figure is sound; the
+   absolute one needs a foreground browser or a lab tool.
+3. **Firefox coverage is partial** — the top of Home was confirmed visually;
+   the strapline and lower bands were not. Firefox's headless screenshot
+   pipeline fails on this machine with a software-compositor error, and
+   region-capturing the window proved unreliable. Nothing in the changed CSS is
+   Firefox-risky (`text-wrap: balance` degrades to normal wrapping if
+   unsupported), but it is not the same as having looked.
+4. **No real hardware or throttled network.** Every figure is desktop Chrome on
+   localhost.
+5. **`/lab/pretext` is a record, not a rig** (§1C.1). Re-running the benchmark
+   means restoring four files and reinstalling the package.
+6. **1920 × 1080 sits at 52.9%**, below the 60% floor. The floor was set for
+   phones; on a 1080px-tall desktop a hero that stopped lower would be a worse
+   composition, not a better one.
+
+### 1C.11 Current project state
+
+Home is complete as a vertical slice. The other seven worlds still render their
+M02 placeholder shells and their entrances are declared but unimplemented. V1
+is untouched and byte-identical, `main` is unmodified, nothing is merged. One
+production dependency: `astro`.
+
+### 1C.12 Commits
+
+| Hash | Commit |
+|---|---|
+| `61cf170` | build: remove pretext from production |
+| `0a42e0b` | fix(home): rebalance the mobile masthead so it opens the page |
+| `eee2801` | perf(home): decouple content visibility from the entrance animation |
+
+The masthead commit also carries the `home.css` half of the entrance change;
+the two edits interleave in one file and separating them would have cost more
+clarity than it bought.
+
+### 1C.13 Next milestone
+
+**M04 has not started.** Nothing in About, Projects, AI Lab, Cybersecurity,
+Learning, GitHub or Contact was built, and no content collection was populated.
+M03-B.1 stops here for architect review. The open items carried forward are
+§1C.10 and the typography question in §1B.10.6 — IBM Plex is still a prototype
+selection, and the FACE → ROLE token split plus the `[data-type-set]` audition
+harness remain in place so a serif or mono display face can be compared without
+touching a component.
 
 ---
 
