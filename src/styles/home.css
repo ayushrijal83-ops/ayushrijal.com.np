@@ -60,6 +60,29 @@
 }
 
 /* --------------------------------------------------------------------------
+   ENTRANCE POLICY — content paints, then settles
+   --------------------------------------------------------------------------
+   No entrance animation on CONTENT may start from `opacity: 0`.
+
+   M03-B measured LCP at 968ms on a page whose load event fired at 114ms. The
+   whole gap was the entrance: the standfirst was held at `opacity: 0` until
+   `--enter-body`, and a browser cannot report an element as painted while it
+   is transparent. The animation was not decorating the content; it was
+   deciding when the content was allowed to exist.
+
+   So the entrance is now built out of MOVEMENT and DRAWING, not fading. Every
+   content stage starts fully opaque and slightly out of position, which means
+   the browser paints the finished text on the first frame and the choreography
+   settles it afterwards. That is also truer to the concept: a typebar striking
+   a platen and a rule being drawn across a sheet are both movements. Nothing
+   in a drafting room fades in.
+
+   `opacity` is still used for the two things that are genuinely furniture —
+   the registration marks and the gate plate — because neither is content and
+   neither can gate the paint of the text beneath it.
+   -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------
    SYSTEM A — the wordmark
    -------------------------------------------------------------------------- */
 
@@ -69,14 +92,20 @@
 
 /* The no-JS wordmark, and the accessible heading in every case. Styled to be
    the real thing, not a placeholder: if the island never boots, this is what
-   the visitor sees, and it has to be good on its own. */
+   the visitor sees, and it has to be good on its own.
+
+   Mixed case, matching the island exactly. It was uppercase until M03-B.1,
+   which meant the two states were two different logos — a visitor without
+   JavaScript saw AYUSH RIJAL and a visitor with it saw Ayush Rijal. The
+   enhancement should read as the same wordmark set more precisely, not as a
+   substitute for it, so the case now matches and the only difference is what
+   the island actually adds: measured per-glyph positions and real kerning. */
 .wordmark__fallback {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(3rem, 15.5cqi, 14rem);
   line-height: 0.86;
   letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
   margin: 0;
 }
 
@@ -118,11 +147,9 @@
 
 @keyframes wm-strike {
   from {
-    opacity: 0;
-    transform: translate3d(0, -0.14em, 0);
+    transform: translate3d(0, -0.24em, 0);
   }
   to {
-    opacity: 1;
     transform: translate3d(0, 0, 0);
   }
 }
@@ -177,10 +204,8 @@
 
 @keyframes identity-set {
   from {
-    opacity: 0;
   }
   to {
-    opacity: 1;
   }
 }
 
@@ -213,7 +238,11 @@
 
 .standfirst {
   font-family: var(--font-text);
-  font-size: var(--step-2);
+  /* One step down on a phone. At 375px the larger size cost an extra line and
+     pushed the hero to 80% of the viewport — the exact failure this milestone
+     exists to fix — and it buys nothing: the paragraph is already the widest
+     text on the screen at either size. */
+  font-size: var(--step-1);
   line-height: 1.4;
   color: var(--ink-secondary);
   /* Evens the rag and kills the orphaned last word. Ignored by engines that
@@ -235,11 +264,9 @@
 
 @keyframes standfirst-set {
   from {
-    opacity: 0;
     translate: 0 0.4rem;
   }
   to {
-    opacity: 1;
     translate: 0 0;
   }
 }
@@ -264,7 +291,49 @@
      block's full height. With the block absolutely positioned it did not, and
      a tall wordmark overlapped the next section. */
   display: flow-root;
-  padding-block: var(--space-l) var(--space-xl);
+  /* Deliberately tight on a phone, generous from tablet up. The hero has a
+     height BUDGET on a small screen — see the note above — and padding is the
+     first thing that should give, because it costs the composition nothing. */
+  padding-block: var(--space-s) var(--space-l);
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    padding-block: var(--space-l) var(--space-xl);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The strapline
+   --------------------------------------------------------------------------
+   The philosophy statement, set with the name rather than two screens below
+   it. It is the sentence that says how the work is done, so it belongs to the
+   masthead; and on a phone it has to be inside the first screen to be read at
+   all. Fig. 01 draws the same idea as a cycle and no longer repeats the words.
+   -------------------------------------------------------------------------- */
+
+.strapline {
+  margin: var(--space-s) 0 0;
+  font-family: var(--font-text);
+  font-style: italic;
+  font-size: var(--step-1);
+  line-height: 1.35;
+  color: var(--ink);
+  max-inline-size: 32ch;
+  text-wrap: balance;
+}
+
+@media (min-width: 48rem) {
+  .strapline {
+    margin-block-start: var(--space-m);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .strapline {
+    animation: identity-set var(--dur-base) var(--ease-plot) backwards;
+    animation-delay: calc(var(--enter-body) + 60ms);
+  }
 }
 
 .hero__block {
@@ -272,7 +341,17 @@
 }
 
 .hero .standfirst {
-  margin-block-start: var(--space-l);
+  margin-block-start: var(--space-m);
+}
+
+@media (min-width: 48rem) {
+  .standfirst {
+    font-size: var(--step-2);
+  }
+
+  .hero .standfirst {
+    margin-block-start: var(--space-l);
+  }
 }
 
 @media (min-width: 60rem) {

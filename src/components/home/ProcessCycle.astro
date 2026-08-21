@@ -9,12 +9,13 @@
  * sentence in large type would be a slogan; a diagram is a claim about how the
  * work is actually done.
  *
- * The verbatim sentence is still on the page, as the figure caption beneath.
- * That is not a fallback: engineering drawings caption their figures, and it
- * means the owner's exact words are present and readable while the stages
- * carry the composition.
+ * The verbatim sentence sets once, as the hero strapline. This figure used to
+ * repeat it as a caption; M03-B.1 moved the sentence up so it lands inside the
+ * first screen on a phone, and a caption that restated it two screens later
+ * would be the same words twice for no gain. The figure is not weakened by
+ * losing it — the heading names it and the numbering carries the sequence.
  */
-import { PHILOSOPHY_STAGES, PROFILE } from '@lib/profile';
+import { PHILOSOPHY_STAGES } from '@lib/profile';
 
 type Props = { headingId: string };
 const { headingId } = Astro.props;
@@ -35,15 +36,14 @@ const { headingId } = Astro.props;
     }
   </ol>
 
-  {/* The return path. Decorative — the numbering and the caption already carry
-      the meaning — so it is hidden from assistive technology rather than
-      announced as an empty element. */}
+  {/* The return path. Decorative — the numbering already carries the meaning —
+      so it is hidden from assistive technology rather than announced as an
+      empty element. */}
   <div class="cycle__return" aria-hidden="true">
     <span class="cycle__return-line"></span>
     <span class="t-label cycle__return-label">returns to 01</span>
   </div>
 
-  <p class="cycle__caption">{PROFILE.philosophy}</p>
 </section>
 
 <style>
@@ -107,14 +107,6 @@ const { headingId } = Astro.props;
     flex: none;
   }
 
-  .cycle__caption {
-    margin-block-start: var(--space-m);
-    font-family: var(--font-text);
-    font-style: italic;
-    font-size: var(--step-1);
-    color: var(--ink-secondary);
-    max-inline-size: var(--measure);
-  }
 
   /* From here the stages read ACROSS the sheet as a sequence rather than down
      it as a list — which is what makes it a process diagram and not four
@@ -190,11 +182,9 @@ const { headingId } = Astro.props;
 
   @keyframes stage-index {
     from {
-      opacity: 0;
       translate: 0 0.5rem;
     }
     to {
-      opacity: 1;
       translate: 0 0;
     }
   }

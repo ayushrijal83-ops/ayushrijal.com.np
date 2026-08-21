@@ -8,13 +8,9 @@
  *
  * The wordmark is set by System A, a small custom glyph-positioning layer.
  *
- * The standfirst is set by CSS. It was previously laid out by Pretext, and
- * measurement removed it: see the note on `.standfirst` in styles/home.css and
- * PROJECT_PROGRESS §1B.5. In short, the approved copy is one 84-character
- * sentence that occupies three lines inside a 241px masthead block, so no line
- * ever leaves the block's vertical band — there is only one width, and a
- * "variable width" layout has nothing to vary. A float does it natively, with
- * no JavaScript at all.
+ * The standfirst is set by CSS — a float, which flows it around the masthead
+ * natively. It was briefly laid out by a JavaScript island instead; measurement
+ * removed both the island and its dependency (PROJECT_PROGRESS §1C.1).
  *
  * Nothing here is required. The page renders complete, readable and correctly
  * ordered as static HTML; the one island only changes how the name is *set*.
@@ -46,11 +42,7 @@ const home = getWorld('home');
 
     <section class="hero" aria-labelledby="wordmark-heading">
       <div class="hero__block" data-hero-block>
-        <Wordmark
-          text={PROFILE.name}
-          headingId="wordmark-heading"
-          stack="Ayush|Rijal"
-        />
+        <Wordmark text={PROFILE.name} headingId="wordmark-heading" />
 
         <div class="identity">
           <hr class="rule rule--drawn" />
@@ -61,6 +53,12 @@ const home = getWorld('home');
             <li class="identity__item--secondary">{PROFILE.identity.secondary}</li>
           </ul>
         </div>
+
+        {/* The strapline. It sits with the name because that is what it is —
+            how this person works, stated in their own words — and because on a
+            phone it has to be inside the first screen to do its job. Fig. 01
+            below draws the same sentence as a cycle; it does not restate it. */}
+        <p class="strapline">{PROFILE.philosophy}</p>
       </div>
 
       <p class="standfirst">{PROFILE.about}</p>

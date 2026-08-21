@@ -66,8 +66,15 @@ const { current } = Astro.props;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-s) var(--space-m);
-    padding-block: var(--space-s);
+    gap: var(--space-2xs) var(--space-m);
+    padding-block: var(--space-2xs);
+  }
+
+  @media (min-width: 48rem) {
+    .masthead__inner {
+      gap: var(--space-s) var(--space-m);
+      padding-block: var(--space-s);
+    }
   }
 
   .masthead__mark {
@@ -96,8 +103,18 @@ const { current } = Astro.props;
   .masthead__list {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-xs) var(--space-m);
+    /* Tight on a phone, where seven links wrap to two rows and every pixel of
+       masthead is a pixel the name does not get. The strip measured 130px at
+       390px wide before M03-B.1 — one sixth of the first screen spent on
+       navigation the visitor has not asked for yet. */
+    gap: var(--space-3xs) var(--space-s);
     margin: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .masthead__list {
+      gap: var(--space-xs) var(--space-m);
+    }
   }
 
   .masthead__link {
