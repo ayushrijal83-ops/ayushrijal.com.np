@@ -213,6 +213,89 @@ if (aiLab) {
   }
 }
 
+// ── 2h. GITHUB — the archive is complete, and claims no proportion ─────────
+// This world's claim is that it lists everything public. Two ways that stops
+// being true without anyone noticing: a repository quietly stops appearing,
+// or a measurement that was never taken quietly appears.
+const ghWorld = read('github/index.html');
+if (ghWorld) {
+  // Every repository in the snapshot must be on the page. Read from the
+  // snapshot rather than from a hardcoded list, so adding a repository cannot
+  // silently fail to reach the archive — which is the exact failure mode the
+  // old EXCLUDED_REPOS list made invisible.
+  let snapshot = null;
+  for (const source of ['src/data/github.generated.json', 'src/data/github.snapshot.json']) {
+    try {
+      snapshot = JSON.parse(readFileSync(source, 'utf8'));
+      break;
+    } catch {
+      // Absent on a clean checkout; the loop falls through to the committed one.
+    }
+  }
+
+  if (snapshot?.repos?.length) {
+    const expected = snapshot.repos.filter((r) => !r.fork);
+    for (const repo of expected) {
+      if (!ghWorld.includes(repo.url)) {
+        fail(
+          `The GitHub archive does not list ${repo.name}. Every public ` +
+            `non-fork repository must appear — see REPO_KIND in lib/github.ts.`,
+        );
+      }
+    }
+    if (!ghWorld.includes(`${expected.length} repositories`)) {
+      fail(
+        `The GitHub archive does not state its own holding count ` +
+          `(${expected.length}). The count is what makes the list checkable.`,
+      );
+    }
+  }
+
+  // The profile is the source of record and must be reachable from the world.
+  if (!/href="https:\/\/github\.com\/ayushrijal83-ops"/.test(ghWorld)) {
+    fail('The GitHub archive has no link to the profile it is an archive of');
+  }
+
+  // No proportion. The snapshot holds one primary language per repository and
+  // no byte counts, so any percentage on this page is a measurement of
+  // something that was never taken.
+  const proportion = ghWorld.match(/\d+(?:\.\d+)?\s*%/);
+  if (proportion) {
+    fail(
+      `The GitHub archive reports a percentage ("${proportion[0]}"). No ` +
+        `proportion is measurable from this snapshot — see folio 03.`,
+    );
+  }
+  // Activity claims the snapshot cannot support. These patterns match a
+  // CLAIM, never a mention: folio 05 names commit counts, streaks and
+  // contributions as things this record does not contain, and must keep being
+  // able to say so. An exception clause keyed on that disclaimer would have
+  // made the whole check inert the moment the disclaimer shipped.
+  const INVENTED_ACTIVITY = [
+    /\d[\d,]*\s*commits?/i,
+    /\d+[-\s]day\s+streak/i,
+    /\d[\d,]*\s*contributions?/i,
+    /contributions?\s+in\s+the\s+last\s+year/i,
+  ];
+  for (const pattern of INVENTED_ACTIVITY) {
+    const hit = ghWorld.match(pattern);
+    if (hit) {
+      fail(
+        `The GitHub archive claims "${hit[0]}". The snapshot carries no ` +
+          `commit or contribution data — see folio 05.`,
+      );
+    }
+  }
+
+  // The fallback state's copy must survive, because it is the only thing a
+  // visitor sees when the data is gone. Asserted in the source rather than the
+  // output, since the healthy build never renders it.
+  const page = readFileSync('src/pages/github.astro', 'utf8');
+  if (!page.includes('Repository data unavailable')) {
+    fail('The GitHub world lost its designed unavailable state');
+  }
+}
+
 // ── 2e. GitHub data is build-time only ─────────────────────────────────────
 // The single most important property of the GitHub integration: V1 called the
 // API from the visitor's browser. If that ever returns, it returns silently —
@@ -377,6 +460,7 @@ console.log(
   `Build output verified: ${WORLDS.length} worlds, no-JS fallbacks intact, ` +
     `About record verbatim, ${PROJECT_SLUGS.length} project records with sources, no credentials, ` +
     `AI Lab claims no training and no metrics, ` +
+    `GitHub archive complete with no invented proportion, ` +
     `${stocks.length} world stocks clear WCAG AA, ` +
     `no inline scripts, no third-party origins, no Pretext ` +
     `(${pages.length} pages).`,

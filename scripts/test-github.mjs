@@ -81,6 +81,24 @@ try {
     // No fabricated figures anywhere. `0 stars` from a missing snapshot would
     // be a lie the page had no way of knowing it was telling.
     check('no fabricated star count', !/\b0\s*(?:stars?|★)/i.test(record));
+
+    // The GITHUB world is the hardest case: it has no curated layer to fall
+    // back on. Every word on it comes from the snapshot, so with no snapshot
+    // it must render its designed unavailable state rather than an empty
+    // register — which would read as "this person has no public code", the
+    // opposite of true and the worst thing this world could accidentally say.
+    const archive = readFileSync('dist/github/index.html', 'utf8');
+    check('the archive still builds and titles itself', archive.includes('Public Code Archive'));
+    check(
+      'the archive declares the data unavailable',
+      archive.includes('Repository data unavailable'),
+    );
+    check(
+      'the archive still reaches the profile',
+      archive.includes('https://github.com/ayushrijal83-ops'),
+    );
+    check('the archive shows no empty register', !archive.includes('<table class="holdings"'));
+    check('the archive claims no holdings it cannot list', !/0 repositories/.test(archive));
   }
 } finally {
   for (const path of hidden) renameSync(HIDDEN(path), path);
