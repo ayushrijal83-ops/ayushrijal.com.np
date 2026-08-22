@@ -25,7 +25,10 @@
 | M03-B | Home world implementation | **Complete** | §1B below. Approved. |
 | M03-B.1 | Home polish & Pretext decision | **Complete** | §1C below. Awaiting review. |
 | M04 | World System + About world | **Complete** | §1D below. Awaiting review. |
-| M05+ | Remaining six worlds, content collections, GitHub Actions integration, redirects, cutover | Not started | Each world is now a CSS entrance block plus a page. |
+| M05 | Projects world + K4 build-time GitHub integration | **Complete** | §1E below. Awaiting review. K4 and §9.6 closed. |
+| M06+ | Remaining five worlds, content collections, redirects, cutover | Not started | AI Lab, Cybersecurity, Learning, GitHub, Contact. Each is a CSS entrance block plus a page. |
+
+**M05 scope compliance:** the PROJECTS world was built and K4 was closed. **AI LAB, CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED** — they remain M02 shells. Home and About were not modified; the only change outside PROJECTS is a two-line overflow fix on `/contact` (§1E.9). No dependency was added; `astro` is still the only production dependency. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1E.13.
 
 **M01 scope compliance:** no files deleted, no UI replaced, no dependencies installed, no Pretext implementation.
 
@@ -1177,6 +1180,398 @@ succeeded. If they read as one page with a different tint, it did not.
 
 ---
 
+## 1E. M05 — Projects world + K4 (build-time GitHub integration)
+
+**Status: M05 — PROJECTS WORLD — COMPLETE.** Awaiting architectural review.
+**Scope:** two objectives. Build the PROJECTS world on the M04 world system,
+and close K4 — move GitHub data off the visitor's browser and onto the build.
+No other world was built. See §1E.13 for what remains untouched.
+
+### 1E.0 The two layers, which is the whole design
+
+A project page makes claims about software. This world is built so that every
+claim on it is attributable to one of exactly two sources, and so that the
+reader can tell which:
+
+| Layer | Source | Written by | Can it be wrong? |
+|---|---|---|---|
+| **AS REPORTED BY THE REPOSITORY** | `github.snapshot.json` | GitHub | Only if GitHub is wrong |
+| **AS BUILT** — the narrative | `src/content/projects/*.md` | Ayush | Yes, and §1E.6 found four |
+
+They are joined on the repository URL by `repoByUrl` in `lib/github.ts`, never
+by a page reaching into the snapshot array. A project whose repository is
+missing from the snapshot renders its narrative with the facts *visibly*
+absent — "Repository data unavailable — narrative only" — rather than with a
+zero, a blank, or a fabricated figure.
+
+That separation is not decoration. AgroVision's GitHub-reported primary
+language is `HTML`, because the repository is mostly Jinja templates by byte
+count; its narrative says Python and Flask. Both are true, they disagree, and
+a design that merged them would have had to pick one and lie.
+
+### 1E.1 Visual system — the workshop sheet
+
+| Element | Decision |
+|---|---|
+| Stock | `--paper-workshop`, one step from the global stock. Uses the M04 MATERIAL slot; clears the whole ink ramp at AA (asserted by `verify-output.mjs`) |
+| Ground | Drafting grid — the finest ruling of the eight worlds |
+| Entrance | `sheet` — the plate arrives as a drawing pulled from a drawer |
+| Grammar | A parts list. The register is a real `<table>`; the assertion in `verify-output.mjs` fails the build if it degrades to cards |
+| Record panels | Clipped top-right corner (`clip-path`), panel ground one step lighter than the world's stock |
+| Type | No new scale. Global tokens only, per the §8.2 shared-vs-per-world boundary |
+
+Two things were deleted rather than fixed during M05 (commit `80a0cfc`):
+
+- **The fold mark** across each panel's cut corner never rendered. `clip-path`
+  clips an element's own pseudo-elements, so a hairline drawn along the cut is
+  removed by the cut. Correcting it needs a gradient stop at 50% of a diagonal
+  axis plus a sub-pixel nudge to survive the clip. The corner is legible from
+  the material without it — the panel ground is lighter than the stock and the
+  drafting grid shows through the cut — so the ornament went.
+- **A duplicate link.** Each panel carried an "Open record" link to the same
+  destination as its own heading, which cost a keyboard user three tab stops
+  per project. Two is the most any one record should cost.
+
+### 1E.2 The register and its ordering
+
+Featured work first, then most recently worked — `updated`, falling back to
+`date`. The caption on the table states the rule.
+
+It originally sorted on `date` (when the project started) while the visible
+column showed `updated` (LAST WORKED), so the table could list one project
+above another while displaying a date that said the opposite. That reads as a
+bug in the table rather than as an editorial decision. Fixed in `80a0cfc`.
+
+Verified order in the built output: **YushaCyber** (2026-08-15, featured) →
+**Jarvis Assistant** (2026-08-09, featured) → **AgroVision Nepal**
+(2026-07-23). This matches the M05 brief's required order.
+
+### 1E.3 K4 — build-time GitHub integration
+
+```
+GitHub Actions (push to v2, and every 6h)
+   └─ scripts/fetch-github.mjs, with the runner's GITHUB_TOKEN
+        └─ src/data/github.generated.json     (gitignored, fresh)
+             └─ lib/github.ts, at build time
+                  └─ static HTML with the facts baked in
+```
+
+Nothing in that chain runs in a visitor's browser. `verify-output.mjs` asserts
+it directly: no shipped page may contain the string `api.github.com`.
+
+**Two workflows, two jobs.**
+
+| Workflow | Trigger | Does |
+|---|---|---|
+| `ci.yml` | push to `v2`, PR, dispatch | `npm ci` → refresh data (`continue-on-error`) → `npm run verify` → `npm run test:github` → `npm audit --audit-level=high` |
+| `github-data.yml` | cron `0 */6 * * *`, dispatch | refresh → verify → commit the snapshot back to `v2` **only if a repository fact moved** |
+
+CI keeps a *built* site current. The scheduled workflow exists for the case CI
+cannot cover: keeping the committed **fallback** fresh, because a fallback
+last written months ago is a fallback that lies.
+
+Three details that are load-bearing rather than incidental:
+
+- **`--promote` ignores `generatedAt`.** Every run produces a new timestamp.
+  Without a facts-only comparison, four runs a day would each rewrite and
+  commit the snapshot forever, and the history would say nothing.
+- **The refresh step installs nothing.** `fetch-github.mjs` has zero
+  dependencies (Node 22+ has global `fetch`), so `npm ci` runs only for the
+  verify step that needs it.
+- **It verifies before it commits.** This job writes to the branch unattended.
+  A snapshot that breaks the build must not be what lands while nobody looks.
+
+Cadence answers **§9.6** at its recommended value: every six hours, plus on
+push. Four runs a day at roughly twenty seconds each, well inside the free
+tier. **§9.6 is now closed.**
+
+### 1E.4 Fallback architecture
+
+The contract, in `lib/github.ts`, in order:
+
+1. `src/data/github.generated.json` — fresh, gitignored, written by a workflow.
+2. `src/data/github.snapshot.json` — last known-good, committed.
+3. `null` — a **designed state**, not an error: the page says the data is
+   unavailable and renders the narrative alone.
+
+The fetch is deliberately **not** part of `npm run build`, and its CI step is
+`continue-on-error`. A GitHub outage, a rate limit or a network blip cannot
+fail a build or blank a page. That is the difference between an integration
+and a deployment dependency.
+
+**This is tested by breaking it** — `npm run test:github`
+(`scripts/test-github.mjs`, commit `62e43c7`). It moves *both* data files
+aside, simulating the worst case (the API is down **and** the committed
+snapshot is gone), rebuilds, and asserts: the build succeeds, the register
+renders, all three records are still listed, the page declares the data
+unavailable, and no fabricated star count appears. Then it restores and
+rebuilds. **13 assertions, all passing.**
+
+That test exists because of a real bug. `loadGitHubSnapshot` shipped in M02
+resolving its paths against the bundle rather than the process working
+directory, so it **always** returned `null` — and because `null` is a
+legitimate designed state, the output was identical to a working loader. It
+survived three milestones. Nothing short of deliberately removing the data
+would have caught it, which is precisely why deliberately removing the data is
+now a test.
+
+### 1E.5 Security
+
+| Property | How it is held | How it is checked |
+|---|---|---|
+| No credential in the client | Static output has no request-time runtime | Structural |
+| No credential in `src/` or `public/` | Token read from `process.env` only | Review + `.gitignore` |
+| No credential in the output | Field allow-list in `normalise` — the API response's owner objects, URLs and permission blocks never cross | **`verify-output.mjs` scans every shipped file** |
+| No credential in a log | Actions masks secrets; the scanner prints a byte offset, never the match | Asserted by `test-github.mjs` |
+| No visitor-facing rate limit | Data is baked in at build time | `api.github.com` assertion |
+| Least privilege | `ci.yml` is `contents: read`; only `github-data.yml` has `contents: write` | Review |
+
+The credential scan (commit `62e43c7`) covers `.html`, `.js`, `.css`, `.json`,
+`.xml`, `.txt` and `.svg` in `dist/` — a token pasted into a data file ships
+exactly as far as one in a page. It matches GitHub's own token prefixes
+(`ghp_` / `gho_` / `ghu_` / `ghs_` / `ghr_`, `github_pat_`), `Authorization`
+headers, and credential-shaped assignments of 16+ characters.
+
+**It deliberately does not print what it found.** A CI log on a public
+repository is published output too, and it outlives a force-push. The failure
+names the file and a byte offset. `test-github.mjs` plants a canary token in
+`dist/` and asserts all three: the gate fails, it names the file, and the
+value does not appear in the output.
+
+**Secret scan result: clean.** No credential-like value in `dist/` (15 pages,
+all asset types). `npm audit`: **0 vulnerabilities**.
+
+**One finding, in someone else's repository.** `Agriculture_simulator` commits
+an OpenWeatherMap API key as a string literal in `app.py`, under a comment
+reading "Hackathon: hardcode key". It is a public repository. The value is not
+reproduced in this document or on the site. **It needs revoking at
+OpenWeatherMap and moving to an environment variable** — that is outside this
+repository and is recorded here as an action for Ayush, and named on the
+AgroVision record as a defect the author found in his own work.
+
+### 1E.6 Verified project facts — and four corrections
+
+Every claim was re-verified against source during M05 (commit `893b2fb`):
+`jarvis_assistant` and `Agriculture_simulator` through the GitHub API and raw
+file reads, `YushaCyber` against the local clone at `D:\YushaCyber` at commit
+`e412b5f` (2026-08-15), which matches the published `pushedAt`.
+
+**The brief's checklist, answered against code:**
+
+| Project | Claim | Verdict |
+|---|---|---|
+| YushaCyber | Cybersecurity learning platform | **Built** — Flask app factory, 14 blueprints |
+| | AI mentor | **Built, with a caveat** — `app/core/ai/`; a *client* for OpenAI or Anthropic with a mock provider. Needs a key; reports itself unavailable without one. Nothing local, nothing trained here |
+| | Roadmap | **Built** — `roadmap_bp` at `/roadmap`, markdown content, `bleach`-sanitised |
+| | CTF / challenges | **Built** — `ChallengeCategory`, `Challenge`, `ChallengeSolve`, `ChallengeHint` |
+| | XP / levels | **Built** — `User.xp`, `User.level`, `xp_reward` on challenges and mission objectives, achievement engine, leaderboard |
+| Jarvis | Local LLM, Ollama / Mistral | **Built** — `ollama==0.3.3`; `AIBrain(model="mistral")` by default |
+| | Text-to-speech | **Built** — `pyttsx3` |
+| | OpenCV, MediaPipe | **Built** — both in `requirements.txt`, both used in `vision.py` |
+| | Face detection | **Built** — `mp.solutions.face_detection` *and* `face_mesh`, with a nose/eye-line gaze estimate driving an attention state |
+| | Gesture recognition | **Built** — `gesture.py` + `gesture_control.py`, plus per-game profiles |
+| | Automation | **Built** — PyAutoGUI behind an application whitelist, a keystroke allow-list, a 120-character typing cap, rate limiting, and a confirmation on the close-window hotkey |
+| AgroVision | Soil detection | **Partial** — `/soil-check` scores a **form-entered** soil type and nitrogen level against `crop_data.json`. No sensor exists. The *real-time* version stays on the roadmap |
+| | Nutrient recommendation | **Partial** — the same route returns banded advice, not a dosage |
+| | Weather requirements | **Built** — `/weather-check` calls OpenWeatherMap live and weights temperature 40% / soil 30% / nutrients 20% |
+| | Fertilizer recommendation | **Not built** — roadmap only |
+| | Plant disease detection | **Not built** — roadmap only |
+
+**The four corrections, and why two of them are the more interesting failure:**
+
+1. **AgroVision's roadmap was copied from its README's "Future Improvements",
+   which is stale against its own source.** Weather API integration and farmer
+   authentication were both listed as unbuilt; both are in `app.py`. The site's
+   rule is "only publish claims supported by the repository" — reading a
+   roadmap instead of the code got the direction of the error backwards and
+   produced an *understatement*, which is a fabrication too. The output guard
+   in `verify-output.mjs` had been enforcing it.
+2. **YushaCyber registers fourteen blueprints, not fifteen.** The prose already
+   enumerated fourteen; only the number was wrong.
+3. **YushaCyber's `bleach` claim was false.** The record said the dependency was
+   imported by the code while missing from `requirements.txt` — "a real bug,
+   found and recorded". It was added on 2026-07-14, five weeks before the record
+   claimed it was absent. Removed; the sanitisation fact itself is true and kept.
+4. **Jarvis under-reported itself.** Face detection, face mesh, gaze-based
+   attention, the Mistral default and the entire input-safety fence were all
+   implemented and unmentioned.
+
+Figures spot-checked and confirmed: YushaCyber ≈ 3.47 MB of tracked Python
+across 374 files, **48** test files; Jarvis `voice.py` 24,842 B, `vision.py`
+9,785 B, `ui.py` 23,430 B.
+
+**Nothing on the site is published that the repository does not support**, and
+the AgroVision roadmap block — struck through, headed "Not built" — is
+enforced: `verify-output.mjs` fails the build if "disease detection",
+"Fertilizer" or "fertiliser" appears anywhere before that marker.
+
+### 1E.7 Accessibility
+
+Verified in Chrome 151 against the built output.
+
+| Check | Result |
+|---|---|
+| Heading structure | One `<h1>` per page, all 15 pages |
+| Landmarks | `header` / `nav` / `main` / `footer` on every page checked |
+| Skip link | Present, `href="#main"`, `#main` exists; moves from `-69px` to `+8px` on focus |
+| Focus indicators | **Every** focusable element on `/`, `/projects`, `/projects/yushacyber`, `/contact` shows an outline under `:focus-visible` — 16, 19, 13 and 11 elements, zero without |
+| Tab cost per record | Two stops (register row, panel heading), down from three |
+| Contrast | Every ink step against the workshop stock clears WCAG AA; asserted in the build |
+| Reduced motion | Motion is **opt-in**: every animation sits inside `@media (prefers-reduced-motion: no-preference)` and uses `backwards` fill, so the unanimated state is the finished state. A reduced-motion user needs no override |
+| Forced colors | `.record-panel` rules present; the dead `::after` override was removed with the element |
+| The register | A real `<table>` with `<caption>` and `scope="col"` headers — announced as a table, not read as loose text |
+
+An earlier automated pass reported every element as missing a focus ring; that
+was a false negative from calling `.focus()`, which does not set
+`:focus-visible` in Chrome. Re-run with `.focus({focusVisible:true})`: zero
+failures. Recorded because the wrong method produces a confidently wrong
+accessibility report.
+
+### 1E.8 Performance
+
+Static output, no framework runtime, no third-party origin.
+
+| | Bytes |
+|---|---|
+| `dist/` total | 334,578 |
+| `/projects` HTML | 18,262 |
+| CSS for `/projects` (2 files) | 23,229 |
+| **JS on `/projects`** | **639** — one script, the world gate |
+| All JS in `dist/` | 6,195 |
+| Fonts (6 × woff2, self-hosted, subset) | 109,244; `/projects` preloads 2 |
+| Build | 15 pages in ~1.4–2.2 s |
+
+*Not measured:* Lighthouse scores, cold-cache field performance, real-device
+frame rate. Carried forward, unchanged, from M04's open list.
+
+### 1E.9 Responsive testing
+
+Programmatic overflow sweep over 320 / 360 / 375 / 414 / 768 / 1024 / 1280 /
+1440 / 1920 px across `/`, `/about`, `/projects`, all three records, `/github`
+and `/contact` — measuring `documentElement.scrollWidth` against `clientWidth`
+and naming the widest offending element on any failure.
+
+**One overflow found, and fixed:** `/contact` at 320 px overflowed by 3 px.
+`.channels__value` is `inline-size: fit-content` around an email address,
+which is a single unbreakable token — a horizontal scrollbar on the narrowest
+phones for the sake of one link. Fixed with `overflow-wrap: anywhere` and
+`max-inline-size: 100%`. Re-swept: **zero overflow at every width on every
+page.**
+
+At 390 px the register stacks into labelled blocks (its cell labels carry
+through), the nav wraps to two rows, and the sheet block reflows to two
+columns. The record panel and its cut corner survive the reflow.
+
+### 1E.10 Browser and no-JS testing
+
+**Chrome 151 (Windows 11) — verified.** Firefox, Safari, Edge and real mobile
+devices: **not tested.** No emulator substitutes for a real device and none is
+claimed. This remains open, as it has since M02.
+
+**JavaScript disabled** — tested by loading each page in a sandboxed frame with
+scripting denied and comparing against the same page with scripting allowed:
+
+| Page | No-JS | With JS |
+|---|---|---|
+| `/projects` | 1,827 chars, 3 register rows, 3 panels | **Identical** |
+| `/` | 1,346 chars | 1,366 chars — the wordmark island swapping its fallback `<h1>` |
+
+The PROJECTS world is byte-for-byte the same with scripting off. Its only
+script is the world gate, which is an entrance, not content.
+
+**Console: clean.** Zero errors, warnings, rejections or exceptions across all
+11 routes.
+
+### 1E.11 Build and CI status
+
+| Gate | Result |
+|---|---|
+| `astro check` | 42 files, **0 errors, 0 warnings, 0 hints** |
+| `astro build` | 15 pages, clean |
+| `npm run verify` | **Pass** — 8 worlds, no-JS fallbacks intact, About record verbatim, 3 project records with sources, **no credentials**, 3 world stocks clear AA, no inline scripts, no third-party origins, no Pretext |
+| `npm run test:github` | **Pass** — 13/13 |
+| `npm audit --audit-level=high` | **0 vulnerabilities** |
+| Direct URLs | 13/13 routes return 200 |
+
+`astro.config.mjs` sets `trailingSlash: 'never'`, so `astro preview` returns
+404 for `/about/`. GitHub Pages serves `/about/` from the emitted
+`about/index.html` regardless. Worth knowing before someone reports it as a
+bug against the preview server.
+
+Dependencies: **`astro` remains the only production dependency.** Nothing was
+added for K4 — the fetch script, the verification gate and the fallback test
+are all zero-dependency Node.
+
+### 1E.12 Known limitations
+
+1. **Firefox, Safari, Edge and real mobile devices are untested.** Open since M02.
+2. **Lighthouse, axe and a screen-reader pass have not been run.** Structural
+   accessibility is verified; lived accessibility is not.
+3. **`contributions` is `null`.** Contribution totals need the GraphQL API. The
+   field exists and is never estimated; the site shows no contribution figure
+   rather than an invented one.
+4. **The scheduled workflow has not yet fired.** Its logic is exercised locally
+   — promotion is a verified no-op when facts are unchanged and fires when they
+   change — but the first cron run is unobserved.
+5. **`github-data.yml` commits to `v2` unattended.** It verifies first, and it
+   can only ever touch one file. Still the only automation in this repository
+   holding `contents: write`.
+6. **`/contact`, `/ai`, `/cybersecurity`, `/learning`, `/github` are M02 shells.**
+7. **The gate choreography is still untuned** and scroll-driven composition is
+   still unimplemented. Open since M03-B.
+8. **The OpenWeatherMap key in `Agriculture_simulator` is still live** until
+   Ayush revokes it. Outside this repository; recorded in §1E.5.
+
+### 1E.13 M05 scope compliance
+
+**Only PROJECTS was built.** Two lines of CSS changed outside it — the
+`/contact` overflow fix in §1E.9, which is a defect repair on a shipped page,
+not the start of that world.
+
+| World | State |
+|---|---|
+| **PROJECTS** | **COMPLETE** |
+| **AI LAB** | **NOT STARTED** |
+| **CYBERSECURITY** | **NOT STARTED** |
+| **LEARNING** | **NOT STARTED** |
+| **GITHUB WORLD** | **NOT STARTED** |
+| **CONTACT** | **NOT STARTED** |
+
+Home and About were not modified. No dependency was added. The CSP was not
+weakened. **V1 remains byte-identical, `main` is unmodified, nothing is
+merged.**
+
+### 1E.14 Commits
+
+| Hash | Commit |
+|---|---|
+| `282b8c8` | feat(projects): implement build-time GitHub retrieval, and fix the loader |
+| `df2a6c1` | feat(projects): file three verified project records |
+| `db6dc17` | feat(world): give PROJECTS its stock and the sheet entrance |
+| `ab8e6ec` | feat(projects): build the engineering workshop world |
+| `437ad07` | test(projects): assert the records, the two layers, and the roadmap boundary |
+| `80a0cfc` | fix(projects): order the register by the date it shows, and cut two dead things |
+| `04c97ea` | feat(projects): close K4 with a scheduled build-time GitHub workflow |
+| `62e43c7` | test(projects): verify the GitHub fallback and secret isolation |
+| `893b2fb` | fix(projects): correct three records against their repositories, not their READMEs |
+| `92dba32` | fix(contact): stop an email address pushing the page 3px wide at 320 |
+| _this_ | docs: record M05 — the Projects world and the closing of K4 |
+
+Files added or changed in the K4 half:
+
+```
+.github/workflows/github-data.yml    new — the scheduled refresh
+.github/workflows/ci.yml             + the fallback/secret test step
+scripts/fetch-github.mjs             + facts-only --promote comparison
+scripts/test-github.mjs              new — 13 assertions
+scripts/verify-output.mjs            + credential scan, narrowed AgroVision guard
+package.json                         + test:github
+src/content/projects/*.md            three records corrected
+src/pages/contact.astro              overflow fix
+```
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -1421,7 +1816,7 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 **9.5 Information architecture and URL scheme.** The brief names 8 worlds; the site has 5 content pages. Confirm the final section list, the URL for each, and the redirect map for the 6 currently-indexed URLs (R10).
 
-**9.6 GitHub Actions budget.** Build-time GitHub integration (§8.3) needs a scheduled workflow. Confirm an acceptable rebuild cadence — recommend every 6 hours, plus on push.
+**9.6 GitHub Actions budget. CLOSED in M05.** Implemented at the recommended cadence: `github-data.yml` runs every 6 hours plus on demand, and `ci.yml` refreshes on every push to `v2`. Four scheduled runs a day at roughly twenty seconds each. See §1E.3.
 
 **9.7 YushaCyber.** Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
 
@@ -1494,16 +1889,16 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 ## 12. Known issues
 
-**Resolved in M02:** K1 (Node installed, Astro adopted), K2 (`.gitignore` in place), K3 (no CDN, no three.js, CSP shipped), K5 (component architecture), K8/K10/K13 (do not exist in V2), K9 (V2 escapes all interpolation). K4, K6, K7, K11, K12 remain open — K4 until the Actions workflow lands, K6 until the content session, K7 and K12 until cutover.
+**Resolved in M02:** K1 (Node installed, Astro adopted), K2 (`.gitignore` in place), K3 (no CDN, no three.js, CSP shipped), K5 (component architecture), K8/K10/K13 (do not exist in V2), K9 (V2 escapes all interpolation). **Resolved in M05:** K4 — the Actions workflows landed (§1E.3), the fallback is tested by breaking it (§1E.4), and no shipped page may reference `api.github.com`. K6, K7, K11 and K12 remain open — K6 for the worlds whose copy is still unverified, K7 and K12 until cutover.
 
-**Open on `v2`:** gate choreography untuned; scroll-driven composition unimplemented; `frame-ancestors` undeliverable on GitHub Pages; V1 redirect map (R10) still outstanding; cross-browser, mobile and screen-reader verification not yet performed.
+**Open on `v2`:** gate choreography untuned; scroll-driven composition unimplemented; `frame-ancestors` undeliverable on GitHub Pages; V1 redirect map (R10) still outstanding; cross-browser, mobile and screen-reader verification not yet performed (Chrome 151 only — see §1E.10).
 
 | ID | Issue (V1 baseline, M01) | Severity |
 |---|---|---|
 | K1 | No Node.js on the dev machine — blocks any build-based V2 | ~~Blocking~~ **Resolved M02** |
 | K2 | No `.gitignore` — secret/artifact leak risk the moment a build lands | ~~High~~ **Resolved M02** |
 | K3 | three.js via CDN, no SRI, no CSP, 58% of page weight | ~~High~~ **Resolved M02** |
-| K4 | Client-side GitHub API, 60 req/hr/IP shared across visitors | Medium |
+| K4 | Client-side GitHub API, 60 req/hr/IP shared across visitors | ~~Medium~~ **Resolved M05** — build-time only, two workflows, verified fallback (§1E.3–§1E.4) |
 | K5 | HTML boilerplate copy-pasted x6; 161 duplicated lines between two 3D files | Medium |
 | K6 | Unverified biography, timeline and skills copy | Medium |
 | K7 | 1.6 MB unreferenced JPG committed and shipped | Low |
@@ -1551,7 +1946,41 @@ npm audit
 
 ---
 
-## 14. Next milestone — M03 recommendation
+## 14. Next milestone — M06 recommendation
+
+**M06 — one more world, on the system that now has two worlds' worth of
+evidence behind it.** PROJECTS is the second content world built on the M04
+system and the first to join curated narrative to fetched facts. Nothing in it
+required a change to the world system, which is the strongest signal so far
+that the architecture holds.
+
+Recommended order:
+
+1. **Run §9.4 content verification for the next world's copy before building
+   it.** M05 spent more effort correcting three already-"verified" records than
+   it did building the world around them — and the corrections included two
+   *understatements*, produced by trusting a README instead of reading source.
+   The lesson generalises: verify against code, not against documentation, and
+   do it before the page exists rather than after.
+2. **Pick the next world by which content is verifiable, not by IA order.**
+   GITHUB is the cheapest — the snapshot already holds everything it needs and
+   `publicRepos()` is already written. CYBERSECURITY is the highest-risk for
+   fabricated claims and should not be attempted until §9.4 has covered it.
+3. **Revoke the OpenWeatherMap key** in `Agriculture_simulator` (§1E.5). Small,
+   outside this repository, and it should not wait for a milestone.
+4. **Answer §9.7** — whether YushaCyber gets a real destination. It is now a
+   live question, since the record links a repository and nothing else.
+5. **Then** tune the gate choreography, with three worlds to move between.
+6. **Build the redirect map** (R10) before any cutover discussion.
+
+**M06 exit criteria:** one further world built and reviewed; its content
+verified against source before publication; CI green including
+`npm run test:github`; the first scheduled `github-data.yml` run observed. V1
+still live and unmodified throughout.
+
+---
+
+## 14A. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -1568,7 +1997,7 @@ Recommended order:
 
 ---
 
-## 14A. M02 recommendation (M01 record, now complete)
+## 14B. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -1592,4 +2021,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M02. Awaiting architectural review of the architecture and the Home prototype. Do not proceed to M03 until §1A.9 is answered.*
+*End of M05 — PROJECTS WORLD COMPLETE, K4 CLOSED. Awaiting architectural review. AI LAB, CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
