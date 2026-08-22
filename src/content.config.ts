@@ -53,6 +53,13 @@ const projects = defineCollection({
   schema: z.object({
     ...archiveBase,
     status: z.enum(['active', 'shipped', 'archived', 'paused']),
+    /**
+     * What KIND of thing this is — a platform, an assistant, a simulator.
+     * Free-text rather than an enum: the set of things one person builds is
+     * not closed, and an enum here would eventually force a real project into
+     * the wrong drawer. The register tabulates it, so it should stay short.
+     */
+    kind: z.string().optional(),
     role: z.string().optional(),
     /** Free-text on purpose: a stack list is not a closed set. */
     stack: z.array(z.string()).default([]),
@@ -63,6 +70,22 @@ const projects = defineCollection({
      * featured entries is by `date`.
      */
     featured: z.boolean().default(false),
+    /**
+     * Stated intentions that are NOT built yet.
+     *
+     * This field exists because of a specific, verified near-miss. The
+     * AgroVision repository's README lists weather integration, soil
+     * analysis, disease detection and fertilizer recommendation — and every
+     * one of them sits under its own "Future Improvements" heading, with no
+     * corresponding code. Read quickly, that README describes a far more
+     * capable system than the repository contains.
+     *
+     * A roadmap item held in the same array as `stack` would eventually be
+     * rendered as a capability by someone who did not know the difference.
+     * Keeping it in a separate field means the page cannot present an
+     * intention as a feature without someone deliberately moving the string.
+     */
+    roadmap: z.array(z.string()).default([]),
   }),
 });
 
