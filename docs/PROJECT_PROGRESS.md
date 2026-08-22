@@ -26,7 +26,10 @@
 | M03-B.1 | Home polish & Pretext decision | **Complete** | §1C below. Awaiting review. |
 | M04 | World System + About world | **Complete** | §1D below. Awaiting review. |
 | M05 | Projects world + K4 build-time GitHub integration | **Complete** | §1E below. Awaiting review. K4 and §9.6 closed. |
-| M06+ | Remaining five worlds, content collections, redirects, cutover | Not started | AI Lab, Cybersecurity, Learning, GitHub, Contact. Each is a CSS entrance block plus a page. |
+| M06 | AI Lab world | **Complete** | §1F below. Awaiting review. `/ai` renamed `/ai-lab`. |
+| M07+ | Remaining four worlds, content collections, redirects, cutover | Not started | Cybersecurity, Learning, GitHub, Contact. Each is a CSS entrance block plus a page. |
+
+**M06 scope compliance:** the AI LAB world was built. **CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED** — they remain M02 shells. HOME and ABOUT were not modified. Two changes fell outside AI LAB, both consequences rather than scope: `TitleBlock`'s styles moved into the component (a genuine shared-system bug — AI LAB rendered it unstyled), and one sentence links PROJECTS into the lab per the brief's world relationship. No dependency was added. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1F.13.
 
 **M05 scope compliance:** the PROJECTS world was built and K4 was closed. **AI LAB, CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED** — they remain M02 shells. Home and About were not modified; the only change outside PROJECTS is a two-line overflow fix on `/contact` (§1E.9). No dependency was added; `astro` is still the only production dependency. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1E.13.
 
@@ -1572,6 +1575,388 @@ src/pages/contact.astro              overflow fix
 
 ---
 
+## 1F. M06 — AI Lab world
+
+**Status: M06 — AI LAB — COMPLETE.** Awaiting architectural review.
+**Scope:** one objective. Build the AI LAB world on the M04 system. No other
+world was built; see §1F.13.
+
+### 1F.0 The route changed, and this was the last cheap moment to change it
+
+The world was `ai` at `/ai`, named **Experimental Machine Room**. That is a
+mainframe hall. The work it holds is a laboratory — things are assembled, run,
+measured, taken apart and run again — and the M06 brief names both the route
+`/ai-lab` and the identity *experimental laboratory*.
+
+Renamed: `id: 'ai-lab'`, `href: '/ai-lab'`, world **Experimental Laboratory**,
+gate `EXPERIMENTAL LABORATORY` / `ENTERING THE LABORATORY`. Six references in
+total across the registry, the world stylesheet, the page and the verification
+script.
+
+Recorded here because the timing is the point: nothing is published, so the URL
+was still free. After cutover this would have cost a redirect (R10), and the
+world would have kept a name that described the wrong building for as long as
+the site existed.
+
+### 1F.1 Visual system — the bench
+
+| Element | Decision |
+|---|---|
+| Stock | `#f1f0ea` — the lightest, least saturated in the archive. Bench paper, against HOME's warm drafting, ABOUT's manila, PROJECTS' cold grey. Ink ramp measures 15.21 / 7.69 / 5.88 / 4.99 |
+| Accent | `#4a5c3a`, 6.38:1 on that stock. A chalkboard-and-reagent-bottle green — the darkest, least chromatic accent in the archive, chosen directly against the brief's prohibition on neon |
+| Ground | **Two** rulings: a dot matrix on a sample pitch, and a graduated scale down the inline-start margin — minor ticks at that pitch, a major every fifth |
+| Entrance | `traverse` — a specimen slide carried across the stage |
+| Grammar | Stations. A numbered sequence of bench positions, not a scroll of sections |
+| Type | No new scale. Global tokens only |
+
+**The graduated margin is the world's thesis as furniture.** HOME registers,
+PROJECTS draws, ABOUT files; this world *measures*, so every page in it carries
+a ruler down its edge. The scale and the sample field both read
+`--bench-pitch`, so the ruler cannot drift from the thing it is measuring, and
+the same token graduates the leading edge of the entrance plate.
+
+Nothing glows. No gradient, no glass, no circuit board, no particles, no
+neural-network ornament, no terminal phosphor. The accent is used the way a
+reagent label uses colour — to mark what has been measured.
+
+### 1F.2 The philosophy, as a station rather than a pull-quote
+
+*"I build, experiment, break, and learn."* is set in the display face at
+`--step-3`, labelled `WORKING PRINCIPLE`, and ruled on its measuring edge —
+treated as a specimen under examination, because it is a statement about
+method and a method is the kind of thing this world examines.
+
+Underneath it, the second half of the brief's philosophy, in the form the
+About record already verified: *when AI gives me code, I want to understand
+what it does rather than blindly accepting the output*. The page then says why
+that is engineering rather than caution — **a system you did not understand
+when it worked is a system you cannot fix when it stops** — and draws the
+consequence that shapes the whole world: the unit of work here is not a model,
+it is a pipeline you can follow end to end.
+
+### 1F.3 Verified AI capabilities
+
+Read out of source during M06. `jarvis_assistant`, `beach_buggy_ai`, `x-man`
+and `Agriculture_simulator` through the GitHub API and raw file reads;
+`YushaCyber` from the local clone verified in M05.
+
+**Two repositories were inspected for the first time in M06** and both are
+substantial AI work that no earlier milestone had looked at:
+
+- **`beach_buggy_ai`** — a gesture-controlled gaming assistant. MediaPipe
+  Hands, OpenCV, pynput, plus blink detection, DeepFace expression
+  classification, a voice assistant, and GPT-4o / Gemini 1.5 Flash chat.
+- **`x-man` (NepalSathi)** — a Flask civic-information platform whose AI
+  service runs `qwen2.5:0.5b` through local Ollama with a rule-based fallback.
+
+| Area | Verdict | Evidence |
+|---|---|---|
+| Local language model | **Implemented** | `ollama==0.3.3`, `AIBrain(model="mistral")`; and `qwen2.5:0.5b` at `localhost:11434`, temp 0.3, 80-token cap, 20 s timeout |
+| **Model training** | **NOT ATTEMPTED** | No `.fit(`, no `train_test_split`, no `torch.save`, no epoch loop, no fine-tune, in any repository |
+| Speech recognition | **Implemented** | Vosk `KaldiRecognizer` continuous at 16 kHz; faster-whisper `small`, lazy-loaded |
+| Text to speech | **Implemented** | `pyttsx3`, rate 185, interruptible via `engine.stop()` |
+| Face detection | **Implemented** | `mp.solutions.face_detection` at ≥0.3, plus `face_mesh` with a nose/eye-line pitch proxy |
+| Gesture recognition | **Implemented** | MediaPipe Hands, 21 landmarks; wrist(0)→knuckle(9) Δx, EMA α 0.3, ±0.02 |
+| Expression classification | **Implemented** | DeepFace, every 10th frame, ≥0.4 confidence |
+| Automation | **Implemented** | PyAutoGUI and pynput behind an app whitelist, a key allow-list, a 120-char typing cap, rate limiting and a confirm on the close-window hotkey |
+| Hosted language model | **Implemented, key-gated** | OpenAI/Anthropic in YushaCyber; GPT-4o/Gemini in `beach_buggy_ai`. Both report unavailable without a key |
+
+**Three claims were deliberately NOT made**, each because the source says
+otherwise:
+
+1. **Jarvis is not "offline".** Its only network call is opening a Google
+   search URL in a browser on command. *No cloud inference* is accurate;
+   *no network* would not be, so the page says the first.
+2. **`emotion_engine.py` detects no emotion.** Its own docstring reads "NO ML,
+   NO threads, NO side effects" — it is a lookup from vision state to a reply
+   style. Experiment 002 records the gap between that and the filename rather
+   than repeating the filename's implication.
+3. **Head pose is not gaze.** The pitch estimate is nose-below-eye-line, and
+   experiment 002 says so and says it should be justified with data before
+   anything is built on it.
+
+### 1F.4 Experiment architecture
+
+The `experiments` collection has existed since M02 with exactly the schema this
+needed: `outcome` as an enum including `failed` and `inconclusive`,
+`hypothesis`, `apparatus`, and — the field that matters — **`result` optional**.
+M06 is the first work to use it, and the reason it was written optional in M02
+is the reason the world works now.
+
+| No. | Experiment | Outcome | Result field |
+|---|---|---|---|
+| 001 | Aiming a general classifier at five crops | succeeded | No accuracy measured — no labelled test set exists |
+| 002 | Attention as an input | **inconclusive** | Not measured |
+| 003 | Two speech recognisers instead of one | succeeded | Latency and WER not measured |
+| 004 | Hand tilt as a steering axis | succeeded | No frame rate or false-trigger rate |
+| 005 | A 0.5B model, on purpose | succeeded | No latency, quality or fallback rate |
+
+Four of five report an absence. **002 is filed inconclusive rather than
+succeeded on purpose**: the mechanism works — presence detected, state changed,
+replies shortened — and whether that makes the assistant *better* was never
+tested. The honest outcome for an experiment whose result was never observed is
+not success.
+
+The notebook is ordered **ascending** by date, unlike every other index on the
+site. 001 coming first is the convention of a lab book, and reversing it would
+make the numbers argue with the order.
+
+The numbers that *are* published were read from source: EAR 0.21 over 2 frames
+with a 0.5 s double-blink window, tilt ±0.02, EMA α 0.3, detection confidence
+0.7 and tracking 0.5, 1280×720 captured and 320×240 inferred, 3–4 s command
+capture stopping after 450 ms below energy 400, temperature 0.3, 80 tokens.
+Those constants are the actual engineering — they belong to one camera, one
+microphone and one machine, and no tutorial contains them.
+
+### 1F.5 Model provenance — the station the world is built around
+
+Station 07 is a nine-row table of every model on the bench and where its
+weights came from. Its last column reads **No** nine times.
+
+Nothing here was trained or fine-tuned. MobileNetV2 arrives with ImageNet
+weights; MediaPipe's graphs are Google's; Vosk, Whisper and DeepFace are
+published; Mistral and qwen are pulled through Ollama; GPT-4o, Gemini and
+Claude are hosted. There is no dataset, no training run, no accuracy figure and
+no loss curve, **because none of those things exist.**
+
+Stating it outright is worth more than any claim the page could make instead,
+and it leaves visible the discipline this work does practise: applying a
+general model to a narrow problem well. The plant gate, the label map, the
+smoothing constant, the wake-word split — none of them touch a weight, and all
+of them decide whether the system works.
+
+### 1F.6 Technical diagrams — every diagram is a list
+
+Six pipelines: local language model, face and attention, crop identification,
+speech in/out, hand as an input device, command to action. Thirty-one stages.
+
+**None of them is an SVG. There is no SVG on the page at all.** Each is an
+`<ol>` of stages with the connectors — rule and plotted arrowhead — drawn in
+CSS pseudo-elements. Consequences, and each was the reason:
+
+- the stages are text, in order, in the HTML. A screen reader gets "list, 5
+  items" in sequence. There is no alt text to write and none to fall out of
+  sync with the diagram;
+- complete with CSS disabled, and complete with JavaScript disabled;
+- it **recomposes** rather than scaling. Above 52rem a horizontal run with
+  rightward connectors; below, a vertical stack with downward ones. The brief
+  asks specifically not to shrink desktop diagrams, and the way to comply is
+  not to have one drawing.
+
+Each stage carries an optional `note` — the thing a diagram normally cannot
+say. That is where the barge-in path, the 320×240 downscale and the fail-safe
+live, and they are the most useful text in each figure.
+
+`verify-output.mjs` fails the build if an `<svg>` ever appears on this page.
+
+### 1F.7 Transition
+
+`traverse` — a specimen slide carried across the stage. The plate does not
+part, split or lift: it travels sideways as one rigid piece and the bench is
+uncovered behind it, the motion of a mechanical stage being wound in X.
+
+It is **the one motion the other three worlds do not make**. HOME withdraws to
+both margins, ABOUT travels down, PROJECTS parts along a crease. That is now
+the written constraint on every future entrance, in `gate.css`: four
+implemented kinds are four different motions, not four timings of one, and an
+entrance that moves the way a built world already moves is a duration change
+wearing a different name.
+
+Two marks make it a mechanism rather than a wipe, and both come from the bench:
+a **graduated leading edge** at `--bench-pitch`, so the travel is measured; and
+a translate as well as a clip, so the slide has travel and a stopping point.
+The label is fixed to the leading edge and rides off the stage with it.
+
+560 ms on `--ease-drawer`, inside the brief's 400–800 ms window, over content
+the browser has already painted. Verified mid-animation in Chrome: at 45%
+through, `clip-path: inset(0 0 0 10.3%)` and `translate: 10.6px`, plate
+visible, label travelling.
+
+**Reduced motion:** the resting state is `visibility: hidden`, and the clock is
+zeroed at the token source, so a reduced-motion visitor gets the bench
+immediately. A failed or unsupported animation resolves the same way. Nothing
+on the page is revealed by motion.
+
+### 1F.8 Accessibility
+
+Verified in Chrome 151 against the built output.
+
+| Check | Result |
+|---|---|
+| Headings | One `<h1>`; nine `<h2>` stations; `<h3>` per experiment. No level skipped |
+| Landmarks | `header` / `nav` / `main` / `footer` |
+| `aria-current` | Set on the AI Lab nav item |
+| Skip link | Present, targets an existing `#main` |
+| Diagrams | Lists, not images. No alt text needed; nothing important reachable only through a drawing |
+| Tables | Real `<table>` with `<caption>` and `scope="col"`. Below 48rem they become labelled blocks, with `data-label` carrying the column heading down — and `thead` is clipped, not `display: none`, so it stays in the accessibility tree |
+| Marks | The locus and outcome squares never carry meaning by colour alone — each is paired with its word (`ON THE MACHINE`, `NOTHING TRAINED`, `succeeded`) |
+| Forced colours | Locus and outcome distinctions survive on the border, since a background fill is not guaranteed to render |
+| Reduced motion | All motion inside `no-preference`, `backwards` fill, so the unanimated state is the finished state |
+| Contrast | Bench stock clears every ink step at AA; asserted in the build |
+
+**One check could not be re-run: the live keyboard focus pass.** The browser
+window had no OS focus in this session, so `document.hasFocus()` was false and
+`:focus-visible` could not be exercised — every element reports "no ring",
+which is the tool being wrong, not the page. What was verified instead: the
+`:where(:focus-visible)` rule ships in `BaseLayout` CSS on every page, and
+**nothing in `ai-lab.css`, `ai-lab.astro` or `Pipeline.astro` sets `outline`
+at all**, so there is nothing new that could suppress it. M05 verified the same
+rule live, on the same shared header and footer, with zero failures. Recorded
+as a limitation rather than claimed as a pass.
+
+### 1F.9 Performance
+
+| | Bytes |
+|---|---|
+| `/ai-lab` HTML | 59,402 |
+| `ai-lab.css` | 10,631 |
+| `BaseLayout.css` | 18,472 |
+| **JS on `/ai-lab`** | **639** — one script, the world gate |
+| `dist/` total | 402,680 |
+| Build | 15 pages in ~1.4 s |
+
+No Three.js, no WebGL, no animation library, no CDN, no client-side API call.
+`astro` remains the only production dependency. The page is the largest HTML in
+the archive because it contains the most text, which is the right reason.
+
+### 1F.10 Responsive testing
+
+Overflow sweep at every width the brief lists — **320 / 360 / 375 / 390 / 414 /
+768 / 1024 / 1280 / 1366 / 1440 / 1920** — across `/ai-lab`, `/`, `/about`,
+`/projects`, `/github`, `/learning` and `/contact`, measuring
+`documentElement.scrollWidth` against `clientWidth`.
+
+**One overflow found, and traced to root cause.** `/ai-lab` was 4 px wide at
+320 px. The offender was not the paragraph it appeared in: `<code>` containing
+`app/services/ai_service.py` measures 238 px as one unbreakable token, which
+set the **min-content width of its grid item**, which sized the experiment
+list's auto track to 289 px inside a 264 px container. Fixed with
+`overflow-wrap: anywhere` on inline code in both places it appears. Re-swept at
+all eleven widths across all seven pages: **zero overflow.**
+
+Recorded because the diagnosis is the interesting part — the overflow was in
+the list track, three levels up from the element that caused it, and the first
+four guesses were all wrong. It took measuring min-content per node to find.
+
+Recomposition verified at 375 px: pipelines stack vertically with downward
+connectors (`grid-auto-flow: row`), both tables become labelled blocks with the
+column heading carried by `::before`, stage width 278 px, zero overflow.
+
+### 1F.11 Browser and no-JS testing
+
+**Chrome 151 (Windows 11) — verified.** Firefox, Safari, Edge and real mobile
+devices: **not tested.** No additional browser infrastructure was installed,
+per the brief, and nothing is claimed that was not run.
+
+**JavaScript disabled** — a sandboxed frame with scripting denied, compared
+against the same page with scripting allowed:
+
+| | No-JS | With JS |
+|---|---|---|
+| Characters | 21,585 | 21,585 |
+| Pipelines / stages | 6 / 31 | 6 / 31 |
+| Experiment records | 5 | 5 |
+| System index rows | 7 | 7 |
+| Provenance rows | 9 | 9 |
+
+**Byte-for-byte identical.** The world's only script is the shared gate, which
+is an entrance, not content.
+
+**Console: clean.** No errors, warnings or rejections.
+
+### 1F.12 Security
+
+The credential scan added in M05 covers the new page and its assets: **clean**.
+`npm audit`: **0 vulnerabilities**.
+
+Nothing on this page exposes a key, a token, a private path or a private
+configuration. Two specific cares were taken:
+
+- `beach_buggy_ai` ships a `.env.example` with empty placeholders and no
+  committed `.env`. That is good practice and is described as key-gated; no
+  value is reproduced.
+- Local machine paths are not published. The page says `localhost:11434`
+  because that is the documented default port of a public tool, not a fact
+  about anyone's machine.
+
+The M05 finding stands unchanged: the **OpenWeatherMap key hardcoded in
+`Agriculture_simulator` still needs revoking**. It is outside this repository.
+
+### 1F.13 M06 scope compliance
+
+| World | State |
+|---|---|
+| **HOME** | **COMPLETE** |
+| **ABOUT** | **COMPLETE** |
+| **PROJECTS** | **COMPLETE** |
+| **AI LAB** | **COMPLETE** |
+| **CYBERSECURITY** | **NOT STARTED** |
+| **LEARNING** | **NOT STARTED** |
+| **GITHUB** | **NOT STARTED** |
+| **CONTACT** | **NOT STARTED** |
+
+Two changes were made outside AI LAB, both of them consequences rather than
+scope creep:
+
+1. **`TitleBlock`'s styles moved into the component.** They lived in
+   `styles/projects.css`, which worked exactly as long as PROJECTS was the only
+   world importing it — AI LAB rendered the same component as an unstyled
+   definition list. A shared component that only looks right inside one world
+   is shared by accident. This is the "genuine shared-system bug" exception the
+   brief allows. The per-world entrance animation stays in the world
+   stylesheet, because that part really is choreography.
+2. **One sentence added to the PROJECTS intro**, linking into the lab, per the
+   brief's §27 world relationship.
+
+HOME and ABOUT were not modified. No dependency was added. The CSP was not
+weakened. **V1 remains byte-identical, `main` is unmodified, nothing is
+merged.** HOME, ABOUT and PROJECTS were re-verified after the shared-component
+change: build green, output assertions green, zero overflow at every width.
+
+### 1F.14 Known limitations
+
+1. **Live keyboard focus could not be re-verified** this session — see §1F.8.
+   Structurally intact and verified live in M05; not re-run.
+2. **Firefox, Safari, Edge and real mobile remain untested.** Open since M02.
+3. **Lighthouse, axe and a screen-reader pass have not been run.**
+4. **Nothing on this bench is measured**, which is the world's own headline
+   finding and also its largest gap. Latency on the local model, false-trigger
+   rate on the gesture threshold, and crop accuracy against a labelled set are
+   three cheap experiments, none of them run.
+5. **No model has been trained.** Recorded as a station rather than hidden, and
+   named as the next thing to learn.
+6. **`/cybersecurity`, `/learning`, `/github`, `/contact` are M02 shells.**
+7. **The gate choreography is still untuned** and scroll-driven composition is
+   still unimplemented. Open since M03-B.
+8. **The OpenWeatherMap key in `Agriculture_simulator` is still live.**
+
+### 1F.15 Commits
+
+| Hash | Commit |
+|---|---|
+| `06db020` | feat(world): rename the AI world and print it on bench paper |
+| `d4dea43` | feat(ai-lab): add the traverse entrance |
+| `8ec940f` | feat(ai-lab): file five verified experiment records |
+| `268e323` | feat(ai-lab): build the experimental laboratory |
+| `7f1b336` | test(ai-lab): assert the world cannot quietly start overstating |
+| _this_ | docs: record M06 — the AI Lab world |
+
+```
+src/lib/worlds.ts                      ai → ai-lab, traverse, gate copy
+src/styles/worlds.css                  bench stock + graduated ground
+src/styles/gate.css                    the traverse entrance
+src/pages/ai.astro → ai-lab.astro      the laboratory
+src/styles/ai-lab.css                  new — the bench furniture
+src/components/ai-lab/Pipeline.astro   new — a signal path, as a list
+src/content/experiments/*.md           new — five verified records
+src/components/projects/TitleBlock.astro   + its own styles, scoped
+src/styles/projects.css                − the styles that moved
+src/pages/projects/index.astro         + the link into the lab
+scripts/verify-output.mjs              + AI Lab assertions, route rename
+```
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -1814,11 +2199,11 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 **9.4 Content verification session with Ayush. BLOCKING for any copy work.** Timeline entries, tech lists and the cybersecurity section must be confirmed line by line before they enter V2. The brief forbids fabricated certifications, labs, CTF results or experience, and the existing V1 copy has not been verified against reality.
 
-**9.5 Information architecture and URL scheme.** The brief names 8 worlds; the site has 5 content pages. Confirm the final section list, the URL for each, and the redirect map for the 6 currently-indexed URLs (R10).
+**9.5 Information architecture and URL scheme.** *M06 amendment: the AI world moved from `/ai` to `/ai-lab` when it was built (§1F.0). The eight-world list is otherwise unchanged, and the redirect map (R10) is still outstanding.*  The brief names 8 worlds; the site has 5 content pages. Confirm the final section list, the URL for each, and the redirect map for the 6 currently-indexed URLs (R10).
 
 **9.6 GitHub Actions budget. CLOSED in M05.** Implemented at the recommended cadence: `github-data.yml` runs every 6 hours plus on demand, and `ci.yml` refreshes on every push to `v2`. Four scheduled runs a day at roughly twenty seconds each. See §1E.3.
 
-**9.7 YushaCyber.** Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
+**9.7 YushaCyber. Still open, and now more visible.** Two worlds link it — the PROJECTS record and the AI LAB system index.  Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
 
 ---
 
@@ -1946,7 +2331,48 @@ npm audit
 
 ---
 
-## 14. Next milestone — M06 recommendation
+## 14. Next milestone — M07 recommendation
+
+**M07 — GITHUB, because it is the world the architecture has already built.**
+Four worlds remain and they are not equally ready. Pick by what can be
+verified, not by IA order.
+
+Recommended order:
+
+1. **Build GITHUB next.** The snapshot already holds everything it needs,
+   `publicRepos()` and `EXCLUDED_REPOS` were written in M02 and have never
+   been rendered, and the fallback contract and its test already exist. It is
+   the only remaining world whose content requires no verification session,
+   because every fact on it comes from the API.
+2. **Do not attempt CYBERSECURITY until §9.4 covers it.** It is the highest
+   fabrication risk on the site — labs, CTF results and certifications are
+   exactly what the brief forbids inventing — and the `labs` schema already
+   carries `authorisation`, `discipline` and `cve` fields precisely because
+   that world will need to prove every claim.
+3. **Measure something on the bench.** AI LAB's own finding is that nothing in
+   it is instrumented (§1F.14.4). Latency on the local model, false-trigger
+   rate on the gesture threshold, and crop accuracy against a labelled set are
+   three cheap experiments, and each would turn a "not measured" into a
+   result. That is more valuable than an eighth system on the index.
+4. **Revoke the OpenWeatherMap key** in `Agriculture_simulator` (§1E.5). Still
+   outstanding, still outside this repository, still not waiting on a
+   milestone.
+5. **Answer §9.7.** Two worlds now link YushaCyber and neither can offer a
+   destination beyond a repository.
+6. **Then** tune the gate choreography, with four worlds to move between and
+   four distinct entrance motions to tune against each other.
+7. **Build the redirect map** (R10) before any cutover discussion. `/ai` →
+   `/ai-lab` is not in it — that route was never published — but the six V1
+   URLs still are.
+
+**M07 exit criteria:** GITHUB built and reviewed; its content verified against
+the snapshot rather than against memory; CI green including
+`npm run test:github`; the first scheduled `github-data.yml` run observed —
+still unobserved since M05. V1 still live and unmodified throughout.
+
+---
+
+## 14A. M06 recommendation (M05 record, now complete)
 
 **M06 — one more world, on the system that now has two worlds' worth of
 evidence behind it.** PROJECTS is the second content world built on the M04
@@ -1980,7 +2406,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14A. M03 recommendation (M02 record, now complete)
+## 14B. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -1997,7 +2423,7 @@ Recommended order:
 
 ---
 
-## 14B. M02 recommendation (M01 record, now complete)
+## 14C. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -2021,4 +2447,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M05 — PROJECTS WORLD COMPLETE, K4 CLOSED. Awaiting architectural review. AI LAB, CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
+*End of M06 — AI LAB COMPLETE. Four worlds built: HOME, ABOUT, PROJECTS, AI LAB. Awaiting architectural review. CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
