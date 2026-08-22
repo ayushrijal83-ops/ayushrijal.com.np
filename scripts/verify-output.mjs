@@ -96,6 +96,76 @@ if (about) {
   }
 }
 
+// ── 2d. PROJECTS — routes, the two layers, and the fabrication guards ──────
+// The Projects world makes claims about real software. These assertions guard
+// the three ways those claims could quietly become false.
+const PROJECT_SLUGS = ['yushacyber', 'jarvis-assistant', 'agrovision-nepal'];
+
+const projectsIndex = read('projects/index.html');
+if (projectsIndex) {
+  for (const slug of PROJECT_SLUGS) {
+    if (!projectsIndex.includes(`/projects/${slug}`)) {
+      fail(`The projects register does not link /projects/${slug}`);
+    }
+  }
+  // The register is a real table. If it degrades to a list of cards, the
+  // world has lost the grammar the milestone was built around.
+  if (!/<table class="register"/.test(projectsIndex)) {
+    fail('The projects register is no longer a table');
+  }
+}
+
+for (const slug of PROJECT_SLUGS) {
+  const html = read(`projects/${slug}/index.html`);
+  if (html === null) {
+    fail(`Missing project record: /projects/${slug}`);
+    continue;
+  }
+  // Every record must carry a source link. A project claim with no repository
+  // to check it against is exactly what this site exists not to publish.
+  if (!/href="https:\/\/github\.com\/ayushrijal83-ops\//.test(html)) {
+    fail(`/projects/${slug} has no repository link`);
+  }
+  // Unique metadata per record, not the world's own description repeated.
+  if (html.includes(`content="${'Engineering work, in build order'}"`)) {
+    fail(`/projects/${slug} reuses the world description instead of its own`);
+  }
+}
+
+// The AgroVision guard, which is the reason the `roadmap` field exists.
+// These four appear in that repository's README under "Future Improvements"
+// with no implementation behind them. They may appear on the page ONLY inside
+// the struck-through roadmap block, which is rendered after this marker.
+const agro = read('projects/agrovision-nepal/index.html');
+if (agro) {
+  const marker = 'Not built';
+  const split = agro.indexOf(marker);
+  if (split === -1) {
+    fail('AgroVision lost its "Not built" roadmap block — see content.config.ts');
+  } else {
+    const beforeRoadmap = agro.slice(0, split);
+    for (const claim of ['soil analysis', 'disease detection', 'Fertilizer', 'Weather API']) {
+      if (beforeRoadmap.includes(claim)) {
+        fail(
+          `AgroVision presents "${claim}" as built. It is a README roadmap ` +
+            `item with no implementation — it belongs in the roadmap block.`,
+        );
+      }
+    }
+  }
+}
+
+// ── 2e. GitHub data is build-time only ─────────────────────────────────────
+// The single most important property of the GitHub integration: V1 called the
+// API from the visitor's browser. If that ever returns, it returns silently —
+// the page still works, on someone else's rate limit and origin.
+for (const page of globSync(`${DIST}/**/*.html`)) {
+  const html = readFileSync(page, 'utf8');
+  if (html.includes('api.github.com')) {
+    fail(`${page} references api.github.com — GitHub data must be build-time only`);
+  }
+}
+
 // ── 2c. Every world's stock still clears the ink ramp at WCAG AA ───────────
 // M04 opened the MATERIAL slot of the world channel: a world may choose its
 // own `--paper`. The ink ramp's floor IS the AA threshold, and it was derived
@@ -208,7 +278,8 @@ if (failures.length > 0) {
 
 console.log(
   `Build output verified: ${WORLDS.length} worlds, no-JS fallbacks intact, ` +
-    `About record verbatim, ${stocks.length} world stocks clear WCAG AA, ` +
+    `About record verbatim, ${PROJECT_SLUGS.length} project records with sources, ` +
+    `${stocks.length} world stocks clear WCAG AA, ` +
     `no inline scripts, no third-party origins, no Pretext ` +
     `(${pages.length} pages).`,
 );
