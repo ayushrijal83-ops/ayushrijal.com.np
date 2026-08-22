@@ -132,10 +132,16 @@ for (const slug of PROJECT_SLUGS) {
   }
 }
 
-// The AgroVision guard, which is the reason the `roadmap` field exists.
-// These four appear in that repository's README under "Future Improvements"
-// with no implementation behind them. They may appear on the page ONLY inside
-// the struck-through roadmap block, which is rendered after this marker.
+// The AgroVision guard, which is the reason the `roadmap` field exists: these
+// claims have no implementation in that repository, and may appear on the page
+// ONLY inside the struck-through roadmap block rendered after this marker.
+//
+// M05 narrowed the list. It was seeded from the README's "Future Improvements"
+// section, which turned out to be stale against the README's own repository:
+// `/weather-check` calls OpenWeatherMap and `/register` hashes a password, so
+// two entries were guarding against publishing things that were already built.
+// Reading a roadmap instead of the source got the direction of the error
+// backwards — the guard was enforcing an understatement. Verify against code.
 const agro = read('projects/agrovision-nepal/index.html');
 if (agro) {
   const marker = 'Not built';
@@ -144,11 +150,11 @@ if (agro) {
     fail('AgroVision lost its "Not built" roadmap block — see content.config.ts');
   } else {
     const beforeRoadmap = agro.slice(0, split);
-    for (const claim of ['soil analysis', 'disease detection', 'Fertilizer', 'Weather API']) {
+    for (const claim of ['disease detection', 'Fertilizer', 'fertiliser']) {
       if (beforeRoadmap.includes(claim)) {
         fail(
-          `AgroVision presents "${claim}" as built. It is a README roadmap ` +
-            `item with no implementation — it belongs in the roadmap block.`,
+          `AgroVision presents "${claim}" as built. There is no implementation ` +
+            `of it in the repository — it belongs in the roadmap block.`,
         );
       }
     }
@@ -163,6 +169,45 @@ for (const page of globSync(`${DIST}/**/*.html`)) {
   const html = readFileSync(page, 'utf8');
   if (html.includes('api.github.com')) {
     fail(`${page} references api.github.com — GitHub data must be build-time only`);
+  }
+}
+
+// ── 2f. No credential reaches the output ───────────────────────────────────
+// The GitHub integration hands a token to a build process (K4). Every design
+// decision around it — the field allow-list in `fetch-github.mjs`, the static
+// output with no request-time runtime — exists so a credential cannot reach a
+// visitor. This asserts the outcome rather than trusting the design, because
+// a leaked token is the one failure here that cannot be taken back once the
+// bytes are published.
+//
+// Scans every shipped file, not just HTML: a token pasted into a JSON data
+// file or a stylesheet comment ships exactly as far as one in a page.
+const CREDENTIAL_PATTERNS = [
+  // GitHub's own formats. Classic PATs, fine-grained PATs, OAuth, app and
+  // refresh tokens, and the runner's own `GITHUB_TOKEN`, all of which carry a
+  // documented prefix precisely so that scanners like this one can find them.
+  [/gh[pousr]_[A-Za-z0-9]{16,}/, 'a GitHub token'],
+  [/github_pat_[A-Za-z0-9_]{20,}/, 'a fine-grained GitHub PAT'],
+  // The header the token would travel in, in case a fetch response were ever
+  // serialised into the output wholesale.
+  [/Authorization:\s*(?:Bearer|token)\s+\S/i, 'an Authorization header'],
+  // Generic assignments. Deliberately narrow — a value of 16+ characters
+  // assigned to something spelled like a secret. `--token-colour: #fff` and
+  // `data-secret="1"` do not match; a real key does.
+  [/(?:api[_-]?key|secret|password|access[_-]?token)["'\s:=]{1,4}["']?[A-Za-z0-9_\-]{16,}/i,
+    'a credential-shaped assignment'],
+];
+
+for (const file of globSync(`${DIST}/**/*.{html,js,css,json,xml,txt,svg}`)) {
+  const text = readFileSync(file, 'utf8');
+  for (const [pattern, what] of CREDENTIAL_PATTERNS) {
+    const hit = text.match(pattern);
+    if (hit) {
+      // The match is NOT printed. If this ever fires for real, echoing the
+      // secret into a CI log — which is public on a public repository — would
+      // publish it a second time, and CI logs outlive a force-push.
+      fail(`${file} contains ${what} (offset ${hit.index}). Nothing is printed.`);
+    }
   }
 }
 
@@ -278,7 +323,7 @@ if (failures.length > 0) {
 
 console.log(
   `Build output verified: ${WORLDS.length} worlds, no-JS fallbacks intact, ` +
-    `About record verbatim, ${PROJECT_SLUGS.length} project records with sources, ` +
+    `About record verbatim, ${PROJECT_SLUGS.length} project records with sources, no credentials, ` +
     `${stocks.length} world stocks clear WCAG AA, ` +
     `no inline scripts, no third-party origins, no Pretext ` +
     `(${pages.length} pages).`,

@@ -15,6 +15,7 @@
     "verify": "astro check && astro build && node scripts/verify-output.mjs",
     "verify:output": "node scripts/verify-output.mjs",
     "github:fetch": "node scripts/fetch-github.mjs",
+    "test:github": "node scripts/test-github.mjs",
     "astro": "astro"
   },
   "dependencies": {
