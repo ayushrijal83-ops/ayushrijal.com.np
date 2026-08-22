@@ -258,8 +258,7 @@
   border: var(--world-rule-weight) solid var(--rule-strong);
   background-color: var(--paper-raised);
   padding: var(--space-m);
-  /* The clipped corner. `--notch` is also used by the fold mark below, so the
-     two always agree. */
+  /* The clipped corner. Named so the wider cut at 48rem is one override. */
   --notch: 1.25rem;
   clip-path: polygon(
     0 0,
@@ -270,24 +269,19 @@
   );
 }
 
-/* The fold itself — the hairline across the cut corner. */
-.record-panel::after {
-  content: '';
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  inline-size: var(--notch);
-  block-size: var(--notch);
-  background-image: linear-gradient(
-    to bottom left,
-    var(--rule-strong) 0 1px,
-    transparent 1px
-  );
-  /* The notch is cut from the top-RIGHT physically, so this mark is placed in
-     physical coordinates too and must not flip with writing direction. */
-  transform: scaleX(1);
-  pointer-events: none;
-}
+/*
+   There is no fold mark drawn across the cut. There was one, and it never
+   rendered: `clip-path` on the panel clips its own pseudo-elements, so a line
+   drawn along the cut is removed by the cut. Correcting it needs the gradient
+   stop placed at 50% of a diagonal axis plus a sub-pixel nudge to survive the
+   clip — a lot of geometry for an ornament.
+
+   The corner is legible without it. The panel's ground is a step lighter than
+   the world's stock, and the drafting grid shows through the cut, so the shape
+   is read from the material rather than from a line. Deleted rather than
+   fixed: every visual here has to carry information, and this one only
+   carried itself.
+*/
 
 @media (min-width: 48rem) {
   .record-panel {
@@ -554,10 +548,6 @@
        mode where the border is the only thing carrying the shape. */
     clip-path: none;
     border-color: CanvasText;
-  }
-
-  .record-panel::after {
-    display: none;
   }
 
   .state::before {

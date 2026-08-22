@@ -34,11 +34,21 @@ import '@styles/projects.css';
 const world = getWorld('projects');
 const snapshot = loadGitHubSnapshot();
 
-// Drafts never reach a build. Featured work leads; the rest is newest first.
+/**
+ * Drafts never reach a build. Featured work leads, then most recently worked
+ * on — `updated`, falling back to `date`.
+ *
+ * Ordering on `updated` rather than `date` so the register's order matches the
+ * column the reader can actually see. Sorted by start date, the table listed
+ * one project above another while displaying a LAST WORKED date that said the
+ * opposite, which reads as a bug in the table rather than as an editorial
+ * decision. The caption states the rule.
+ */
+const worked = (e: { data: { updated?: Date; date: Date } }) =>
+  (e.data.updated ?? e.data.date).getTime();
+
 const entries = (await getCollection('projects', (e) => !e.data.draft)).sort(
-  (a, b) =>
-    Number(b.data.featured) - Number(a.data.featured) ||
-    b.data.date.getTime() - a.data.date.getTime(),
+  (a, b) => Number(b.data.featured) - Number(a.data.featured) || worked(b) - worked(a),
 );
 
 const records = entries.map((entry, i) => ({
@@ -86,7 +96,9 @@ const cells: Cell[] = [
 
     {/* ── The register — a parts list ─────────────────────────────── */}
     <table class="register">
-      <caption class="t-label">Register of holdings</caption>
+      <caption class="t-label">
+        Register of holdings · featured work first, then most recently worked
+      </caption>
       <thead>
         <tr>
           <th scope="col" class="t-label">No.</th>
@@ -151,10 +163,13 @@ const cells: Cell[] = [
                 ))}
               </ul>
 
+              {/* The panel heading already links the record, so this row
+                  carries only the outbound link. It used to carry an "Open
+                  record" link as well, which made three tab stops to the same
+                  destination per project — the register row, the heading and
+                  this. Two is the most any one record should cost a keyboard
+                  user. */}
               <p class="workshop__links">
-                <a class="source-link" href={`/projects/${entry.id}`}>
-                  Open record {entry.data.title}
-                </a>
                 {entry.data.repo && (
                   <a
                     class="source-link"
