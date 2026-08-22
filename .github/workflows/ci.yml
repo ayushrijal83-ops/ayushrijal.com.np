@@ -61,5 +61,13 @@ jobs:
       - name: Verify
         run: npm run verify
 
+      # The two properties `verify` structurally cannot check, because both
+      # only exist when something has gone wrong: that the site still builds
+      # and tells the truth with no GitHub data at all, and that a credential
+      # in the output actually fails the gate. It rebuilds twice; that is
+      # about four seconds here and it is the only test of the fallback.
+      - name: Test the GitHub fallback and secret isolation
+        run: npm run test:github
+
       - name: Audit dependencies
         run: npm audit --audit-level=high

@@ -31,10 +31,16 @@
  *   node scripts/fetch-github.mjs --promote       → also updates the committed
  *                                                   snapshot (a deliberate act)
  *
+ * `--promote` compares the repository facts only, ignoring `generatedAt`. The
+ * scheduled workflow runs every six hours and a timestamp always differs, so
+ * without that comparison the snapshot would be rewritten — and committed —
+ * four times a day forever, with the history saying nothing. Promotion is a
+ * no-op unless a repository fact actually moved.
+ *
  * Node-only, zero dependencies: Node 22 has global `fetch`.
  */
 
-import { writeFileSync, copyFileSync } from 'node:fs';
+import { writeFileSync, copyFileSync, readFileSync } from 'node:fs';
 
 const LOGIN = process.env.GITHUB_LOGIN ?? 'ayushrijal83-ops';
 const TOKEN = process.env.GITHUB_TOKEN;
@@ -66,6 +72,18 @@ const normalise = (repo) => ({
   archived: Boolean(repo.archived),
   fork: Boolean(repo.fork),
 });
+
+const readSnapshot = () => {
+  try {
+    return JSON.parse(readFileSync(SNAPSHOT, 'utf8'));
+  } catch {
+    return null; // No committed snapshot yet: the first promotion writes one.
+  }
+};
+
+/** Everything except `generatedAt`, which moves on every run by design. */
+const facts = (s) => JSON.stringify([s?.login, s?.repos, s?.contributions]);
+const sameFacts = (a, b) => b !== null && facts(a) === facts(b);
 
 async function main() {
   const url = `https://api.github.com/users/${LOGIN}/repos?per_page=100&sort=pushed`;
@@ -104,6 +122,10 @@ async function main() {
   );
 
   if (process.argv.includes('--promote')) {
+    if (sameFacts(snapshot, readSnapshot())) {
+      console.log(`No repository fact changed; ${SNAPSHOT} left untouched.`);
+      return;
+    }
     copyFileSync(GENERATED, SNAPSHOT);
     console.log(`Promoted to ${SNAPSHOT} — commit this to update the fallback.`);
   }
