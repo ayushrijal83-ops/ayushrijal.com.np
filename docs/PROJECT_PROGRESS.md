@@ -27,7 +27,10 @@
 | M04 | World System + About world | **Complete** | §1D below. Awaiting review. |
 | M05 | Projects world + K4 build-time GitHub integration | **Complete** | §1E below. Awaiting review. K4 and §9.6 closed. |
 | M06 | AI Lab world | **Complete** | §1F below. Awaiting review. `/ai` renamed `/ai-lab`. |
-| M07+ | Remaining four worlds, content collections, redirects, cutover | Not started | Cybersecurity, Learning, GitHub, Contact. Each is a CSS entrance block plus a page. |
+| M07 | GitHub world | **Complete** | §1G below. Awaiting review. `EXCLUDED_REPOS` retired. |
+| M08+ | Remaining three worlds, content collections, redirects, cutover | Not started | Cybersecurity, Learning, Contact. Each is a CSS entrance block plus a page. |
+
+**M07 scope compliance:** the GITHUB world was built. **CYBERSECURITY, LEARNING and CONTACT are NOT STARTED** — they remain M02 shells. No world outside GITHUB was modified, not even by a sentence. `lib/github.ts` changed, but it is the M05 data layer this world consumes: `EXCLUDED_REPOS` was retired in favour of `REPO_KIND`, because an archive that hides three of its ten holdings is not an archive (§1G.1). No workflow was touched and no snapshot field was added. No dependency was added. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1G.13.
 
 **M06 scope compliance:** the AI LAB world was built. **CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED** — they remain M02 shells. HOME and ABOUT were not modified. Two changes fell outside AI LAB, both consequences rather than scope: `TitleBlock`'s styles moved into the component (a genuine shared-system bug — AI LAB rendered it unstyled), and one sentence links PROJECTS into the lab per the brief's world relationship. No dependency was added. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1F.13.
 
@@ -1957,6 +1960,377 @@ scripts/verify-output.mjs              + AI Lab assertions, route rename
 
 ---
 
+## 1G. M07 — GitHub world
+
+**Status: M07 — GITHUB — COMPLETE.** Awaiting architectural review.
+**Scope:** one objective. Build the GITHUB world on the M04 system and the M05
+data pipeline. No other world was built; see §1G.13.
+
+### 1G.0 Concept — a register, not a dashboard
+
+PROJECTS says what was built. AI LAB says how the intelligence in it works.
+This world says **where the source is**, and it is the only one of the three
+whose content is entirely fetched rather than written.
+
+The route did not change: `/github` was already correct, so unlike M06 this
+milestone renamed nothing. The world's *name* did — **Code Repository** became
+**Public Code Archive**, because "code repository" describes a thing on GitHub
+and this page is a record of them.
+
+**The standing claim**, set as a ruled entry rather than a pull-quote:
+
+> I don't want my portfolio to tell you that I can code. I want the source to
+> show you.
+
+Followed immediately by the qualification that keeps it honest — *that is not
+a claim that any of this is production quality; most of it is not.* The claim
+is only that nothing on this site has to be taken on trust.
+
+### 1G.1 The decision that shaped the world: nothing is hidden
+
+`EXCLUDED_REPOS` had existed since M02, carried over from a hardcoded array in
+V1's `main.js`. It dropped three repositories from the index: the profile
+README, this website, and a personal page.
+
+That is defensible on a portfolio grid. It is **indefensible on a page whose
+claim is that the source is the record.** An archive that quietly omits three
+of its ten holdings is not an archive, and a visitor has no way to know the
+omission happened.
+
+So it was deleted and replaced by `REPO_KIND` — a classification, not a filter:
+
+| Class | Repositories |
+|---|---|
+| `project` | YushaCyber, jarvis_assistant, Agriculture_simulator |
+| `code` | beach_buggy_ai, x-man |
+| `notes` | cyber-security, Jarvis-AI-Assistant |
+| `site` | ayushrijal.com.np |
+| `profile` | ayushrijal83-ops |
+| `personal` | A-Universe-For-You |
+
+A profile README being a profile README is a fact worth **stating**, not a
+reason to delete a row. The register prints the class and the reader decides
+what to weigh.
+
+`publicRepos()` changed to match. It now drops only **forks** — public code,
+but not authored work, and the register makes a claim about authorship — and
+**keeps archived repositories**, marked. An archive that drops the archived
+material has misunderstood the word.
+
+### 1G.2 Visual system — accounting stationery
+
+| Element | Decision |
+|---|---|
+| Stock | `#ebedf1` — the only genuinely BLUE paper in the archive, against HOME's warm drafting, ABOUT's manila, PROJECTS' neutral grey and AI LAB's bench white. Ink ramp 14.81 / 7.49 / 5.73 / 4.86 |
+| Accent | Graphite `#40484f`, 7.94:1. The least chromatic accent in the archive on purpose — this world's job is to get out of the way of the record |
+| Spot | The archive's red appears exactly once, as the stamp on the compiled date, which is what a spot colour is for |
+| Ground | Vertical column rules only, on `--ledger-column`. The only ground in the archive ruled the short way — which is what a register looks like before it is filled in |
+| Entrance | `ruling` — the plate ruled away column by column |
+| Grammar | Numbered folios. A register, a tally, a dated list, a section of absences, a stamp |
+
+No card grid, no tile, no widget, no metric, no GitHub logo, no green, no
+terminal. GitHub's own visual identity appears nowhere on the page; the
+provenance is carried by the word *GitHub* and the profile URL.
+
+### 1G.3 Data architecture — reused, unchanged
+
+```
+GitHub Actions (push to v2, and every 6h)
+   └─ scripts/fetch-github.mjs, with the runner's GITHUB_TOKEN
+        └─ src/data/github.generated.json  →  src/data/github.snapshot.json
+             └─ lib/github.ts, at build time
+                  └─ static HTML
+```
+
+**Nothing in the M05 pipeline was modified.** No workflow changed, no field was
+added to the snapshot, `fetch-github.mjs` was not touched. The snapshot already
+carried everything this world needed — name, description, url, language, stars,
+forks, pushedAt, createdAt, topics, archived, fork — and the world was built
+against what exists rather than the other way round.
+
+`verify-output.mjs` still fails the build if any page contains
+`api.github.com`. No request leaves a visitor's browser.
+
+### 1G.4 The register of holdings
+
+A real `<table>`: ten rows, one per public repository, most recently pushed
+first. Columns are No. / Repository / Class / Language / Last push / Source.
+
+The **description sits inside the repository cell**, not in a column of its
+own — a description is part of what the holding is, not a separate
+measurement, and giving it a column would force every other column narrow to
+serve the longest sentence. Descriptions are **GitHub's own words, quoted**,
+rendered inside typographic quotation marks so the attribution survives a
+reader forgetting the caption said so. A repository with no description prints
+`NO DESCRIPTION ON GITHUB` rather than a gap or an invented line.
+
+Keyboard cost is one tab stop per row, two for the three that also carry a
+curated record. No row is a giant link.
+
+**And one quotation earns the entire two-layer design.** YushaCyber's GitHub
+description says it has *"a thriving community"*; its workshop record says it
+has no users to speak of. Both stay on the site, a note under the register
+says why, and neither was edited to agree with the other. Rewriting the
+quotation would have erased exactly the difference that separating the layers
+exists to preserve.
+
+### 1G.5 Provenance and what is deliberately absent
+
+**Folio 03 — the language tally.** One cell per repository: Python 4, HTML 3,
+Unclassified 3. It counts **repositories**, not lines and not bytes, and the
+lede says so — GitHub assigns one primary language per repository and the
+snapshot carries nothing finer, so a percentage would be a proportion of
+something nobody measured. Drawn as discrete cells you can count against the
+printed number rather than as a continuous bar, and unclassified repositories
+get open cells rather than a fourth colour. The page names its own blunt
+instrument: `Agriculture_simulator` counts as HTML because it is mostly Jinja
+templates, while its logic is Python.
+
+**Folio 04 — last push.** The date of the most recent push per repository, and
+the lede states what that is *not*: not a commit count, not activity, not a
+streak. A repository pushed once and one pushed a hundred times show the same
+single date.
+
+**Folio 05 — what the snapshot does not contain.** Its own heading, in the same
+weight as the folios that contain something:
+
+| Absent | Why |
+|---|---|
+| Contribution totals | `contributions` is null. Totals need GraphQL, which mandates a token — fetched properly or left absent, never estimated |
+| Commit counts and streaks | Not in the snapshot and not derivable from it |
+| Lines or bytes of code | GitHub reports one primary language per repository and nothing finer at this endpoint |
+| Private work | The public record only; its absence is not a claim that nothing else exists |
+
+Every one of those could be invented convincingly from the data that *is*
+here, and each would be a lie of a slightly different kind. A contribution
+heatmap is the single most common fabrication on pages like this one, and this
+page says outright that it does not have the data for one.
+
+**Folio 06 — provenance.** How the facts arrived, and the stamp: everything
+above is only true as of the compiled date.
+
+### 1G.6 GitHub profile integration
+
+`https://github.com/ayushrijal83-ops`, read from `SITE.github` rather than
+typed — the username is already configured and guessing it was explicitly
+forbidden. It appears as the single call to action in folio 06, at `--step-1`
+on a ruled underline; still a link, because this archive has no buttons. It is
+also present in the fallback state, which is the case where it matters most.
+
+`verify-output.mjs` fails the build if the archive has no link to the profile
+it is an archive of.
+
+### 1G.7 Projects ↔ GitHub
+
+The join is on the repository URL, the same key `repoByUrl` uses in the other
+direction, built as a Map so a mistyped URL fails to link rather than linking
+to the wrong record.
+
+- **Folio 01 · Cross-referenced** — the three repositories that also hold a
+  written record, at the top rather than buried, because a visitor arriving
+  from a project record needs the return path immediately.
+- **The register's Source column** carries `Record` alongside the repository
+  link on those three rows.
+- Featured by **whether a curated record exists**, never by stars. The star
+  counts on this account are 1, 1 and 0, and ranking by them would rank
+  nothing. The page says so.
+
+No project narrative is repeated. This world links to the record; it does not
+summarise it.
+
+### 1G.8 Fallback
+
+The M05 contract is unchanged and authoritative: `generated.json` → committed
+`snapshot.json` → `null`.
+
+This world is **the hardest case on the site under that third state**, because
+it has no curated layer to fall back on — every word in its body comes from
+the snapshot. With no data it must render its designed unavailable state, not
+an empty register. An empty register would read as *this person has no public
+code*: the opposite of true, and the worst thing this world could accidentally
+say.
+
+`npm run test:github` now drives it through that state by hiding both data
+files and rebuilding. Five new assertions on top of the M05 thirteen — **18
+total, all passing**: the archive still builds and titles itself, it declares
+the data unavailable, it still reaches the profile, it shows no empty register,
+and it claims no holdings it cannot list.
+
+### 1G.9 Security
+
+Credential scan over `dist/`: **clean**. `npm audit`: **0 vulnerabilities**.
+No token, Authorization header, API secret, private key, environment value or
+local path is shipped. The public username and public repository URLs are the
+only external identifiers on the page, and both are public by definition.
+
+`GITHUB_TOKEN` remains confined to the Actions runner; nothing about that
+changed in M07 because nothing about the pipeline changed.
+
+**The M05 finding stands, unchanged and unresolved:** an exposed credential was
+identified in `Agriculture_simulator`, a separate repository outside this one.
+It requires revocation and rotation. The value is not reproduced here or
+anywhere on the site, and **nothing in this archive should be read as a claim
+that that repository is security-clean** — it is listed as a holding, which is
+a statement about existence, not about hygiene.
+
+### 1G.10 Accessibility
+
+Verified in Chrome 151 against the built output.
+
+| Check | Result |
+|---|---|
+| Headings | One `<h1>`, seven `<h2>`. No level skipped |
+| Landmarks | `header` / `nav` / `main` / `footer` |
+| `aria-current` | Set on the GitHub nav item |
+| Skip link | Present, `#main` exists |
+| Table semantics | A real `<table>` — caption, six `scope="col"` headers, ten `scope="row"` row headers. Not divs |
+| Narrow screens | Below 48rem the register becomes labelled blocks, `data-label` carrying the column heading via `::before`; `thead` is clipped, not `display: none`, so it stays in the accessibility tree |
+| External links | 15 on the page; all carry `rel="noopener noreferrer"`; 14 carry a visible ↗ marker |
+| Tally | The cells are `aria-hidden`; every row carries its count as text, so a screen reader gets "PYTHON — 4 repositories" rather than eleven empty spans |
+| Colour alone | Never. Every class mark, tally row and stamp is paired with its word |
+| Forced colours | The tally's filled/open distinction survives on the border |
+| Reduced motion | All motion inside `no-preference`, `backwards` fill, unanimated state is the finished state |
+| Contrast | Ledger stock clears every ink step at AA; asserted in the build |
+| SVG | None on the page |
+
+**Two things recorded honestly rather than fixed:**
+
+1. **The live keyboard focus pass could not be run**, for the same reason as
+   M06: the browser window had no OS focus, so `document.hasFocus()` was false
+   and `:focus-visible` could not be exercised. Verified instead that the rule
+   ships on every page and that **nothing in `github.css` or `github.astro`
+   sets `outline` at all**. M05 verified it live on the same shared chrome.
+2. **The fifteenth external link is the colophon's**, in the shared
+   `SiteFooter`, and it carries no ↗. That is deliberate and it was left alone:
+   it is a colophon signature (`Ayush Rijal · 2026 · github`), not a
+   navigational link in body content, and adding a marker there would change
+   the footer of all eight worlds — shared chrome, outside this milestone, and
+   an architect-level consistency call rather than a GitHub-world defect.
+
+### 1G.11 Performance
+
+| | Bytes |
+|---|---|
+| `/github` HTML | 35,418 |
+| `github.css` | 8,656 |
+| `BaseLayout.css` | 20,340 |
+| **JS on `/github`** | **639** — one script, the world gate |
+| `dist/` total | 435,920 |
+| Build | 15 pages in ~1.2 s |
+
+No charting library, no visualisation framework, no Three.js, no WebGL, no CDN,
+no client-side API call. The tally is ten `<span>`s. `astro` remains the only
+production dependency.
+
+### 1G.12 Responsive, browser and no-JS testing
+
+**Responsive.** Overflow sweep at every width the brief lists — 320 / 360 /
+375 / 390 / 414 / 768 / 1024 / 1280 / 1366 / 1440 / 1920 — across `/github`,
+`/`, `/about`, `/projects`, `/ai-lab`, `/learning`, `/cybersecurity` and
+`/contact`. **Zero overflow at every width on every page.**
+
+Then a **stress test for data that does not exist yet**, because the brief
+names long repository names and URLs specifically: at 320 px, a 66-character
+repository name, a full repository URL inside the description, and a
+66-character link label were injected into the register. Overflow before: 0.
+Overflow after: **0**. The `overflow-wrap: anywhere` on repository names, link
+text and inline code holds for names far longer than any that exist.
+
+**No-JS.** Sandboxed frame with scripting denied, against the same page with
+scripting allowed:
+
+| | No-JS | With JS |
+|---|---|---|
+| Characters | 6,836 | 6,836 |
+| Register rows | 10 | 10 |
+| Cross-references / tally / pushes / absences | 3 / 3 / 10 / 4 | identical |
+| GitHub links / project links / stamp | 15 / 7 / yes | identical |
+
+**Byte-for-byte identical.** No filter or dashboard JavaScript was written — a
+ten-row register does not need one, and §11 of the brief says not to build it
+if it adds complexity without value.
+
+**Browsers.** Chrome 151 (Windows 11) verified. **Firefox, Safari, Edge and
+real mobile devices: not tested**, no additional infrastructure installed, and
+nothing claimed that was not run.
+
+**Console: clean** across all eleven routes.
+
+### 1G.13 Regression and scope compliance
+
+All eight worlds and the three project records were re-loaded after the change
+and checked for a thrown error, a missing `<h1>`, a wrong `data-world`, a
+missing gate kind and a missing `#main`. **Zero errors; every page correct.**
+Gate kinds resolve as `register` / `drawer` / `sheet` / `traverse` / `ruling` /
+`seal` / `leaf` / `transmit`. `TitleBlock`, the world tokens, the skip links
+and the GitHub data pipeline are unchanged and working.
+
+| World | State |
+|---|---|
+| **HOME** | **COMPLETE** |
+| **ABOUT** | **COMPLETE** |
+| **PROJECTS** | **COMPLETE** |
+| **AI LAB** | **COMPLETE** |
+| **GITHUB** | **COMPLETE** |
+| **CYBERSECURITY** | **NOT STARTED** |
+| **LEARNING** | **NOT STARTED** |
+| **CONTACT** | **NOT STARTED** |
+
+No world outside GITHUB was modified — not even by a sentence, unlike M06.
+`lib/github.ts` changed, but it is the M05 data layer this world consumes, not
+another world. No dependency was added. The CSP was not weakened. No workflow
+was touched. **V1 remains byte-identical, `main` is unmodified, nothing is
+merged.**
+
+### 1G.14 Known limitations
+
+1. **Live keyboard focus not re-verified** — see §1G.10.1. Structurally intact;
+   verified live in M05.
+2. **Firefox, Safari, Edge and real mobile remain untested.** Open since M02.
+3. **Lighthouse, axe and a screen-reader pass have not been run.**
+4. **No contribution data.** `contributions` is null and will stay null until
+   the workflow adds a GraphQL call. That is a deliberate absence, documented
+   on the page itself in folio 05, not an oversight.
+5. **The language tally is coarse** and the page says so. Repository counts,
+   not bytes; GitHub's primary-language call is a fact about a repository, not
+   about the work in it.
+6. **`REPO_KIND` is hand-maintained.** A new repository defaults to `code`,
+   which is honest but unspecific, and nothing fails if the class is never
+   refined. The completeness assertion catches a *missing* repository, not a
+   *misclassified* one.
+7. **The colophon's external link carries no marker** — see §1G.10.2.
+   Deliberate; shared chrome.
+8. **The scheduled `github-data.yml` run is still unobserved**, as it has been
+   since M05. Its logic is exercised locally.
+9. **The OpenWeatherMap key in `Agriculture_simulator` is still live** and
+   still needs revoking. Outside this repository. See §1G.9.
+
+### 1G.15 Commits
+
+| Hash | Commit |
+|---|---|
+| `15316c2` | feat(world): give GitHub its ledger stock, and stop hiding holdings |
+| `4e3d581` | feat(github): add the ruling entrance |
+| `cbedd89` | feat(github): build the public code archive |
+| `3b79f29` | test(github): assert the archive stays complete, and the fallback readable |
+| _this_ | docs: record M07 — the GitHub world |
+
+```
+src/lib/worlds.ts        Public Code Archive, ruling, gate copy
+src/lib/github.ts        REPO_KIND replaces EXCLUDED_REPOS; publicRepos
+src/styles/worlds.css    ledger stock + --ledger-column
+src/styles/gate.css      the ruling entrance
+src/pages/github.astro   the archive — six folios
+src/styles/github.css    new — accounting stationery
+scripts/verify-output.mjs  + completeness, profile, no-proportion assertions
+scripts/test-github.mjs    + the archive under the no-data state (18 total)
+```
+
+Unchanged, deliberately: `.github/workflows/*`, `scripts/fetch-github.mjs`,
+`src/data/*`, and every world outside GITHUB.
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -2203,7 +2577,7 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 **9.6 GitHub Actions budget. CLOSED in M05.** Implemented at the recommended cadence: `github-data.yml` runs every 6 hours plus on demand, and `ci.yml` refreshes on every push to `v2`. Four scheduled runs a day at roughly twenty seconds each. See §1E.3.
 
-**9.7 YushaCyber. Still open, and now more visible.** Two worlds link it — the PROJECTS record and the AI LAB system index.  Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
+**9.7 YushaCyber. Still open, and now the most-linked thing on the site.** Three worlds reference it — the PROJECTS record, the AI LAB system index and the GITHUB register, where its GitHub description claims "a thriving community" against a curated record that says it has no users (§1G.4).  Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
 
 ---
 
@@ -2331,7 +2705,53 @@ npm audit
 
 ---
 
-## 14. Next milestone — M07 recommendation
+## 14. Next milestone — M08 recommendation
+
+**M08 — LEARNING, and content verification for CYBERSECURITY started in
+parallel.** Three worlds remain and they are not equally ready. GITHUB was
+buildable immediately because every fact on it was already fetched; the three
+that are left all need copy that does not exist yet, and one of them is the
+highest-risk page on the site.
+
+Recommended order:
+
+1. **Start the §9.4 verification session for CYBERSECURITY now, before
+   building anything.** It is the longest-lead item left and it blocks the
+   riskiest world. The brief forbids fabricated certifications, labs and CTF
+   results, and the `labs` schema already carries `discipline`,
+   `authorisation`, `cve` and `severity` fields precisely because that world
+   has to prove every claim. Do not build it and verify afterwards — M05 spent
+   more effort correcting three already-"verified" project records than
+   building the world around them.
+2. **Build LEARNING next**, not CYBERSECURITY. Its content is field notes,
+   which are self-verifying in a way lab write-ups are not: a note about what
+   was read and what was understood is true because it was written, and the
+   `learning` schema deliberately has no proficiency or completion field to
+   fabricate. It is also the natural home for AI LAB's open question — the
+   `cyber-security` repository's "daily basis for 6 months" is a learning log
+   with nothing rendering it.
+3. **Then CYBERSECURITY**, once §9.4 has covered it, then CONTACT, which is the
+   smallest and has one open overflow fix already landed.
+4. **Measure something on the AI Lab bench** (§1F.14.4). Still nothing there is
+   instrumented, and three cheap experiments would each turn a "not measured"
+   into a result.
+5. **Revoke the OpenWeatherMap key** in `Agriculture_simulator` (§1E.5, §1G.9).
+   Outstanding since M05, outside this repository, not waiting on a milestone.
+6. **Answer §9.7.** YushaCyber is now referenced from three worlds and none of
+   them can offer a destination beyond a repository.
+7. **Then** tune the gate choreography, with five worlds to move between and
+   five distinct entrance motions to tune against one another.
+8. **Build the redirect map** (R10) before any cutover discussion. Six V1 URLs;
+   `/ai` → `/ai-lab` is not among them, because that route was never published.
+
+**M08 exit criteria:** LEARNING built and reviewed; CYBERSECURITY content
+verification underway or complete; CI green including `npm run test:github`;
+the first scheduled `github-data.yml` run observed — unobserved since M05. V1
+still live and unmodified throughout.
+
+---
+
+## 14A. M07 recommendation (M06 record, now complete)
 
 **M07 — GITHUB, because it is the world the architecture has already built.**
 Four worlds remain and they are not equally ready. Pick by what can be
@@ -2372,7 +2792,7 @@ still unobserved since M05. V1 still live and unmodified throughout.
 
 ---
 
-## 14A. M06 recommendation (M05 record, now complete)
+## 14B. M06 recommendation (M05 record, now complete)
 
 **M06 — one more world, on the system that now has two worlds' worth of
 evidence behind it.** PROJECTS is the second content world built on the M04
@@ -2406,7 +2826,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14B. M03 recommendation (M02 record, now complete)
+## 14C. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -2423,7 +2843,7 @@ Recommended order:
 
 ---
 
-## 14C. M02 recommendation (M01 record, now complete)
+## 14D. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -2447,4 +2867,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M06 — AI LAB COMPLETE. Four worlds built: HOME, ABOUT, PROJECTS, AI LAB. Awaiting architectural review. CYBERSECURITY, LEARNING, GITHUB and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
+*End of M07 — GITHUB COMPLETE. Five worlds built: HOME, ABOUT, PROJECTS, AI LAB, GITHUB. Awaiting architectural review. CYBERSECURITY, LEARNING and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
