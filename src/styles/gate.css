@@ -136,9 +136,15 @@
    finished behaviour, not a placeholder — so declaring a world's kind and
    implementing it are separate steps and neither blocks the other.
 
-   Implemented so far: `register` (HOME), `drawer` (ABOUT) and `sheet`
-   (PROJECTS). The remaining five are declared and inherit the base wipe until
-   their own world is built.
+   Implemented so far: `register` (HOME), `drawer` (ABOUT), `sheet` (PROJECTS)
+   and `traverse` (AI LAB). The remaining four are declared and inherit the base
+   wipe until their own world is built.
+
+   The four implemented kinds are four different MOTIONS, not four timings of
+   one motion — outward to both margins, downward, apart along a crease, and
+   laterally across. That is the constraint each new world's entrance has to
+   satisfy: if it moves the way a built world already moves, it is a duration
+   change wearing a different name.
 
    A kind chooses its own DURATION here too, off the shared clock in tokens.css
    — `--dur-base` / `--dur-slow` / `--dur-plate`. It is not a field in
@@ -426,5 +432,143 @@
 @media print {
   .gate {
     display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   AI LAB — `traverse`
+   --------------------------------------------------------------------------
+   A specimen slide carried across the stage.
+
+   The plate does not part, split or lift. It travels sideways as ONE rigid
+   piece, from the field to the inline-end margin, and the bench is uncovered
+   behind it — the motion of a mechanical stage being wound in X until the
+   sample sits under the objective.
+
+   Deliberately the one motion the other three worlds do not make. HOME
+   withdraws to both margins, ABOUT travels down, PROJECTS parts along a
+   crease. A single lateral traverse is the fourth, and it is the right one
+   here because it is the only one that reads as POSITIONING something rather
+   than as uncovering something: the lab's whole argument is that a result is
+   what you get after you put the sample where the instrument can see it.
+
+   Two marks make it a mechanism rather than a wipe, and they are the same two
+   the bench ground uses:
+
+     - a graduated scale on the leading edge, minor ticks at the bench pitch
+       and a rule at the edge itself. As the plate travels, the graduation
+       travels with it, so the motion is measured rather than merely fast.
+     - the plate translates as well as clips, so the slide has travel and a
+       stopping point instead of being consumed in place.
+
+   --dur-slow (560ms) on --ease-drawer: decisive start, hard settle, no bounce.
+   Inside the brief's 400-800ms window, over content the browser has already
+   painted. Reduced motion zeroes the clock at the token source (tokens.css),
+   so the resting state — gate hidden, bench visible — is what a reduced-motion
+   visitor gets immediately.
+   -------------------------------------------------------------------------- */
+.gate[data-gate-kind='traverse'] {
+  /* The label is fixed to the slide, at its leading edge, the way a specimen
+     label is stuck to the end of the slide you hold. It therefore travels with
+     the plate and off the stage with it. */
+  justify-items: end;
+  text-align: end;
+  padding-inline-end: calc(var(--sheet-gutter) + var(--space-l));
+}
+
+.gate[data-gate-kind='traverse'] .gate__rule {
+  /* The rule under the label is part of the slide's furniture; it must not
+     stretch across the whole plate or it stops reading as a label. */
+  margin-inline-start: auto;
+}
+
+.gate[data-gate-kind='traverse']::after {
+  /* The leading edge, graduated. `--bench-pitch` is the world's own token, so
+     this scale and the one in the page margin are the same instrument. */
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--space-s);
+  border-inline-end: 2px solid var(--world-accent);
+  background-image: linear-gradient(
+    to bottom,
+    var(--world-accent) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: 100% var(--bench-pitch, 1.5rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='traverse'] {
+    animation: gate-traverse var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  /* The label rides the slide. It gets the plate's motion rather than the base
+     `gate-line` entrance, for the same reason PROJECTS' label rides its upper
+     leaf: the traverse is the event, and a staggered line entrance underneath
+     it would be two mechanisms competing. */
+  .gate[data-gate-kind='traverse'] .gate__rule,
+  .gate[data-gate-kind='traverse'] .gate__title,
+  .gate[data-gate-kind='traverse'] .gate__enter {
+    animation: gate-traverse-label var(--dur-slow) var(--ease-drawer) backwards;
+  }
+
+  /* Leaving winds the stage back: the slide returns across the field. */
+  .gate[data-gate-kind='traverse'][data-state='leaving'] {
+    animation: gate-traverse-close var(--dur-base) var(--ease-drawer) forwards;
+  }
+
+  .gate[data-gate-kind='traverse'][data-state='leaving'] .gate__rule,
+  .gate[data-gate-kind='traverse'][data-state='leaving'] .gate__title,
+  .gate[data-gate-kind='traverse'][data-state='leaving'] .gate__enter {
+    animation: none;
+    translate: 0 0;
+  }
+}
+
+@keyframes gate-traverse {
+  0%,
+  22% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    /* Uncovered from the inline-start edge, in the direction of travel. */
+    clip-path: inset(0 0 0 100%);
+    /* The slide clears the stage rather than dissolving on it. */
+    translate: 8vw 0;
+  }
+}
+
+@keyframes gate-traverse-label {
+  /* The label settles into position before the stage is wound — you read the
+     specimen label, then the slide moves. Small: this is a settle, not a
+     reveal, and the type is opaque throughout. */
+  0% {
+    translate: -0.75rem 0;
+  }
+  22%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes gate-traverse-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 100%);
+    translate: 8vw 0;
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
   }
 }
