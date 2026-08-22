@@ -32,6 +32,13 @@
 
 .gate__rule {
   inline-size: min(100%, 22rem);
+  /* `hr` carries `margin-inline: auto` from the UA stylesheet, and the reset in
+     global.css zeroes margins by element name without listing `hr`. Without
+     this the gate's rule centres itself while the two lines under it stay
+     left-aligned — visible on HOME since M03-B, found in M04. `.rule` does not
+     have the bug because global.css sets `margin: 0` on that class; this
+     element is not a `.rule`. */
+  margin: 0;
   border: 0;
   border-block-start: 1px solid var(--world-accent);
 }
@@ -129,8 +136,15 @@
    finished behaviour, not a placeholder — so declaring a world's kind and
    implementing it are separate steps and neither blocks the other.
 
-   Implemented so far: `register` (HOME). The remaining seven are declared and
-   inherit the base wipe until their own world is built.
+   Implemented so far: `register` (HOME) and `drawer` (ABOUT). The remaining
+   six are declared and inherit the base wipe until their own world is built.
+
+   A kind chooses its own DURATION here too, off the shared clock in tokens.css
+   — `--dur-base` / `--dur-slow` / `--dur-plate`. It is not a field in
+   `worlds.ts`, deliberately: a number in TypeScript that only CSS ever reads
+   would be a second place to look for one fact, and the reduced-motion block
+   in tokens.css already zeroes the clock at its source. Timing is part of the
+   choreography, so it lives with the choreography.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -177,6 +191,90 @@
     opacity: 1;
     visibility: visible;
     clip-path: inset(0 0 0 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ABOUT — `drawer`
+   --------------------------------------------------------------------------
+   A catalogue drawer drawn open. The gate plate IS the drawer front: it
+   travels DOWN and out of frame, and the record is uncovered from the top
+   edge downward as it goes — which is what you actually see when a filing
+   drawer is pulled toward you and its contents come into view front-first.
+
+   Two marks make it read as a mechanism rather than a wipe:
+     - the plate carries a rail in the world accent along its leading edge,
+       so there is a visible front to the drawer rather than an abstract mask;
+     - the plate translates as well as clips, so the front has weight and
+       travel instead of simply being consumed.
+
+   Nothing fades, nothing scales, nothing blurs. --ease-drawer is the token the
+   system already keeps for exactly this: decisive start, hard settle, no
+   bounce. Total travel is --dur-slow (560ms), of which the first 30% is the
+   hold — the whole transition is finished inside the brief's 400–800ms window,
+   over content the browser has already painted.
+   -------------------------------------------------------------------------- */
+.gate[data-gate-kind='drawer'] {
+  /* The drawer front is aligned to the bottom of its own plate: the label
+     travels with the front, the way a drawer's index card is fixed to it. */
+  align-content: end;
+  padding-block-end: var(--space-2xl);
+}
+
+.gate[data-gate-kind='drawer']::after {
+  /* The leading edge of the drawer front. Not decoration — it is the thing
+     that makes the panel read as an object with a front, which is the
+     difference between "a drawer opened" and "a rectangle disappeared". */
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 3px;
+  background-color: var(--world-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='drawer'] {
+    animation: gate-drawer var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  /* Leaving ABOUT closes the drawer: the front rises back into the frame, so
+     a return reads as the same mechanism run backwards. */
+  .gate[data-gate-kind='drawer'][data-state='leaving'] {
+    animation: gate-drawer-close var(--dur-base) var(--ease-drawer) forwards;
+  }
+}
+
+@keyframes gate-drawer {
+  0%,
+  30% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    /* Uncovered from the top edge downward... */
+    clip-path: inset(100% 0 0 0);
+    /* ...while the front itself travels out of frame. */
+    translate: 0 12vh;
+  }
+}
+
+@keyframes gate-drawer-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(100% 0 0 0);
+    translate: 0 12vh;
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
   }
 }
 
