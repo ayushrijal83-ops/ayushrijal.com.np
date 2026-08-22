@@ -9,9 +9,9 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M02 — Foundation & Pretext Prototype** |
-| **M02 status** | Complete — awaiting architectural review of the architecture and the Home prototype |
-| **Last updated** | 2026-08-20 |
+| **Current milestone** | **M04 — World System + About world** |
+| **M04 status** | Complete — awaiting architectural review. See §1D. |
+| **Last updated** | 2026-08-22 |
 | **Working branch** | `v2` (all V2 work). `main` still serves V1 to production, unmodified. |
 
 ---
@@ -24,11 +24,12 @@
 | M02 | Foundation & Pretext prototype | **Complete** | §1A below. Awaiting review. |
 | M03-B | Home world implementation | **Complete** | §1B below. Approved. |
 | M03-B.1 | Home polish & Pretext decision | **Complete** | §1C below. Awaiting review. |
-| M03 | Remaining world build-out, transition choreography | Blocked | Needs sign-off on §1A.9 and §1B.10 |
-| M04 | Content verification + GitHub Actions integration | **Not started** | Blocked on the §9.4 content session and §1C review |
-| M05+ | Remaining section worlds, redirects, cutover | Not started | |
+| M04 | World System + About world | **Complete** | §1D below. Awaiting review. |
+| M05+ | Remaining six worlds, content collections, GitHub Actions integration, redirects, cutover | Not started | Each world is now a CSS entrance block plus a page. |
 
 **M01 scope compliance:** no files deleted, no UI replaced, no dependencies installed, no Pretext implementation.
+
+**M04 scope compliance:** the world system was extended (one contract change), and **only ABOUT was built**. Projects, AI Lab, Cybersecurity, Learning, GitHub and Contact are untouched M02 shells. No dependency was added. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1D.10.
 
 **M03-B.1 scope compliance:** A polish pass on Home only. **M04 has not started** — no world beyond Home was built and no content collection was populated. `@chenglou/pretext` was removed from production; `astro` is now the only production dependency. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1C.
 
@@ -783,7 +784,8 @@ checks and the local checks cannot drift.
 ### 1C.11 Current project state
 
 Home is complete as a vertical slice. The other seven worlds still render their
-M02 placeholder shells and their entrances are declared but unimplemented. V1
+M02 placeholder shells and their entrances are declared but unimplemented.
+*(Superseded by §1D: ABOUT is now built, leaving six placeholder shells.)* V1
 is untouched and byte-identical, `main` is unmodified, nothing is merged. One
 production dependency: `astro`.
 
@@ -801,13 +803,325 @@ clarity than it bought.
 
 ### 1C.13 Next milestone
 
-**M04 has not started.** Nothing in About, Projects, AI Lab, Cybersecurity,
-Learning, GitHub or Contact was built, and no content collection was populated.
-M03-B.1 stops here for architect review. The open items carried forward are
+*Superseded — M04 is complete. See §1D.*
+
+**M04 had not started at the time of writing.** Nothing in About, Projects,
+AI Lab, Cybersecurity, Learning, GitHub or Contact was built, and no content
+collection was populated. M03-B.1 stopped here for architect review. The open items carried forward are
 §1C.10 and the typography question in §1B.10.6 — IBM Plex is still a prototype
 selection, and the FACE → ROLE token split plus the `[data-type-set]` audition
 harness remain in place so a serif or mono display face can be compared without
 touching a component.
+
+---
+
+## 1D. M04 — World System + About world
+
+**Status:** Complete — awaiting architectural review.
+**Scope:** two objectives only. Build the reusable world-system architecture,
+and implement ONLY the ABOUT world on it. No other world was touched.
+
+### 1D.0 Starting position — the system already half existed
+
+M02 and M03-B built most of what the M04 brief asks for as objective 1, so
+this milestone extended it rather than rebuilding it. What was already in
+place before any M04 commit:
+
+| Piece | Where | State at M04 start |
+|---|---|---|
+| World registry (identity, route, nav label, metadata, ground, entrance, ref) | `lib/worlds.ts` | Complete, 8 worlds |
+| World layout (gate, header, masthead, colophon, surface opt-in) | `layouts/WorldLayout.astro` | Complete |
+| Shared gate component | `components/transition/WorldGate.astro` | Complete |
+| Per-kind entrance mechanism (`[data-gate-kind]`) | `styles/gate.css` | Mechanism complete, 1 of 8 kinds implemented |
+| Exit half of the transition | `scripts/world-gate.ts` | Complete |
+| Per-world ground geometry | `styles/worlds.css` | 8 grounds |
+| Shared a11y / SEO / CSP / reduced-motion / responsive foundations | `BaseLayout`, `tokens.css`, `global.css` | Complete |
+
+So M04 did **not** create a second world system. It found one gap, closed it,
+and used the result to build ABOUT. Per the brief's instruction not to rewrite
+working systems without a reason, nothing above was re-architected.
+
+### 1D.1 The one architectural change — the MATERIAL slot
+
+`tokens.css` stated a contract: a world may override exactly four variables,
+and *the paper is immutable*. A fifth was explicitly declared an architecture
+decision rather than a styling decision. Building ABOUT forced that decision.
+
+**The problem.** With the stock fixed for all eight worlds, a world can differ
+only in the geometry of its hairline ruling. Two worlds built that way read as
+the same page with a different pattern behind it. The brief's own failure
+criterion — *"if the difference is only a different background colour: FAIL"* —
+has an inverse that is just as true: if every world is printed on the same
+stock, geometry alone will not carry them apart.
+
+**The decision.** A world may now also choose its STOCK: the four `--paper-*`
+tones. The ink stays immutable. Two reasons, and the second is the one that
+matters: the ink is what makes eight worlds one archive, and **the ink ramp's
+floor IS the WCAG AA threshold**, derived against `--paper` (14.08 / 7.12 /
+5.45 / 4.62). A world that darkens its stock drops four text colours below
+4.5:1 simultaneously.
+
+**The constraint, enforced not remembered.** A world's stock must be at least
+as light as `#ece7dc`. `scripts/verify-output.mjs` now parses every `--paper`
+declared in `worlds.css`, measures it against every step of the ramp using
+WCAG relative luminance, and fails the build below 4.5:1. It reads the source
+tokens rather than the built CSS, so it fails whether or not the offending
+world has a page yet. No dependency was added.
+
+That is the whole extension. The registry gained no new field, no new
+component was created, and no abstraction layer was introduced.
+
+### 1D.2 What was deliberately NOT added
+
+The brief lists `transition duration` and `accessibility label` as things a
+world config might carry. Neither became a field, on purpose:
+
+- **Duration** lives in the kind's CSS block, off the shared clock in
+  `tokens.css` (`--dur-base` / `--dur-slow` / `--dur-plate`). A number in
+  TypeScript that only CSS ever reads is a second place to look for one fact,
+  and the reduced-motion block already zeroes that clock at its source. Timing
+  is part of choreography, so it lives with the choreography.
+- **Accessibility label** is already served by `nav` and `world`, both of which
+  the header and colophon consume. A third string would have been a synonym.
+
+Also not built: seven placeholder entrance implementations. The six remaining
+kinds are declared in `Entrance` and inherit the base gate, which is a
+complete fail-safe entrance rather than a stub — exactly the placeholder
+configuration the brief asks for.
+
+### 1D.3 The ABOUT world — how it differs from HOME
+
+The review question is whether ABOUT actually *feels* different. It is
+answered on four axes, none of which is background colour:
+
+| | HOME | ABOUT |
+|---|---|---|
+| **Material** | A sheet registered onto a dark drafting table (`surface` plate). An object you look at. | The card itself, filling the frame. No plate, no table. A record you are holding. |
+| **Stock** | `#ece7dc` drafting grey-beige | `#f0ece1` warm manila |
+| **Ground** | Blueprint module, 4rem, both axes | Catalogue-card ruling, 2rem, horizontal only |
+| **Accent** | `--spot` #9c3016, correction red | #5c4630, archival brown — the first accent that carries text as well as linework |
+| **Display type** | The name STAMPED: Plex Sans Condensed 700, uppercase, measured per-glyph kerning | The name TYPED: Plex Serif 400, mixed case, `--step-5` |
+| **Structure** | Announced by large uppercase display headings | Announced by small tracked mono labels in a left margin |
+| **Layout grammar** | Centred composition, full-width rules | Asymmetric editorial margin; reads down the label column |
+| **Motion** | Striking — a typebar hitting a platen, glyphs 42ms apart | Settling — cards dropped into a drawer |
+| **Entrance** | `register`, opens centre-out | `drawer`, front travels down and out |
+
+Shared, unchanged: the layout, the header, the colophon, the gate component,
+the ink ramp, the type scale, the spacing scale, the motion curves, the CSP,
+the skip link, the focus ring, the reduced-motion policy, the entrance policy.
+
+**No new font dependency.** ABOUT's typographic identity is a change of
+*role assignment*, not of family: it sets its subject record in `--font-text`
+(Plex Serif, already self-hosted and already preloaded elsewhere) instead of
+`--font-display`. Zero additional bytes.
+
+### 1D.4 The drawer transition
+
+`drawer` is the second entrance built on the M03 per-kind mechanism, which is
+what proves that mechanism extends. It is a CSS block in `gate.css` keyed on
+`[data-gate-kind='drawer']` — no new component, no new script, no change to
+`world-gate.ts`.
+
+The gate plate *is* the drawer front. It travels down and out of frame while
+the record is uncovered from the top edge downward, which is what you see when
+a filing drawer is pulled toward you. Two marks make it read as a mechanism
+rather than as a wipe: a rail in the world accent along its leading edge, so
+the panel has a visible front; and a `translate` alongside the `clip-path`, so
+the front has travel and weight instead of being silently consumed.
+
+- Hold 30% of `--dur-slow`, total **560 ms** — inside the brief's 400–800 ms.
+- Curve `--ease-drawer`, the token the system already keeps for this.
+- No fade, no scale, no blur, no 3D, no glitch, no particles.
+- Leaving ABOUT plays `drawer-close`: the front rises back in, so a return
+  reads as the same mechanism run backwards.
+
+**Fail-safe by inversion, unchanged from M03.** The gate's unanimated state is
+`hidden`; the animation runs visible → hidden. A dropped stylesheet, an engine
+without `@keyframes`, or a reduced-motion preference all resolve to "gate gone,
+content visible". Measured, not asserted — see §1D.6.
+
+### 1D.5 Content — verified only
+
+Every claim on `/about` is rendered verbatim from `lib/profile.ts`. The page
+contains no biographical prose of its own, which is what makes the
+no-fabrication rule enforceable rather than merely intended.
+
+Added to the verified record this milestone: **one** statement, the AI
+philosophy supplied in the M04 brief §7. Nothing else was added and nothing
+was rephrased.
+
+Rendered: name, identity, about statement, education (Bachelor's student —
+Lincoln University), learning (Cybersecurity · AI · German), the seven
+interests, the three position statements (method, on AI, on security), and the
+ambition as the closing statement.
+
+**Not invented:** no birth information, location, employer, job history,
+certification, award, GPA, graduation date, years of experience, or
+professional title. Four of those absences are named explicitly in a
+`NOT YET RECORDED` block at the foot of the record, with a line stating they
+are absent because unconfirmed rather than withheld. An archive that shows the
+extent of its holdings is more credible than one that fills every field.
+
+### 1D.6 Verification — what was measured
+
+Chrome could not be driven through the browser extension this session, so
+testing was done against headless Chrome over the DevTools Protocol. Node 22
+ships a global `WebSocket`, so this needed **no new dependency** — the probe
+is a scratchpad script, not repository code. Device metrics were set through
+`Emulation.setDeviceMetricsOverride` rather than by resizing a window, which
+is what makes sub-500px viewports measurable at all (§1B.6).
+
+**Responsive — all seven matrix sizes, `/about`:**
+
+| Viewport | Horizontal overflow | Content stranded invisible | Gate resolved | Document height |
+|---|---|---|---|---|
+| 390 × 844 | 0 px | 0 | hidden | 2247 px |
+| 375 × 812 | 0 px | 0 | hidden | 2270 px |
+| 768 × 1024 | 0 px | 0 | hidden | 1984 px |
+| 1024 × 768 | 0 px | 0 | hidden | 1871 px |
+| 1366 × 768 | 0 px | 0 | hidden | 1908 px |
+| 1440 × 900 | 0 px | 0 | hidden | 1908 px |
+| 1920 × 1080 | 0 px | 0 | hidden | 1908 px |
+
+Three intentional compositions, not one shrunk: below 480px the record fields
+stack label-over-value and the identity roles stack without separators; from
+768px the editorial margin engages and the holdings index goes two-up; from
+1440px the margin labels become sticky against a wider content column.
+
+**Reduced motion (`prefers-reduced-motion: reduce`, all seven sizes):**
+zero running animations, zero stranded elements, gate resolved to `hidden`,
+identical document heights, full heading outline intact.
+
+**JavaScript disabled (`Emulation.setScriptExecutionDisabled`, 1440×900):**
+overflow 0, gate hidden, skip link present, all seven navigation links
+present, and every verified statement rendered — checked individually:
+name, philosophy, Lincoln University, the AI statement, the security
+statement, the ambition, and the learning list.
+
+**Direct URL / reload / copied URL:** `/about` is a static
+`dist/about/index.html`. It carries its own `<title>`, description, canonical
+and Open Graph tags and does not read any state from HOME. Every probe above
+navigated to `/about` directly, never from `/`.
+
+**Accessibility:**
+
+- Heading outline: `H1 Ayush Rijal` → `H2 01 Current chapter` → `H2 02 What I
+  work with` → `H2 03 Positions` → `H2 04 Closing statement` → `H2 Not yet
+  recorded`. One h1, no skipped levels. The margin labels are real `<h2>`
+  elements set in the label register — the visual treatment changed, the
+  semantics did not. The "Subject" label above the `<h1>` is deliberately not
+  a heading, because an `<h2>` there would invert the outline.
+- `aria-current="page"` resolves to exactly one element, the About link.
+- Skip link present and first in tab order; focus ring unchanged and global.
+- Every section is a named region via `aria-labelledby`.
+- Lists stay lists: the identity roles and the holdings index are `<ul>`, with
+  separators drawn by CSS rather than joined into strings. Fixed during this
+  milestone: `01Current chapter` — Astro's `compressHTML` collapsed the space
+  between the catalogue number and the heading text, so the accessible name
+  ran the two together. Now `{' '}`, the same device the colophon uses.
+- Contrast, measured: ink 14.71 / 7.44 / 5.69 / 4.82 against the ABOUT stock —
+  every step *higher* than against the global paper. Accent as text 7.49:1.
+  Reversed tab (paper on accent) 8.04:1. Focus ring 6.25:1. All clear AA.
+- Forced-colours: the accession tab is the only reversed element on the page
+  and is given a bordered transparent treatment, since it would otherwise
+  resolve to a solid block with same-colour text.
+
+**Performance:** `/about` is 13.9 KB of HTML and 5.1 KB of its own CSS. Zero
+page-specific JavaScript — the only module on the page is the shared 639-byte
+world-gate exit handler from the layout. No three.js, no WebGL, no animation
+library, no external runtime dependency, no new font file.
+
+**Build / CI:** `npm ci` clean, `astro check` **0 errors, 0 warnings, 0 hints**
+across 38 files, `astro build` 12 pages, `npm run verify` green,
+`npm audit --audit-level=high` **0 vulnerabilities**. One production
+dependency, still `astro`.
+
+**M03 regression check:** HOME was probed at all seven viewports after the
+shared-infrastructure changes — 0 overflow, 0 stranded, 0 running animations,
+heading outline and focusable count unchanged. M04 did not break M03.
+
+### 1D.7 Defects found and fixed
+
+1. **The gate rule centred itself.** `.gate__rule` is an `<hr>`, and the reset
+   in `global.css` zeroes margins by element name without listing `hr`, so it
+   kept the UA's `margin-inline: auto` and sat centred beneath two
+   left-aligned lines. Present on HOME since M03-B; found by looking at a
+   screenshot of the ABOUT gate. `.rule` was never affected because
+   `global.css` sets `margin: 0` on that class. Fixed in `gate.css`.
+2. **`01Current chapter`** — accessible name defect, above.
+3. **Orphaned separator on phones.** The identity list wrapped, carrying its
+   `·` to the start of the next line where it reads as a bullet. The list now
+   stacks below 480px, which is also how HOME sets the same three roles.
+
+### 1D.8 Known limitations
+
+1. **The browser extension was unavailable**, so no manual click-through, no
+   real-device testing, and no visual check in a non-Chromium engine. Firefox
+   and Safari are **untested**, as they were in M03-B. Everything reported in
+   §1D.6 is a headless-Chromium measurement.
+2. **The exit half of the transition is untested end to end.** `world-gate.ts`
+   is unchanged from M03 and `drawer-close` is written symmetrically to the
+   entrance, but a real HOME → ABOUT click was not driven this session.
+3. **Gate copy for the six unbuilt worlds is still placeholder-grade.** HOME
+   and ABOUT now carry written copy; the rest are the M02 conceptual examples.
+4. **`--paper-recessed` and `--paper-edge` are set for ABOUT but unused by it.**
+   They are declared so the world's stock is internally consistent if a later
+   component reaches for them. Deleting them is defensible.
+5. **The typography question from §1B.10.6 is still open.** IBM Plex remains a
+   prototype selection. ABOUT strengthens the case for keeping Plex Serif —
+   it is now doing display work, not just body work — but the decision is the
+   architect's.
+
+### 1D.9 Open decisions for review
+
+1. **Is the MATERIAL slot the right widening of the contract?** The
+   alternative was to keep one stock for all eight worlds and push harder on
+   geometry. The contrast constraint is enforced either way; this is a design
+   judgement, not a safety one.
+2. **Does the drawer read as a drawer?** It is the first entrance whose
+   metaphor is mechanical rather than typographic.
+3. **Should the `NOT YET RECORDED` block ship?** It is honest and on-concept,
+   and it is also the only place the page draws attention to what it lacks.
+4. **The gate still sets its `ENTER` line in the display face on every world.**
+   Arguably it should take the world's own register. Left shared for now,
+   because the gate is chrome.
+
+### 1D.10 Scope compliance
+
+V1 is untouched and byte-identical. `main` is unmodified. Nothing is merged.
+**No world beyond ABOUT was built** — Projects, AI Lab, Cybersecurity,
+Learning, GitHub and Contact still render their M02 placeholder shells and
+their entrances remain declared-but-inherited. No content collection was
+populated. No dependency was added, in production or in dev. The CSP was not
+weakened. No secret, credential or third-party runtime origin was introduced.
+
+### 1D.11 Commits
+
+| Hash | Commit |
+|---|---|
+| `9c9ba45` | feat(world): open the material slot of the world channel |
+| `ba49a8a` | feat(world): implement the drawer entrance, and fix the gate rule |
+| `ee2455d` | feat(about): build the personal archive world |
+| `a8505f1` | test(about): assert the record verbatim and every world stock at AA |
+
+### 1D.12 How to review this
+
+```bash
+export PATH="/c/Program Files/nodejs:$PATH"
+npm ci
+npm run verify
+npm run preview        # http://localhost:4321
+```
+
+| Route | What to look at |
+|---|---|
+| `/about` | The record. Reload to watch the drawer open. Resize across 480px and 768px. |
+| `/` | Confirm HOME is unchanged apart from the gate rule now aligning left. |
+| `/lab/viewports?route=/about` | All seven matrix viewports at once. |
+
+The one question that matters: put `/` and `/about` side by side. If they read
+as two environments that were engineered by the same hand, the milestone
+succeeded. If they read as one page with a different tint, it did not.
 
 ---
 
