@@ -136,15 +136,15 @@
    finished behaviour, not a placeholder — so declaring a world's kind and
    implementing it are separate steps and neither blocks the other.
 
-   Implemented so far: `register` (HOME), `drawer` (ABOUT), `sheet` (PROJECTS)
-   and `traverse` (AI LAB). The remaining four are declared and inherit the base
-   wipe until their own world is built.
+   Implemented so far: `register` (HOME), `drawer` (ABOUT), `sheet` (PROJECTS),
+   `traverse` (AI LAB) and `ruling` (GITHUB). The remaining three are declared
+   and inherit the base wipe until their own world is built.
 
-   The four implemented kinds are four different MOTIONS, not four timings of
-   one motion — outward to both margins, downward, apart along a crease, and
-   laterally across. That is the constraint each new world's entrance has to
-   satisfy: if it moves the way a built world already moves, it is a duration
-   change wearing a different name.
+   The five implemented kinds are five different MOTIONS, not five timings of
+   one motion — outward to both margins, downward, apart along a crease,
+   laterally across, and column by column in sequence. That is the constraint
+   each new world's entrance has to satisfy: if it moves the way a built world
+   already moves, it is a duration change wearing a different name.
 
    A kind chooses its own DURATION here too, off the shared clock in tokens.css
    — `--dur-base` / `--dur-slow` / `--dur-plate`. It is not a field in
@@ -570,5 +570,147 @@
     visibility: visible;
     clip-path: inset(0 0 0 0);
     translate: 0 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   GITHUB — `ruling`
+   --------------------------------------------------------------------------
+   The plate is ruled away column by column.
+
+   Every other entrance moves ONE thing: a mask, a drawer front, two leaves, a
+   slide. This one moves the plate in vertical bands on the ledger's own column
+   pitch, and it moves them in two passes — the odd columns lift, then the even
+   ones follow 90ms behind. What you see is a sheet being ruled off a column at
+   a time, which is the act this world is named for: material entering a
+   register.
+
+   Two masked pseudo-elements rather than N elements. `::before` carries the
+   odd columns and `::after` the even ones, each masked with a
+   `repeating-linear-gradient` on `--ledger-column` — the SAME token the page
+   ground is ruled with, so the entrance and the paper are the same stationery.
+   A static mask plus a staggered wipe gets the column-by-column read at the
+   cost of two elements; N real elements would be N nodes in every world's DOM
+   for one world's entrance.
+
+   Total travel is --dur-slow plus the 90ms stagger, so ~650ms — inside the
+   400-800ms guideline, over content the browser has already painted. The
+   resting state is hidden, as it is for every kind, so reduced motion and a
+   failed animation both resolve to "archive visible".
+   -------------------------------------------------------------------------- */
+.gate[data-gate-kind='ruling'] {
+  /* The columns paint the ground; the gate itself only holds the label and
+     controls visibility. */
+  background-color: transparent;
+}
+
+.gate[data-gate-kind='ruling']::before,
+.gate[data-gate-kind='ruling']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--paper);
+  /* The column rules travel with the columns, so the plate is visibly ruled
+     stock rather than a blank rectangle being cut up. */
+  background-image: linear-gradient(
+    to right,
+    var(--world-accent) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: var(--ledger-column, 6rem) 100%;
+}
+
+.gate[data-gate-kind='ruling']::before {
+  /* Odd columns. */
+  mask-image: repeating-linear-gradient(
+    to right,
+    #000 0 var(--ledger-column, 6rem),
+    transparent var(--ledger-column, 6rem) calc(var(--ledger-column, 6rem) * 2)
+  );
+}
+
+.gate[data-gate-kind='ruling']::after {
+  /* Even columns: the same mask, offset by one column. */
+  mask-image: repeating-linear-gradient(
+    to right,
+    transparent 0 var(--ledger-column, 6rem),
+    #000 var(--ledger-column, 6rem) calc(var(--ledger-column, 6rem) * 2)
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='ruling'] {
+    animation: gate-ruling var(--dur-slow) var(--ease-drawer) forwards;
+    /* Held open for the stagger, so the gate element — the thing world-gate.ts
+       waits on — does not finish before the even columns have gone. */
+    animation-delay: 90ms;
+  }
+
+  .gate[data-gate-kind='ruling']::before {
+    animation: gate-ruling-column var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  .gate[data-gate-kind='ruling']::after {
+    animation: gate-ruling-column var(--dur-slow) var(--ease-drawer) 90ms forwards;
+  }
+
+  /* The label belongs to the plate, not to the columns, so it keeps the base
+     line entrance — it is the one part of this gate that is not being ruled
+     away, and it should read as a heading over the ruling rather than as
+     another band. */
+
+  /* Leaving GITHUB rules the columns back in, all at once: filing is
+     deliberate and unfiling is not, so the return is the shorter act. */
+  .gate[data-gate-kind='ruling'][data-state='leaving'] {
+    animation: gate-ruling-close var(--dur-base) var(--ease-drawer) forwards;
+    animation-delay: 0s;
+  }
+
+  .gate[data-gate-kind='ruling'][data-state='leaving']::before,
+  .gate[data-gate-kind='ruling'][data-state='leaving']::after {
+    animation: none;
+    translate: 0 0;
+    clip-path: none;
+  }
+}
+
+@keyframes gate-ruling-column {
+  0%,
+  16% {
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+  100% {
+    /* Ruled off upward, the direction a ledger line is drawn away. */
+    clip-path: inset(0 0 100% 0);
+    translate: 0 -2vh;
+  }
+}
+
+@keyframes gate-ruling {
+  /* The element itself only holds visibility open long enough for both passes
+     to finish. `animationend` on `.gate` is what world-gate.ts listens for. */
+  0%,
+  30% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+  }
+}
+
+@keyframes gate-ruling-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 100% 0);
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
   }
 }
