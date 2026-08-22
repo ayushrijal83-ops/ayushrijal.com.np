@@ -1,6 +1,6 @@
 ---
 title: AgroVision Nepal
-summary: A Flask agriculture simulator that identifies crops from a photograph by mapping a general-purpose ImageNet classifier onto five crops grown in Nepal.
+summary: A Flask agriculture simulator that identifies crops from a photograph by mapping a general-purpose ImageNet classifier onto five crops grown in Nepal, then scores whether your soil and this week's weather suit the result.
 date: 2026-07-23
 updated: 2026-07-23
 verified: true
@@ -17,12 +17,12 @@ stack:
   - Pillow
   - NumPy
   - Flask-SQLAlchemy
+  - Werkzeug
+  - Requests
 roadmap:
-  - Weather API integration
-  - Real-time soil analysis
   - Crop disease detection
   - Fertilizer recommendation
-  - Farmer authentication
+  - Soil analysis from sensors rather than a form
   - Cloud database
 tags:
   - ai
@@ -35,7 +35,8 @@ repo: https://github.com/ayushrijal83-ops/Agriculture_simulator
 
 A web application that takes a photograph of a plant and tells you which of
 five crops grown in Nepal it is most likely to be — rice, wheat, maize, potato
-or tomato — alongside a growth simulation, a dashboard and a page of
+or tomato — then scores how well your conditions suit growing it. Around that
+sit a growth simulation, a dashboard, farmer accounts and a page of
 agricultural funding information.
 
 ## How it actually works
@@ -63,6 +64,24 @@ aimed at a narrow domain by curating its vocabulary. That works because the
 five target crops all have close ImageNet neighbours, and it is exactly why it
 would not extend to a sixth crop that ImageNet has never seen.
 
+## The suitability check
+
+Two POST routes sit behind the identification, and both are more conventional
+than the classifier and more useful than it:
+
+- **`/soil-check`** scores a soil type and a nitrogen level, entered on a form,
+  against the crop's requirements in `crop_data.json` — fifty points for each
+  match, and a sentence of advice per band. It is a rules comparison, not an
+  analysis: there is no sensor anywhere in this project, and the roadmap item
+  it does not satisfy is the *real-time* one.
+- **`/weather-check`** calls OpenWeatherMap for a named city in Nepal and
+  combines the live temperature with the soil and nutrient answers into a
+  weighted score — weather 40%, soil 30%, nutrients 20% — banded into Good,
+  Moderate or Risk.
+
+Accounts are real too: registration and login with Werkzeug password hashing,
+and every route above refuses an anonymous request.
+
 ## What I would fix
 
 The reported confidence figure is the model's probability for its **top
@@ -72,6 +91,13 @@ second overstates what the system knows. There is also a fallback that
 suggests rice, maize and wheat when nothing maps — reasonable as a default,
 but it means the interface can look confident about an image it made no
 determination on.
+
+There is also a defect I did not find until writing this page: the
+OpenWeatherMap key is a string literal in `app.py`, in a public repository,
+under a comment that says `Hackathon: hardcode key`. It needs revoking and
+moving into the environment. It is recorded here rather than quietly patched
+because the same habit is the reason this site's own GitHub token never leaves
+a runner.
 
 ## Status
 

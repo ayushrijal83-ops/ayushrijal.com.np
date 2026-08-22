@@ -1,6 +1,6 @@
 ---
 title: YushaCyber
-summary: A cybersecurity learning platform built as a Flask application — roadmaps, labs, a CTF arena and a browser terminal, wired together as fifteen registered blueprints.
+summary: A cybersecurity learning platform built as a Flask application — roadmaps, labs, a CTF arena, an AI mentor and a browser terminal, wired together as fourteen registered blueprints.
 date: 2026-07-05
 updated: 2026-08-15
 verified: true
@@ -29,7 +29,7 @@ repo: https://github.com/ayushrijal83-ops/YushaCyber
 ## What it is
 
 A learning platform for cybersecurity, built as a single Flask application and
-organised into fifteen registered blueprints — authentication, dashboard,
+organised into fourteen registered blueprints — authentication, dashboard,
 roadmap, CTF, labs, resources, profiles, leaderboard, admin, analytics,
 community, AI endpoints, an in-browser terminal and a missions interface.
 
@@ -55,11 +55,28 @@ Two decisions in it are security decisions rather than convenience ones, which
 matters for a platform about security:
 
 - **CSRF protection is global**, via Flask-WTF, rather than applied per form.
-- **Rendered markdown is sanitised** with `bleach` before it reaches a page.
-  Lesson content and CTF challenge descriptions are markdown, so the lesson
-  viewer is an injection surface. The dependency file notes that `bleach` was
-  being imported by the code while missing from `requirements.txt` — a real
-  bug, found and recorded rather than quietly fixed.
+- **Rendered markdown is sanitised** with `bleach`, against an explicit
+  tag-and-attribute allow-list, before it reaches a page. Lesson content and
+  CTF challenge descriptions are markdown, so the lesson viewer is an
+  injection surface.
+
+## What is actually built
+
+Four things worth naming precisely, because they are the parts most easily
+overstated:
+
+- **Progression is real.** A user row carries `xp` and `level`; challenges and
+  mission objectives carry an `xp_reward`; an achievement engine reads those
+  totals and a leaderboard ranks them.
+- **The CTF arena has a schema behind it** — challenge categories, challenges,
+  per-user solves and staged hints — rather than a page of static puzzles.
+- **The AI mentor is a client, not a model.** "CyberMentor" is a chat endpoint
+  in front of a provider interface with OpenAI and Anthropic implementations
+  and a mock. It needs a key in the environment; without one the feature
+  reports itself unavailable. Nothing about it runs locally, and nothing about
+  it is trained here.
+- **The browser terminal and the missions UI are their own blueprints**, added
+  after the platform's first shape and registered alongside the rest.
 
 ## What I learned
 

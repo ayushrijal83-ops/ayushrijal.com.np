@@ -46,15 +46,28 @@ are all substitutions for a hosted service:
 |---|---|
 | Wake word | Vosk, listening continuously |
 | Speech to text | faster-whisper |
-| Language model | Ollama, self-hosted |
+| Language model | Ollama, self-hosted, Mistral by default |
 | Speech synthesis | pyttsx3 |
-| Vision | OpenCV with MediaPipe |
+| Vision | OpenCV with MediaPipe — face presence, gaze and gesture |
 | Desktop control | PyAutoGUI |
 
 Voice and vision are the two largest modules in the repository — roughly 25 KB
 and 10 KB of Python — with gesture recognition split across a recogniser and a
 separate control layer that maps a recognised gesture onto an action. The
 interface is its own 23 KB module.
+
+The vision module does more than the table admits: MediaPipe's face detector
+gives presence, its face mesh gives a nose-and-eye-line estimate of where the
+head is pointing, and the two together decide whether the user is actually
+attending to the machine before it acts. That is the part I would keep if I
+rebuilt it.
+
+Desktop control is deliberately fenced. Launchable applications come from a
+whitelist, keystrokes from an allow-list, typing is capped at 120 characters,
+input is rate-limited, and `alt`+`F4` is classified as risky and asks for
+confirmation. PyAutoGUI's own fail-safe is left on. An assistant that can
+drive the keyboard is a program that can destroy your work by mishearing one
+syllable, and none of those limits are decorative.
 
 There is also a game mode: gesture recognition is bound to a set of per-game
 control profiles, so a hand becomes the input device for a racing game.
