@@ -998,6 +998,52 @@ present, and every verified statement rendered — checked individually:
 name, philosophy, Lincoln University, the AI statement, the security
 statement, the ambition, and the learning list.
 
+**The exit half of the transition, end to end.** A real left-click was
+dispatched at the ABOUT link's measured coordinates on `/`, and the gate was
+sampled 90ms later — i.e. while the handler's work should be visible:
+
+| Case | At +90ms | Landed |
+|---|---|---|
+| Plain left click | `data-state="leaving"`, `gate-register-close` running, gate visible | `/about`, `data-world="about"`, gate hidden |
+| Reduced motion | already at `/about`, no state, gate hidden, 0 animations | `/about`, gate hidden |
+| Ctrl+click | still on `/`, no state set | stayed on `/` |
+
+So the two halves do join across a navigation: HOME's plate closes, then
+ABOUT's drawer opens. The documented degradations hold — under reduced motion
+the handler is never bound and the link navigates immediately, and a modified
+click is left alone for the browser to handle.
+
+Worth naming as a deliberate reading rather than an accident: the *exit*
+belongs to the world being left and the *entrance* to the world being entered,
+so this crossing is "close the drafting sheet, then draw the drawer open" —
+two mechanisms, in that order, not one effect played twice.
+
+**Keyboard navigation**, driven with real key events on `/about` @1440×900:
+
+```
+ 1. a.skip-link       Skip to content   outline 2px solid #9c3016, offset 3px
+ 2. a.masthead__mark  Ayush Rijal
+ 3. a.masthead__link  About             aria-current=page
+ 4-9. Projects / AI Lab / Security / Learning / GitHub / Contact
+10. a                 github (colophon)
+11. leaves the document
+```
+
+Tab order matches reading order, the skip link is the first stop, and the
+focus indicator was *resolved* rather than assumed — `outlineStyle`,
+`outlineWidth` and `outlineColor` computed on each stop, all `solid 2px
+rgb(156, 48, 22)` at 3px offset. Pressing Enter on the skip link sets
+`location.hash` to `#main` and `:target` resolves to the `main` element, so it
+moves the reading position and not merely the focus ring.
+
+One measurement needed a second look, recorded so it is not re-investigated:
+the colophon link first reported as focused-but-off-screen. It is not. The
+`html:focus-within { scroll-behavior: smooth }` rule in `global.css` does not
+advance in headless Chrome, so the scroll never ran. Re-measured with reduced
+motion emulated — which is exactly what disables that rule — focus scrolls the
+link fully into view (`scrollY` at maximum, element inside the viewport) on
+both `/about` and `/`.
+
 **Direct URL / reload / copied URL:** `/about` is a static
 `dist/about/index.html`. It carries its own `<title>`, description, canonical
 and Open Graph tags and does not read any state from HOME. Every probe above
@@ -1055,13 +1101,19 @@ heading outline and focusable count unchanged. M04 did not break M03.
 
 ### 1D.8 Known limitations
 
-1. **The browser extension was unavailable**, so no manual click-through, no
-   real-device testing, and no visual check in a non-Chromium engine. Firefox
-   and Safari are **untested**, as they were in M03-B. Everything reported in
-   §1D.6 is a headless-Chromium measurement.
-2. **The exit half of the transition is untested end to end.** `world-gate.ts`
-   is unchanged from M03 and `drawer-close` is written symmetrically to the
-   entrance, but a real HOME → ABOUT click was not driven this session.
+1. **No non-Chromium engine was rendered.** Firefox is installed on this
+   machine and three headless attempts were made; all failed before producing
+   output with `RenderCompositorSWGL failed mapping default framebuffer`, a
+   graphics-backend failure unrelated to the site. Driving Gecko properly
+   needs `geckodriver`, a new dependency, which was not added without
+   approval. **Firefox and Safari remain untested**, as they were in M03-B,
+   and everything in §1D.6 is a headless-Chromium measurement. The features
+   the page leans on — `clip-path` animation, `position: sticky`, subgrid-free
+   CSS grid, `text-wrap: balance` — are all widely supported, but that is a
+   claim from support tables, not a measurement.
+2. **No manual click-through on a real device.** The browser extension was
+   unavailable, so there was no human looking at the page in a real window.
+   The transition was verified by dispatched input rather than by a hand.
 3. **Gate copy for the six unbuilt worlds is still placeholder-grade.** HOME
    and ABOUT now carry written copy; the rest are the M02 conceptual examples.
 4. **`--paper-recessed` and `--paper-edge` are set for ABOUT but unused by it.**
