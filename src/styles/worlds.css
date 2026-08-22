@@ -191,6 +191,21 @@
    drawing goes down.
    -------------------------------------------------------------------------- */
 [data-world='projects'] {
+  /* Material. The second world to take the MATERIAL slot, and it moves the
+     opposite way from ABOUT: a cool grey drawing stock rather than warm card.
+     HOME is warm drafting paper, ABOUT is warm manila, PROJECTS is the cold
+     white-grey of a print from a plan chest. Measured against the ink ramp at
+     14.39 / 7.28 / 5.57 / 4.72 — every step above AA, and above the global
+     paper, which is the constraint the slot carries. */
+  --paper: #eaeae6;
+  --paper-raised: #f2f2ee;
+  --paper-recessed: #deded9;
+  --paper-edge: #cfcfc9;
+
+  /* Channel. Drafting blue, promoted from linework to text: 7.95:1 here. The
+     heavier rule weight is the world's signature — PROJECTS is drawn with a
+     thicker pen than any other world, which is what makes its tabulation read
+     as an engineering drawing rather than as a table. */
   --world-accent: var(--blueprint);
   --world-accent-wash: var(--blueprint-wash);
   --world-grid: rgba(47, 72, 88, 0.08);

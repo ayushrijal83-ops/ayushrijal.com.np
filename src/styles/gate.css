@@ -136,8 +136,9 @@
    finished behaviour, not a placeholder — so declaring a world's kind and
    implementing it are separate steps and neither blocks the other.
 
-   Implemented so far: `register` (HOME) and `drawer` (ABOUT). The remaining
-   six are declared and inherit the base wipe until their own world is built.
+   Implemented so far: `register` (HOME), `drawer` (ABOUT) and `sheet`
+   (PROJECTS). The remaining five are declared and inherit the base wipe until
+   their own world is built.
 
    A kind chooses its own DURATION here too, off the shared clock in tokens.css
    — `--dur-base` / `--dur-slow` / `--dur-plate`. It is not a field in
@@ -275,6 +276,150 @@
     visibility: visible;
     clip-path: inset(0 0 0 0);
     translate: 0 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   PROJECTS — `sheet`
+   --------------------------------------------------------------------------
+   A folded drawing opened out onto the board.
+
+   The plate parts along a horizontal crease at the centre and the two halves
+   travel apart to the top and bottom edges, uncovering the sheet from the
+   middle outward. A hairline in the world accent sits on the crease, so there
+   is a visible fold rather than an abstract split.
+
+   Deliberately the perpendicular of HOME's `register`, which withdraws to the
+   left and right margins — and deliberately not a repeat of it. HOME uncovers
+   a sheet already lying flat on the table; PROJECTS unfolds one that arrived
+   folded. Two halves moving apart, with a crease between them, is a different
+   act from a mask being drawn back, and the crease is what carries the
+   difference.
+
+   Built from `clip-path` on two pseudo-elements rather than on `.gate`
+   itself: a single element can only be clipped to one rectangle, and this
+   needs two that move independently. The gate's own background is dropped
+   here so the halves are the only thing painted.
+
+   --dur-slow (560ms), --ease-drawer. Inside the 400-800ms guideline, over
+   content the browser has already painted.
+   -------------------------------------------------------------------------- */
+.gate[data-gate-kind='sheet'] {
+  /* The halves paint the ground now. See the note above. */
+  background-color: transparent;
+  /* The label sits just above the crease, so it belongs to the upper leaf and
+     travels with it. Centred text would be left hanging over the gap as the
+     halves part, which reads as a bug rather than as a fold. */
+  align-content: end;
+  padding-block-end: calc(50vh + var(--space-l));
+}
+
+.gate[data-gate-kind='sheet']::before,
+.gate[data-gate-kind='sheet']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--paper);
+  /* The crease. Drawn on the facing edge of each half, so it reads as one
+     line while they are closed and separates into two as they part. */
+  border-block-end: 1px solid var(--world-accent);
+}
+
+.gate[data-gate-kind='sheet']::before {
+  clip-path: inset(0 0 50% 0); /* upper half */
+}
+
+.gate[data-gate-kind='sheet']::after {
+  clip-path: inset(50% 0 0 0); /* lower half */
+  border-block-end: 0;
+  border-block-start: 1px solid var(--world-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='sheet'] {
+    animation: gate-sheet var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  .gate[data-gate-kind='sheet']::before {
+    animation: gate-sheet-top var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  .gate[data-gate-kind='sheet']::after {
+    animation: gate-sheet-bottom var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  /* The label is part of the upper leaf, so it takes that leaf's motion
+     instead of the base `gate-line` entrance. The fold is the event here; a
+     staggered line entrance underneath it would be two ideas at once. */
+  .gate[data-gate-kind='sheet'] .gate__rule,
+  .gate[data-gate-kind='sheet'] .gate__title,
+  .gate[data-gate-kind='sheet'] .gate__enter {
+    animation: gate-sheet-top var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  /* Leaving PROJECTS folds the drawing back up. */
+  .gate[data-gate-kind='sheet'][data-state='leaving'] {
+    animation: gate-sheet-close var(--dur-base) var(--ease-drawer) forwards;
+  }
+
+  .gate[data-gate-kind='sheet'][data-state='leaving']::before,
+  .gate[data-gate-kind='sheet'][data-state='leaving']::after,
+  .gate[data-gate-kind='sheet'][data-state='leaving'] .gate__rule,
+  .gate[data-gate-kind='sheet'][data-state='leaving'] .gate__title,
+  .gate[data-gate-kind='sheet'][data-state='leaving'] .gate__enter {
+    /* Folding back up: the leaves are closed and the clip on `.gate` does the
+       work, so nothing here may still be holding an entrance offset. */
+    animation: none;
+    translate: 0 0;
+  }
+}
+
+/* The gate element itself only controls visibility; the halves do the moving.
+   Kept as its own animation so `animationend` still fires on `.gate`, which is
+   what world-gate.ts waits for. */
+@keyframes gate-sheet {
+  0%,
+  99% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+  }
+}
+
+@keyframes gate-sheet-top {
+  0%,
+  30% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 -50vh;
+  }
+}
+
+@keyframes gate-sheet-bottom {
+  0%,
+  30% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 50vh;
+  }
+}
+
+@keyframes gate-sheet-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(50% 0 50% 0);
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
   }
 }
 
