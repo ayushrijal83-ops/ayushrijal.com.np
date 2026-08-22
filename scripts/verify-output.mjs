@@ -71,6 +71,86 @@ if (home) {
   }
 }
 
+// ── 2b. ABOUT still carries the verified record, verbatim ──────────────────
+// The whole point of ABOUT is that every claim on it is a quotation from
+// `lib/profile.ts`. A refactor that turned a statement into a paraphrase, or
+// dropped one, would leave a page that still looks finished — which is exactly
+// the failure this project exists to prevent (PROJECT_PROGRESS §9.4, K6).
+const about = read('about/index.html');
+if (about) {
+  const mustSay = [
+    'Ayush Rijal',
+    'I build, experiment, break, and learn.',
+    'Lincoln University',
+    'blindly accepting the output',
+    'break systems and then build them more securely',
+    'my work is remembered',
+  ];
+  for (const claim of mustSay) {
+    if (!about.includes(claim)) {
+      fail(`About lost a verified statement: "${claim}"`);
+    }
+  }
+  if (!/<h1[^>]*class="[^"]*subject__name/.test(about)) {
+    fail('About lost its <h1> subject record');
+  }
+}
+
+// ── 2c. Every world's stock still clears the ink ramp at WCAG AA ───────────
+// M04 opened the MATERIAL slot of the world channel: a world may choose its
+// own `--paper`. The ink ramp's floor IS the AA threshold, and it was derived
+// against the global paper — so a world that darkens its stock silently drops
+// four text colours below 4.5:1 with nothing in the build to notice.
+//
+// Read from the source tokens rather than the built CSS: this is a statement
+// about the design system, and it should fail whether or not the offending
+// world has a page yet.
+const srgb = (channel) =>
+  channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+
+const luminance = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => srgb(parseInt(hex.slice(i, i + 2), 16) / 255));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+
+/** Pulls `--name: #rrggbb;` out of a CSS block. */
+const hexVars = (css) =>
+  Object.fromEntries(
+    [...css.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6})\s*;/gi)].map((m) => [m[1], m[2]]),
+  );
+
+const tokensCss = readFileSync('src/styles/tokens.css', 'utf8');
+const worldsCss = readFileSync('src/styles/worlds.css', 'utf8');
+
+/** The first `:root { … }` block, up to the closing brace in column 1. */
+const globals = hexVars(tokensCss.split(':root {')[1].split(/^\}/m)[0]);
+const INK_RAMP = ['--ink', '--ink-secondary', '--ink-tertiary', '--ink-faint'];
+const AA = 4.5;
+
+/** Every `[data-world='x'] { … }` declaration block, plus the global default. */
+const stocks = [['(global)', globals['--paper']]];
+for (const match of worldsCss.matchAll(/\[data-world='([\w-]+)'\]\s*\{([^}]*)\}/g)) {
+  const paper = hexVars(match[2])['--paper'];
+  if (paper) stocks.push([match[1], paper]);
+}
+
+for (const [world, paper] of stocks) {
+  for (const step of INK_RAMP) {
+    const ratio = contrast(globals[step], paper);
+    if (ratio < AA) {
+      fail(
+        `World "${world}" stock ${paper}: ${step} measures ${ratio.toFixed(2)}:1, ` +
+          `below WCAG AA (${AA}:1). See the MATERIAL slot note in tokens.css.`,
+      );
+    }
+  }
+}
+
 // ── 3. No inline scripts — the CSP blocks them ─────────────────────────────
 // `script-src 'self'` rejects inline scripts, and Astro inlines any client
 // script bundling under 4 KB. The browser drops it with no error and the page
@@ -128,6 +208,7 @@ if (failures.length > 0) {
 
 console.log(
   `Build output verified: ${WORLDS.length} worlds, no-JS fallbacks intact, ` +
+    `About record verbatim, ${stocks.length} world stocks clear WCAG AA, ` +
     `no inline scripts, no third-party origins, no Pretext ` +
     `(${pages.length} pages).`,
 );
