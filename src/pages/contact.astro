@@ -66,6 +66,11 @@ const CHANNELS = [
     color: var(--world-accent);
     text-underline-offset: 4px;
     inline-size: fit-content;
+    /* An email address is one unbreakable token. `fit-content` sizes to it and
+       pushes the page 3px wide at 320px, which is a horizontal scrollbar on the
+       narrowest phones for the sake of a link. Let it break. */
+    overflow-wrap: anywhere;
+    max-inline-size: 100%;
   }
 
   .channels__note {
