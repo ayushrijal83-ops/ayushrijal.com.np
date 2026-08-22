@@ -49,10 +49,11 @@ export type Ground =
  * reusable half of the transition system: adding a world's entrance is a CSS
  * block keyed on its kind, not a new component and not a new script.
  *
- * As of M06, `register` (Home), `drawer` (About), `sheet` (Projects) and
- * `traverse` (AI Lab) are implemented. The other four are declared and fall
- * through to the base gate behaviour, which is a complete, fail-safe entrance
- * in its own right, not a stub. Building them is M07+.
+ * As of M07, `register` (Home), `drawer` (About), `sheet` (Projects),
+ * `traverse` (AI Lab) and `ruling` (GitHub) are implemented. The other three
+ * are declared and fall through to the base gate behaviour, which is a
+ * complete, fail-safe entrance in its own right, not a stub. Building them is
+ * M08+.
  *
  * A kind carries no duration here. Its timing lives in its CSS block, off the
  * shared clock in tokens.css — see the note in styles/gate.css.
@@ -70,8 +71,8 @@ export type Entrance =
   | 'seal'
   /** LEARNING — a notebook leaf turned. Declared. */
   | 'leaf'
-  /** GITHUB — a ledger column ruled in. Declared. */
-  | 'ledger'
+  /** GITHUB — the plate ruled away column by column. Implemented. */
+  | 'ruling'
   /** CONTACT — a line opened. Declared. */
   | 'transmit';
 
@@ -193,12 +194,13 @@ export const WORLDS: readonly World[] = [
     id: 'github',
     href: '/github',
     nav: 'GitHub',
-    world: 'Code Repository',
-    gateTitle: 'SOURCE INDEX',
-    gateEnter: 'ENTERING THE REPOSITORY',
-    summary: 'Public repositories and activity, compiled at build time.',
+    world: 'Public Code Archive',
+    gateTitle: 'PUBLIC SOURCE',
+    gateEnter: 'OPENING THE SOURCE ARCHIVE',
+    summary:
+      'Every public repository, as GitHub reports it — the part of the story that can be inspected rather than described.',
     ground: 'ledger',
-    entrance: 'ledger',
+    entrance: 'ruling',
     ref: 'AR-06',
   },
   {

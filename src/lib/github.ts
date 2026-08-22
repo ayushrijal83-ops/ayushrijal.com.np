@@ -69,14 +69,38 @@ export type GitHubSnapshot = {
 };
 
 /**
- * Repositories excluded from the public index. Moved out of the hardcoded
- * array that lived in V1's `main.js` so it is reviewable config, not code.
+ * What KIND of thing a repository is. The curated half of the GITHUB world.
+ *
+ * This replaced `EXCLUDED_REPOS` in M07, and the replacement is the whole
+ * argument of that world. The old list hid three repositories from the index:
+ * the profile README, this website, and a personal page. That is defensible on
+ * a portfolio grid — it is not defensible on a page whose thesis is *the source
+ * is the record*. An archive that quietly omits three of its ten holdings is
+ * not an archive, and the visitor has no way to know the omission happened.
+ *
+ * So nothing is hidden. Instead every repository is CLASSIFIED, the register
+ * prints the class, and the reader decides what to weigh. A profile README
+ * being a profile README is a fact worth stating, not a reason to delete a row.
+ *
+ * Unlisted repositories fall to `code`, which is the honest default: it claims
+ * only that the thing contains source.
  */
-export const EXCLUDED_REPOS: readonly string[] = [
-  'ayushrijal83-ops',
-  'ayushrijal.com.np',
-  'A-Universe-For-You',
-];
+export type RepoKind = 'project' | 'site' | 'profile' | 'notes' | 'personal' | 'code';
+
+export const REPO_KIND: Readonly<Record<string, RepoKind>> = {
+  YushaCyber: 'project',
+  jarvis_assistant: 'project',
+  Agriculture_simulator: 'project',
+  beach_buggy_ai: 'code',
+  'x-man': 'code',
+  'cyber-security': 'notes',
+  'ayushrijal.com.np': 'site',
+  'ayushrijal83-ops': 'profile',
+  'A-Universe-For-You': 'personal',
+  'Jarvis-AI-Assistant': 'notes',
+};
+
+export const repoKind = (name: string): RepoKind => REPO_KIND[name] ?? 'code';
 
 /**
  * Load order per the fallback contract above. Build-time only.
@@ -160,10 +184,17 @@ export function repoByUrl(
   return snapshot.repos.find((r) => r.url.toLowerCase() === want) ?? null;
 }
 
-/** Public repositories, most recently pushed first, exclusions applied. */
+/**
+ * Every public repository, most recently pushed first.
+ *
+ * Forks are dropped: a fork is public code but it is not authored work, and
+ * the register makes a claim about authorship. Archived repositories are KEPT
+ * and marked — an archive that drops the archived material has misunderstood
+ * the word. Nothing else is filtered; see `REPO_KIND` for why.
+ */
 export function publicRepos(snapshot: GitHubSnapshot | null): Repo[] {
   if (!snapshot) return [];
   return snapshot.repos
-    .filter((r) => !r.fork && !r.archived && !EXCLUDED_REPOS.includes(r.name))
+    .filter((r) => !r.fork)
     .sort((a, b) => b.pushedAt.localeCompare(a.pushedAt));
 }

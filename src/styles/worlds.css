@@ -348,13 +348,42 @@
 }
 
 /* --------------------------------------------------------------------------
-   GITHUB — ledger tabulation. Vertical column rules only, the way accounting
-   stock is ruled before anything is entered in it.
+   GITHUB — the public code archive.
+   --------------------------------------------------------------------------
+   Ledger tabulation: vertical column rules only, the way accounting stock is
+   ruled before anything is entered in it. Every other world's ground is ruled
+   horizontally or on a grid; this one is the only one ruled the short way, and
+   that is what a register of holdings looks like before it is filled in.
+
+   The column pitch is a token, `--ledger-column`, because the entrance rules
+   the plate away on the same pitch. The gate and the paper have to be the same
+   stationery or the entrance is an effect rather than a mechanism.
+
+   Material. A cool blue-grey ledger stock — the only genuinely BLUE paper in
+   the archive, against HOME's warm drafting, ABOUT's manila, PROJECTS' neutral
+   grey and AI LAB's bench white. Measured against the ink ramp at
+   14.81 / 7.49 / 5.73 / 4.86: every step above AA and above the global paper,
+   which is the constraint the MATERIAL slot carries (see tokens.css).
+
+   Channel. Graphite, 7.94:1 on the stock above. The least chromatic accent in
+   the archive on purpose — this world's job is to get out of the way of the
+   record. The archive's spot red appears exactly once here, as the stamp on
+   the compiled date, which is what a spot colour is for.
    -------------------------------------------------------------------------- */
 [data-world='github'] {
+  /* Material. */
+  --paper: #ebedf1;
+  --paper-raised: #f4f5f8;
+  --paper-recessed: #e1e3e9;
+  --paper-edge: #d4d7df;
+
+  /* Channel. */
   --world-accent: #40484f;
-  --world-accent-wash: rgba(64, 72, 79, 0.08);
-  --world-grid: rgba(64, 72, 79, 0.1);
+  --world-accent-wash: rgba(64, 72, 79, 0.07);
+  --world-grid: rgba(64, 72, 79, 0.12);
+
+  /* The ruling pitch. Shared with the entrance — see gate.css `ruling`. */
+  --ledger-column: 6rem;
 }
 
 [data-world='github'] .ground {
@@ -363,7 +392,7 @@
     var(--world-grid) 0 1px,
     transparent 1px 100%
   );
-  background-size: 6rem 100%;
+  background-size: var(--ledger-column) 100%;
 }
 
 /* --------------------------------------------------------------------------
