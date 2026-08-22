@@ -15,15 +15,34 @@
    Token contract
    --------------
    1. GLOBAL tokens below are shared by all eight worlds and are immutable.
-      A world may NOT redefine the type scale, the spacing scale, the paper,
-      the ink, or the motion curves. That shared skeleton is what makes eight
-      different worlds read as one site.
-   2. A world overrides ONLY the variables in the WORLD CHANNEL block, by
-      setting them on its own `[data-world="..."]` root. That is four
-      variables. If a world needs a fifth, that is an architecture decision,
-      not a styling decision.
+      A world may NOT redefine the type scale, the spacing scale, the ink, or
+      the motion curves. That shared skeleton is what makes eight different
+      worlds read as one site.
+   2. A world overrides ONLY the WORLD CHANNEL — the CHANNEL slot below, plus
+      the MATERIAL slot named there — by setting them on its own
+      `[data-world="..."]` root. Anything outside that list is an architecture
+      decision, not a styling decision.
    3. Components consume semantic variables only. Never hardcode a colour,
       a size, or a duration in a component rule.
+
+   ── M04 amendment: the MATERIAL slot ───────────────────────────────────────
+   Until M04 the paper was immutable too, and the channel was four variables.
+   Building ABOUT proved that too tight. Eight worlds that differ only in
+   linework geometry converge on one look, which is the failure mode the brief
+   names explicitly ("if the difference is only a different background colour:
+   FAIL" — and its inverse is just as true: if every world is the same stock,
+   the geometry alone will not carry them apart).
+
+   So a world may now also choose its STOCK: the four `--paper-*` tones. It
+   still may not touch the ink, because the ink is what makes the archive one
+   archive, and because the ink ramp's floor IS the WCAG AA threshold against
+   `--paper` — every step was derived against that one value.
+
+   That derivation is the constraint on this slot, not a suggestion: a world's
+   stock must be at least as light as `--paper` (#ece7dc), or the ramp stops
+   clearing AA and four text colours silently fail at once.
+   `scripts/verify-output.mjs` measures every world stock against every ink
+   step on each build, so the constraint is enforced rather than remembered.
    ========================================================================== */
 
 :root {
@@ -78,8 +97,10 @@
   --blueprint-wash: rgba(47, 72, 88, 0.07);
 
   /* ------------------------------------------------------------------
-     WORLD CHANNEL
-     The only four variables a world may override. Defaults = HOME.
+     WORLD CHANNEL — the CHANNEL slot
+     What a world may override, besides the MATERIAL slot (the `--paper-*`
+     tones above; see the M04 amendment in the contract at the top of this
+     file). Defaults = HOME.
      ------------------------------------------------------------------ */
   --world-accent: var(--spot);
   --world-accent-wash: var(--spot-wash);

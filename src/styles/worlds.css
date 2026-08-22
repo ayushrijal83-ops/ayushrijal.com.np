@@ -6,11 +6,13 @@
    colour", so what changes between worlds here is geometry: the ruling of the
    paper, the register marks in the margin, the weight of the hairlines.
 
-   The ink, the paper and the type scale never change. That shared skeleton is
-   what makes eight worlds read as one archive.
+   The ink and the type scale never change. That shared skeleton is what makes
+   eight worlds read as one archive. A world MAY choose its stock — see the M04
+   amendment to the token contract in tokens.css — but the stock must be at
+   least as light as `--paper`, or the ink ramp stops clearing WCAG AA.
 
-   Each block sets ONLY the four world-channel variables from tokens.css, plus
-   the ground pattern itself. Anything beyond that is an architecture decision.
+   Each block sets ONLY the world channel from tokens.css, plus the ground
+   pattern itself. Anything beyond that is an architecture decision.
    ========================================================================== */
 
 .ground {
@@ -138,13 +140,40 @@
 }
 
 /* --------------------------------------------------------------------------
-   ABOUT — catalogue-card ruling. Horizontal lines only, at the baseline
-   rhythm, the way a library index card is ruled for handwriting.
+   ABOUT — the personal archive.
+   --------------------------------------------------------------------------
+   Catalogue-card ruling: horizontal lines only, at the baseline rhythm, the
+   way a library index card is ruled for handwriting.
+
+   ABOUT is also the first world to use the MATERIAL slot of the world channel
+   (see tokens.css). It is printed on a warmer, lighter stock than the rest of
+   the archive — manila rather than drafting blue-grey — because a personal
+   record is filed on card, not drawn on tracing paper.
+
+   The stock is lighter, not darker, which is deliberate: every step of the
+   global ink ramp therefore measures HIGHER against it than against `--paper`
+   (14.71 / 7.44 / 5.69 / 4.82, versus 14.08 / 7.12 / 5.45 / 4.62). Warming a
+   world's paper can only be safe in that direction, and
+   `scripts/verify-output.mjs` asserts it for every world stock rather than
+   trusting this comment.
+
+   ABOUT deliberately does NOT use the plate surface. HOME is a sheet laid on a
+   dark drafting table — an object you look at. ABOUT is the card itself, filling
+   the frame — a record you are holding. That material inversion, not a
+   background colour, is what separates the two worlds.
    -------------------------------------------------------------------------- */
 [data-world='about'] {
+  /* Material. */
+  --paper: #f0ece1;
+  --paper-raised: #f7f4ea;
+  --paper-recessed: #e6e1d2;
+  --paper-edge: #dcd5c3;
+
+  /* Channel. Warm archival brown, 7.49:1 on the stock above — it carries text
+     as well as linework, which the drafting-blue accent never had to. */
   --world-accent: #5c4630;
   --world-accent-wash: rgba(92, 70, 48, 0.08);
-  --world-grid: rgba(92, 70, 48, 0.09);
+  --world-grid: rgba(92, 70, 48, 0.1);
 }
 
 [data-world='about'] .ground {

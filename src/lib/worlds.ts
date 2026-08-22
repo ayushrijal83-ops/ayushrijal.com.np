@@ -16,8 +16,10 @@
  * This is the mechanism that keeps "every section has its own distinct visual
  * world" from degrading into "every section has a different background colour",
  * which the brief explicitly forbids. A ground is a *structure* — a ruling, a
- * perforation, a tabulation — drawn in hairlines on the same warm stock. The
- * geometry differs; the paper and the ink never do.
+ * perforation, a tabulation — drawn in hairlines. The geometry is what
+ * distinguishes a world; the ink never changes, and the stock changes only
+ * where a world has a material reason (ABOUT is filed on card). See the M04
+ * amendment to the token contract in `styles/tokens.css`.
  *
  * Implemented in `src/styles/worlds.css`, keyed on `[data-world]`.
  */
@@ -47,15 +49,18 @@ export type Ground =
  * reusable half of the transition system: adding a world's entrance is a CSS
  * block keyed on its kind, not a new component and not a new script.
  *
- * As of M03-B only `register` is implemented — Home. Every other kind is
- * declared and falls through to the base gate behaviour, which is a complete,
- * fail-safe entrance in its own right, not a stub. Building the remaining
- * seven is M04+ and deliberately out of scope here.
+ * As of M04, `register` (Home) and `drawer` (About) are implemented. The other
+ * six are declared and fall through to the base gate behaviour, which is a
+ * complete, fail-safe entrance in its own right, not a stub. Building them is
+ * M05+ and deliberately out of scope.
+ *
+ * A kind carries no duration here. Its timing lives in its CSS block, off the
+ * shared clock in tokens.css — see the note in styles/gate.css.
  */
 export type Entrance =
   /** HOME — a sheet registered onto a drafting table. Implemented. */
   | 'register'
-  /** ABOUT — a catalogue drawer drawn open. Declared, not implemented. */
+  /** ABOUT — a catalogue drawer drawn open. Implemented. */
   | 'drawer'
   /** PROJECTS — a drawing sheet laid onto the board. Declared. */
   | 'sheet'
@@ -96,9 +101,10 @@ export type World = {
 };
 
 /**
- * Gate copy below is placeholder-grade by instruction: the brief supplies these
- * as "conceptual examples, not final copy". The *system* is the deliverable;
- * the wording is a design-review item for M03.
+ * Gate copy is still placeholder-grade for the six unbuilt worlds: the brief
+ * supplied these as "conceptual examples, not final copy". HOME and ABOUT now
+ * carry written copy, set when their world was built — which is the right time
+ * to write it, because the words and the choreography are one decision.
  */
 export const WORLDS: readonly World[] = [
   {
@@ -120,8 +126,9 @@ export const WORLDS: readonly World[] = [
     nav: 'About',
     world: 'Personal Archive',
     gateTitle: 'PERSONAL RECORD',
-    gateEnter: 'ENTERING THE ARCHIVE',
-    summary: 'Background, working method and current focus.',
+    gateEnter: 'OPENING THE RECORD',
+    summary:
+      'The personal record of Ayush Rijal — identity, current chapter, working method and what is being learned.',
     ground: 'ruled',
     entrance: 'drawer',
     ref: 'AR-01',
