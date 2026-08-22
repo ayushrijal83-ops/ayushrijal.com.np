@@ -1,0 +1,32 @@
+---
+/**
+ * The title block of a drawing sheet.
+ *
+ * On a real engineering drawing this is the bordered grid in the corner that
+ * states what the sheet is: its number, its scale, its revision, who drew it.
+ * It is the single most recognisable piece of drawing furniture, which is why
+ * the PROJECTS world opens with one and stamps every record with one.
+ *
+ * Shared between the index and the detail pages — the only reason it is a
+ * component rather than markup in a page.
+ */
+export type Cell = { key: string; value: string; accent?: boolean };
+
+type Props = { cells: Cell[]; label: string };
+const { cells, label } = Astro.props;
+---
+
+<dl class="titleblock" aria-label={label}>
+  {
+    cells.map(({ key, value, accent }) => (
+      <div class="titleblock__cell">
+        <dt class="t-label titleblock__key">{key}</dt>
+        <dd
+          class:list={['titleblock__value', { 'titleblock__value--accent': accent }]}
+        >
+          {value}
+        </dd>
+      </div>
+    ))
+  }
+</dl>

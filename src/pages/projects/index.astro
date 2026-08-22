@@ -1,0 +1,285 @@
+---
+/**
+ * PROJECTS — the engineering workshop.
+ * ============================================================================
+ * A drawing sheet, not a card grid. The composition is title block → register
+ * → records, which is how a set of drawings is actually presented: state what
+ * the sheet is, tabulate what is on it, then draw each item.
+ *
+ * ── The two layers ─────────────────────────────────────────────────────────
+ * Every project on this page is assembled from two sources that are kept
+ * deliberately apart:
+ *
+ *   VERIFIED FACTS      the GitHub snapshot — language, stars, dates. Fetched
+ *                       at build time by scripts/fetch-github.mjs, never by
+ *                       the visitor's browser.
+ *   CURATED NARRATIVE   a content entry, written by hand — what it is, why it
+ *                       was built, what was learned.
+ *
+ * They are joined on the repository URL by `repoByUrl`. Neither can silently
+ * become the other: a fact cannot be written into a markdown file and pass as
+ * measured, and prose cannot be generated from an API response. Where the
+ * snapshot has no matching repository, the facts are simply absent and the
+ * narrative stands on its own.
+ *
+ * No client JavaScript beyond the shared world-gate module in the layout.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import TitleBlock, { type Cell } from '@components/projects/TitleBlock.astro';
+import { getCollection } from 'astro:content';
+import { getWorld } from '@lib/worlds';
+import { loadGitHubSnapshot, repoByUrl } from '@lib/github';
+import '@styles/projects.css';
+
+const world = getWorld('projects');
+const snapshot = loadGitHubSnapshot();
+
+// Drafts never reach a build. Featured work leads; the rest is newest first.
+const entries = (await getCollection('projects', (e) => !e.data.draft)).sort(
+  (a, b) =>
+    Number(b.data.featured) - Number(a.data.featured) ||
+    b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const records = entries.map((entry, i) => ({
+  entry,
+  repo: repoByUrl(snapshot, entry.data.repo),
+  no: String(i + 1).padStart(3, '0'),
+}));
+
+const day = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: '2-digit',
+});
+const iso = (d: Date | string) => new Date(d).toISOString().slice(0, 10);
+
+const compiled = snapshot?.generatedAt;
+
+const cells: Cell[] = [
+  { key: 'Sheet', value: `${world.ref} · Projects`, accent: true },
+  { key: 'Holdings', value: `${records.length} records` },
+  {
+    key: 'Repository data',
+    value: compiled ? day.format(new Date(compiled)) : 'Unavailable',
+  },
+  { key: 'Scale', value: '1:1 — as built' },
+];
+---
+
+<WorldLayout world="projects" title="Projects" masthead={false}>
+  <div class="sheet workshop">
+    <p class="t-label sheetmark">
+      <span>{world.ref} · {world.gateTitle}</span>
+      <span>{world.world}</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display workshop__title">Engineering Workshop</h1>
+    <p class="t-text workshop__intro">
+      Things that were built, with the reasoning kept in. Each record separates
+      what the repository reports from what its author says about it — the
+      first is fetched, the second is written.
+    </p>
+
+    <TitleBlock cells={cells} label="Sheet details" />
+
+    {/* ── The register — a parts list ─────────────────────────────── */}
+    <table class="register">
+      <caption class="t-label">Register of holdings</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="t-label">No.</th>
+          <th scope="col" class="t-label">Project</th>
+          <th scope="col" class="t-label">Class</th>
+          <th scope="col" class="t-label">State</th>
+          <th scope="col" class="t-label">Language</th>
+          <th scope="col" class="t-label">Last worked</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          records.map(({ entry, repo, no }) => (
+            <tr>
+              <td class="t-label register__no">{no}</td>
+              <th scope="row" class="register__name">
+                <a href={`/projects/${entry.id}`}>{entry.data.title}</a>
+              </th>
+              <td class="register__meta">{entry.data.kind ?? '—'}</td>
+              <td>
+                <span class="state" data-state={entry.data.status}>
+                  {entry.data.status}
+                </span>
+              </td>
+              <td class="register__meta">{repo?.language ?? '—'}</td>
+              <td class="register__meta">
+                {repo ? (
+                  <time datetime={iso(repo.pushedAt)}>{iso(repo.pushedAt)}</time>
+                ) : (
+                  '—'
+                )}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    {/* ── The records ─────────────────────────────────────────────── */}
+    <ol class="workshop__records" role="list">
+      {
+        records.map(({ entry, repo, no }) => (
+          <li>
+            <article class="record-panel workshop__record" aria-labelledby={`r-${entry.id}`}>
+              <p class="t-label workshop__recordmark">
+                <span class="workshop__recordno">{no}</span>
+                <span>{entry.data.kind}</span>
+                <span class="state" data-state={entry.data.status}>
+                  {entry.data.status}
+                </span>
+              </p>
+
+              <h2 class="t-heading workshop__recordtitle" id={`r-${entry.id}`}>
+                <a href={`/projects/${entry.id}`}>{entry.data.title}</a>
+              </h2>
+
+              <p class="t-text workshop__summary">{entry.data.summary}</p>
+
+              <ul class="spec workshop__spec" role="list">
+                {entry.data.stack.map((tech) => (
+                  <li>{tech}</li>
+                ))}
+              </ul>
+
+              <p class="workshop__links">
+                <a class="source-link" href={`/projects/${entry.id}`}>
+                  Open record {entry.data.title}
+                </a>
+                {entry.data.repo && (
+                  <a
+                    class="source-link"
+                    href={entry.data.repo}
+                    rel="noopener noreferrer"
+                  >
+                    {entry.data.title} on GitHub
+                    <span class="source-link__out" aria-hidden="true">
+                      ↗
+                    </span>
+                  </a>
+                )}
+              </p>
+
+              {repo === null && (
+                <p class="t-label workshop__nofacts">
+                  Repository data unavailable — narrative only
+                </p>
+              )}
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+
+    {
+      records.length === 0 && (
+        <p class="t-text workshop__empty">
+          No projects have been filed yet. Entries land here once each build has
+          been confirmed against its repository.
+        </p>
+      )
+    }
+  </div>
+</WorldLayout>
+
+<style>
+  .workshop {
+    padding-block-start: var(--space-l);
+  }
+
+  .sheetmark {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+    padding-block-end: var(--space-2xs);
+    color: var(--ink-faint);
+  }
+
+  .workshop__title {
+    font-size: var(--step-4);
+    margin-block-start: var(--space-m);
+  }
+
+  .workshop__intro {
+    margin-block-start: var(--space-s);
+    color: var(--ink-secondary);
+  }
+
+  .workshop__records {
+    display: grid;
+    gap: var(--space-l);
+    margin-block-start: var(--space-2xl);
+  }
+
+  .workshop__recordmark {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2xs) var(--space-s);
+  }
+
+  .workshop__recordno {
+    color: var(--world-accent);
+  }
+
+  .workshop__recordtitle {
+    margin-block-start: var(--space-2xs);
+    font-size: var(--step-2);
+  }
+
+  .workshop__recordtitle a {
+    text-decoration: none;
+    border-block-end: 2px solid var(--world-accent);
+  }
+
+  .workshop__recordtitle a:hover {
+    color: var(--world-accent);
+  }
+
+  .workshop__summary {
+    margin-block-start: var(--space-s);
+    color: var(--ink-secondary);
+  }
+
+  .workshop__spec {
+    margin-block-start: var(--space-m);
+  }
+
+  .workshop__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s) var(--space-l);
+    margin-block-start: var(--space-m);
+  }
+
+  .workshop__nofacts {
+    margin-block-start: var(--space-s);
+    color: var(--ink-tertiary);
+  }
+
+  .workshop__empty {
+    margin-block-start: var(--space-l);
+    padding-inline-start: var(--space-s);
+    border-inline-start: 2px solid var(--world-accent);
+    color: var(--ink-secondary);
+  }
+
+  /* Two records abreast once there is room for the register above them to
+     stay scannable and the panels not to become columns of narrow text. */
+  @media (min-width: 64rem) {
+    .workshop__records {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-m);
+    }
+  }
+</style>

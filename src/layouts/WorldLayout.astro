@@ -15,6 +15,15 @@ type Props = {
   world: string;
   /** Overrides the world's own name as the <h1>. Home does this. */
   title?: string;
+  /**
+   * Overrides the world's summary as the meta description.
+   *
+   * Added in M05 for project records: every detail page under one world would
+   * otherwise ship the same description, which is the duplicate-metadata
+   * defect V1 had across its six documents (PROJECT_PROGRESS §3) reappearing
+   * one level down. A world page still omits it and inherits the world's own.
+   */
+  description?: string;
   /** Suppress the standard sheet masthead when a world composes its own. */
   masthead?: boolean;
   /**
@@ -30,13 +39,19 @@ type Props = {
   surface?: boolean;
 };
 
-const { world: id, title, masthead = true, surface = false } = Astro.props;
+const {
+  world: id,
+  title,
+  description,
+  masthead = true,
+  surface = false,
+} = Astro.props;
 const world = getWorld(id);
 ---
 
 <BaseLayout
   title={title ?? world.world}
-  description={world.summary}
+  description={description ?? world.summary}
   world={world.id}
   surface={surface}
 >

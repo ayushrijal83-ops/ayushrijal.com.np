@@ -1,0 +1,580 @@
+/* ==========================================================================
+   PROJECTS — the engineering workshop
+   ==========================================================================
+   The three worlds so far, and what separates them:
+
+     HOME     a drafting table. A sheet on a dark surface, one enormous name.
+              Sparse. You look at it.
+     ABOUT    a personal archive. Warm card, serif, an editorial margin.
+              Quiet. You hold it.
+     PROJECTS an engineering drawing. Cold stock, heavy pen, tabulated.
+              DENSE. You read it for information.
+
+   Density is the point, and it is what stops this reading as "About in
+   another colour". ABOUT is built out of whitespace and one statement per
+   screen; PROJECTS is built out of a title block, a register and bordered
+   panels, with numbers in every margin. An engineering drawing does not
+   breathe — it packs, labels and rules everything, because a drawing that
+   omits a dimension is a drawing that has to be asked about.
+
+   Layout grammar: the TITLE BLOCK and the PARTS LIST, both taken from real
+   drawing-sheet convention rather than from web layout.
+
+     - The title block is a bordered grid of labelled cells, the way a drawing
+       states its sheet number, scale, revision and who drew it.
+     - The register is a tabulated parts list: a fixed-width numbered column,
+       then the item, then its classification and state.
+     - A record is a bordered panel with a clipped corner, because a print
+       from a plan chest has its corner cut to show which way is up.
+
+   Explicitly NOT: a card grid, a tile, a thumbnail, a shadow, a rounded
+   corner, a hover lift, a gradient. Those are the SaaS portfolio register the
+   brief rules out, and none of them is a drawing convention.
+
+   Shared with every other world and unchanged: the ink, the type scale, the
+   spacing scale, the motion curves, the gate, the header, the colophon.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   TITLE BLOCK — drawing furniture
+   --------------------------------------------------------------------------
+   Used at the head of the index and of every record, so a project sheet is
+   stamped the same way the archive stamps everything else.
+   -------------------------------------------------------------------------- */
+
+.titleblock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: var(--world-rule-weight) solid var(--rule-strong);
+  margin-block-start: var(--space-m);
+}
+
+@media (min-width: 48rem) {
+  .titleblock {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.titleblock__cell {
+  /* Every cell rules its own top and inline-start edge, so the grid's internal
+     hairlines are drawn without a single border collapsing trick and without
+     any cell needing to know where it sits. */
+  padding: var(--space-2xs) var(--space-xs);
+  border-block-start: 1px solid var(--rule);
+  border-inline-start: 1px solid var(--rule);
+  min-inline-size: 0;
+}
+
+/* The outer border already draws these edges. */
+.titleblock__cell:nth-child(-n + 2) {
+  border-block-start: 0;
+}
+
+.titleblock__cell:nth-child(odd) {
+  border-inline-start: 0;
+}
+
+@media (min-width: 48rem) {
+  .titleblock__cell:nth-child(-n + 4) {
+    border-block-start: 0;
+  }
+
+  .titleblock__cell:nth-child(odd) {
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .titleblock__cell:nth-child(4n + 1) {
+    border-inline-start: 0;
+  }
+}
+
+.titleblock__key {
+  display: block;
+  color: var(--ink-tertiary);
+}
+
+.titleblock__value {
+  display: block;
+  margin-block-start: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.titleblock__value--accent {
+  color: var(--world-accent);
+}
+
+/* --------------------------------------------------------------------------
+   REGISTER — the parts list
+   --------------------------------------------------------------------------
+   A real table, because it is real tabular data: a row per project, columns
+   for its number, name, class, state and language. Screen readers get a table
+   with headers; everyone else gets the densest possible scan of the archive.
+
+   On narrow screens the table becomes a stack of labelled rows rather than a
+   horizontally scrolling table — the data is small enough that reformatting
+   beats scrolling, and a table you have to drag sideways on a phone is not a
+   composition, it is a desktop layout that was not thought about.
+   -------------------------------------------------------------------------- */
+
+.register {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-start: var(--space-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.register caption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-tertiary);
+}
+
+.register th,
+.register td {
+  text-align: start;
+  padding: var(--space-xs) var(--space-s) var(--space-xs) 0;
+  vertical-align: baseline;
+}
+
+.register thead th {
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+  color: var(--ink-tertiary);
+  white-space: nowrap;
+}
+
+.register tbody tr {
+  border-block-end: 1px solid var(--rule);
+}
+
+.register__no {
+  color: var(--world-accent);
+  inline-size: 3.5rem;
+}
+
+.register__name a {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-block-end: 1px solid var(--rule-strong);
+}
+
+.register__name a:hover {
+  border-block-end-color: var(--world-accent);
+  color: var(--world-accent);
+}
+
+.register__meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+/* The state lamp. A filled square in the accent, not a coloured pill: a
+   drawing marks a revision with a mark, not with a badge. */
+.state {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.state::before {
+  content: '';
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  flex: none;
+  background-color: var(--world-accent);
+  translate: 0 -0.05em;
+}
+
+/* Anything not actively worked on is drawn hollow rather than recoloured, so
+   the distinction survives greyscale, colour-blindness and forced colours. */
+.state[data-state='paused']::before,
+.state[data-state='archived']::before {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--world-accent);
+}
+
+@media (max-width: 47.99rem) {
+  .register thead {
+    /* Not `display: none`: that would take the headers away from assistive
+       technology too. Visually hidden keeps the table a table. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .register tbody tr {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--space-3xs) var(--space-s);
+    padding-block: var(--space-s);
+  }
+
+  .register td {
+    padding: 0;
+  }
+
+  .register__no {
+    grid-row: 1;
+  }
+
+  .register__name {
+    grid-row: 1;
+  }
+
+  /* The remaining cells line up under the name, in the same column. */
+  .register td:not(.register__no) {
+    grid-column: 2;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   RECORD — a project panel
+   --------------------------------------------------------------------------
+   The corner is clipped, which is a print convention and also the one piece
+   of pure decoration in this world. It earns its place by being structural:
+   the notch is cut out of the panel's own border, so it reads as the shape of
+   the paper rather than as an ornament stuck on top.
+   -------------------------------------------------------------------------- */
+
+.record-panel {
+  position: relative;
+  border: var(--world-rule-weight) solid var(--rule-strong);
+  background-color: var(--paper-raised);
+  padding: var(--space-m);
+  /* The clipped corner. `--notch` is also used by the fold mark below, so the
+     two always agree. */
+  --notch: 1.25rem;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--notch)) 0,
+    100% var(--notch),
+    100% 100%,
+    0 100%
+  );
+}
+
+/* The fold itself — the hairline across the cut corner. */
+.record-panel::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  inline-size: var(--notch);
+  block-size: var(--notch);
+  background-image: linear-gradient(
+    to bottom left,
+    var(--rule-strong) 0 1px,
+    transparent 1px
+  );
+  /* The notch is cut from the top-RIGHT physically, so this mark is placed in
+     physical coordinates too and must not flip with writing direction. */
+  transform: scaleX(1);
+  pointer-events: none;
+}
+
+@media (min-width: 48rem) {
+  .record-panel {
+    padding: var(--space-l);
+    --notch: 2rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   PROSE — the narrative half of a record
+   --------------------------------------------------------------------------
+   Rendered from markdown, so these are element selectors rather than classes.
+   Set in the reading serif: the archive has one reading voice across all
+   worlds, and prose is where a world should stop performing.
+   -------------------------------------------------------------------------- */
+
+.prose {
+  margin-block-start: var(--space-l);
+}
+
+.prose > * + * {
+  margin-block-start: var(--space-s);
+}
+
+.prose h2 {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--world-accent);
+  margin-block-start: var(--space-xl);
+  padding-block-end: var(--space-2xs);
+  border-block-end: 1px solid var(--rule);
+}
+
+.prose h2:first-child {
+  margin-block-start: 0;
+}
+
+.prose h3 {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-block-start: var(--space-l);
+}
+
+.prose p,
+.prose li {
+  max-inline-size: var(--measure);
+  font-family: var(--font-text);
+}
+
+.prose ul,
+.prose ol {
+  padding-inline-start: var(--space-m);
+}
+
+.prose li + li {
+  margin-block-start: var(--space-2xs);
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: var(--world-accent-wash);
+  padding: 0.1em 0.3em;
+}
+
+.prose a {
+  color: var(--world-accent);
+  text-underline-offset: 3px;
+}
+
+/* A table inside prose is data the writer chose to tabulate; give it the same
+   register treatment rather than leaving it as a browser default table. */
+.prose table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+.prose th,
+.prose td {
+  text-align: start;
+  padding: var(--space-2xs) var(--space-s) var(--space-2xs) 0;
+  border-block-end: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+.prose thead th {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  font-size: var(--step--2);
+  color: var(--ink-tertiary);
+  border-block-end-color: var(--rule-strong);
+}
+
+/* Wide content must scroll inside its own box, never the page. */
+.prose__scroll {
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   SPEC LIST — stack, tags, and the roadmap
+   -------------------------------------------------------------------------- */
+
+.spec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+}
+
+.spec li {
+  border: 1px solid var(--rule);
+  padding: 0.1em var(--space-2xs) 0.2em;
+  color: var(--ink-secondary);
+}
+
+/*
+   NOT BUILT — the roadmap block.
+
+   Drawn hollow and struck through, in the same visual language ABOUT uses for
+   the fields it does not hold. An intention must never be able to look like a
+   capability; see the `roadmap` note in content.config.ts for the specific
+   README that made this necessary.
+*/
+.spec--roadmap li {
+  border-style: dashed;
+  color: var(--ink-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: var(--rule-strong);
+}
+
+/* --------------------------------------------------------------------------
+   FACTS — the repository half of a record
+   --------------------------------------------------------------------------
+   Everything here comes from the GitHub snapshot, not from prose, and it says
+   so on its face. The distinction between "what the repository reports" and
+   "what its author says about it" is the whole two-layer idea.
+   -------------------------------------------------------------------------- */
+
+.facts {
+  display: grid;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-m);
+  padding-block-start: var(--space-s);
+  border-block-start: var(--world-rule-weight) solid var(--rule-strong);
+}
+
+@media (min-width: 40rem) {
+  .facts {
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  }
+}
+
+.facts__key {
+  display: block;
+  color: var(--ink-tertiary);
+}
+
+.facts__value {
+  display: block;
+  margin-block-start: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  font-variant-numeric: tabular-nums;
+}
+
+.facts__unavailable {
+  font-family: var(--font-text);
+  font-style: italic;
+  color: var(--ink-secondary);
+  max-inline-size: var(--measure);
+}
+
+/* --------------------------------------------------------------------------
+   SOURCE LINK — out to the repository
+   -------------------------------------------------------------------------- */
+
+.source-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--world-accent);
+  text-decoration: none;
+  border-block-end: 1px solid var(--world-accent);
+  padding-block-end: 2px;
+}
+
+.source-link:hover {
+  color: var(--ink);
+  border-block-end-color: var(--ink);
+}
+
+/* Marks the link as leaving the site. `aria-hidden` in the markup, because the
+   destination is already named in the link text. */
+.source-link__out {
+  font-size: 0.9em;
+}
+
+/* --------------------------------------------------------------------------
+   ENTRANCE
+   --------------------------------------------------------------------------
+   Same policy as HOME and ABOUT: no content stage starts from `opacity: 0`,
+   every animation uses `backwards` fill, so the UNANIMATED state is the
+   FINISHED state. The world's motion language is a drawing being ruled —
+   things arrive by being drawn across, not by settling or striking.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .titleblock {
+    animation: rule-in var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-rules);
+    transform-origin: left center;
+  }
+
+  .register,
+  .record-panel {
+    animation: settle-in var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-index);
+  }
+}
+
+@keyframes rule-in {
+  from {
+    transform: scaleX(0.985);
+    opacity: 1;
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes settle-in {
+  from {
+    translate: 0 var(--space-2xs);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Forced colours and print
+   -------------------------------------------------------------------------- */
+
+@media (forced-colors: active) {
+  .record-panel {
+    /* The notch is drawn by clip-path, which would cut the border away in a
+       mode where the border is the only thing carrying the shape. */
+    clip-path: none;
+    border-color: CanvasText;
+  }
+
+  .record-panel::after {
+    display: none;
+  }
+
+  .state::before {
+    background-color: CanvasText;
+  }
+
+  .state[data-state='paused']::before,
+  .state[data-state='archived']::before {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px CanvasText;
+  }
+}
+
+@media print {
+  .record-panel {
+    clip-path: none;
+    background: none;
+    break-inside: avoid;
+  }
+}
