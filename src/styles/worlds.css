@@ -228,22 +228,70 @@
 }
 
 /* --------------------------------------------------------------------------
-   AI LAB — punch-card perforation. A dot matrix on the card pitch, the
-   machine room's own paper.
+   AI LAB — the laboratory bench.
+   --------------------------------------------------------------------------
+   Two rulings, and they say different things.
+
+   The field is a dot matrix on a regular pitch: a sample grid, the way a
+   microplate or a specimen tray is laid out. Every position is identical and
+   addressable, which is what a bench is for — you put things in it and compare
+   them.
+
+   Down the inline-start margin runs a GRADUATED SCALE: minor ticks at the
+   sample pitch, a major tick every fifth. That is the world's whole thesis in
+   one piece of furniture. HOME registers, PROJECTS draws, ABOUT files — this
+   world MEASURES, and the margin of every page in it carries a ruler.
+
+   Material. The lightest, least saturated stock in the archive: bench paper
+   rather than drafting paper or card. Measured against the ink ramp at
+   15.21 / 7.69 / 5.88 / 4.99 — every step above AA and above the global paper,
+   which is the constraint the MATERIAL slot carries (see tokens.css).
+
+   Channel. A muted laboratory green, 6.38:1 on the stock above, so it carries
+   text as well as linework. Chosen against the brief's explicit prohibition on
+   neon: this is the green of a chalkboard and a reagent bottle, the darkest
+   and least chromatic accent in the archive, not a terminal phosphor.
    -------------------------------------------------------------------------- */
-[data-world='ai'] {
+[data-world='ai-lab'] {
+  /* Material. */
+  --paper: #f1f0ea;
+  --paper-raised: #f8f7f2;
+  --paper-recessed: #e7e6de;
+  --paper-edge: #dbdad0;
+
+  /* Channel. */
   --world-accent: #4a5c3a;
-  --world-accent-wash: rgba(74, 92, 58, 0.08);
+  --world-accent-wash: rgba(74, 92, 58, 0.07);
   --world-grid: rgba(74, 92, 58, 0.16);
+
+  /* The bench pitch. One number, so the sample grid and the graduation on the
+     margin cannot drift apart — the scale has to measure the thing it is next
+     to or it is decoration. */
+  --bench-pitch: 1.5rem;
 }
 
-[data-world='ai'] .ground {
-  background-image: radial-gradient(
-    circle at center,
-    var(--world-grid) 0 1px,
-    transparent 1.5px
-  );
-  background-size: 1.5rem 1.5rem;
+[data-world='ai-lab'] .ground {
+  background-image:
+    /* the graduated margin: major tick every fifth */
+    linear-gradient(
+      to bottom,
+      var(--rule-strong) 0 1px,
+      transparent 1px 100%
+    ),
+    /* minor ticks, at the sample pitch */
+      linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%),
+    /* the sample field */
+      radial-gradient(
+        circle at center,
+        var(--world-grid) 0 1px,
+        transparent 1.5px
+      );
+  background-size:
+    0.75rem calc(var(--bench-pitch) * 5),
+    0.4rem var(--bench-pitch),
+    var(--bench-pitch) var(--bench-pitch);
+  background-position: left top, left top, center center;
+  background-repeat: repeat-y, repeat-y, repeat;
 }
 
 /* --------------------------------------------------------------------------

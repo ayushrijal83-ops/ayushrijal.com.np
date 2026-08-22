@@ -30,7 +30,7 @@ export type Ground =
   | 'ruled'
   /** Engineering drawing sheet: coarse module, fine subdivisions. */
   | 'drafting'
-  /** Punch-card / dot-matrix perforation. */
+  /** Specimen-plate pitch: a dot matrix on a regular sample grid. */
   | 'matrix'
   /** Bare stock with heavy register bars — a classified folder. */
   | 'dossier'
@@ -49,10 +49,10 @@ export type Ground =
  * reusable half of the transition system: adding a world's entrance is a CSS
  * block keyed on its kind, not a new component and not a new script.
  *
- * As of M04, `register` (Home) and `drawer` (About) are implemented. The other
- * six are declared and fall through to the base gate behaviour, which is a
- * complete, fail-safe entrance in its own right, not a stub. Building them is
- * M05+ and deliberately out of scope.
+ * As of M06, `register` (Home), `drawer` (About), `sheet` (Projects) and
+ * `traverse` (AI Lab) are implemented. The other four are declared and fall
+ * through to the base gate behaviour, which is a complete, fail-safe entrance
+ * in its own right, not a stub. Building them is M07+.
  *
  * A kind carries no duration here. Its timing lives in its CSS block, off the
  * shared clock in tokens.css — see the note in styles/gate.css.
@@ -62,10 +62,10 @@ export type Entrance =
   | 'register'
   /** ABOUT — a catalogue drawer drawn open. Implemented. */
   | 'drawer'
-  /** PROJECTS — a drawing sheet laid onto the board. Declared. */
+  /** PROJECTS — a folded drawing opened out onto the board. Implemented. */
   | 'sheet'
-  /** AI LAB — a machine-room shutter raised. Declared. */
-  | 'shutter'
+  /** AI LAB — a specimen slide traversed across the stage. Implemented. */
+  | 'traverse'
   /** CYBERSECURITY — a sealed folder broken open. Declared. */
   | 'seal'
   /** LEARNING — a notebook leaf turned. Declared. */
@@ -101,10 +101,17 @@ export type World = {
 };
 
 /**
- * Gate copy is still placeholder-grade for the six unbuilt worlds: the brief
- * supplied these as "conceptual examples, not final copy". HOME and ABOUT now
- * carry written copy, set when their world was built — which is the right time
- * to write it, because the words and the choreography are one decision.
+ * Gate copy is still placeholder-grade for the four unbuilt worlds: the brief
+ * supplied these as "conceptual examples, not final copy". HOME, ABOUT,
+ * PROJECTS and AI LAB carry written copy, set when their world was built —
+ * which is the right time to write it, because the words and the choreography
+ * are one decision.
+ *
+ * M06 renamed the AI world. It was `ai` at `/ai`, "Experimental Machine Room",
+ * which is a mainframe hall — the wrong building for what the work actually
+ * is. The route is `/ai-lab` and the world is a laboratory. Nothing is
+ * published yet, so the URL was still free to change; after cutover it would
+ * have cost a redirect (R10).
  */
 export const WORLDS: readonly World[] = [
   {
@@ -146,15 +153,16 @@ export const WORLDS: readonly World[] = [
     ref: 'AR-02',
   },
   {
-    id: 'ai',
-    href: '/ai',
+    id: 'ai-lab',
+    href: '/ai-lab',
     nav: 'AI Lab',
-    world: 'Experimental Machine Room',
-    gateTitle: 'EXPERIMENTAL COMPUTING',
-    gateEnter: 'ENTERING THE MACHINE ROOM',
-    summary: 'Machine-learning experiments, their setups and their results.',
+    world: 'Experimental Laboratory',
+    gateTitle: 'EXPERIMENTAL LABORATORY',
+    gateEnter: 'ENTERING THE LABORATORY',
+    summary:
+      'How intelligence gets built here: the systems, the pipelines, and the experiments — including the ones with no measured result.',
     ground: 'matrix',
-    entrance: 'shutter',
+    entrance: 'traverse',
     ref: 'AR-03',
   },
   {
