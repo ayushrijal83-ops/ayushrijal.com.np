@@ -21,6 +21,10 @@
  *   - Contribution/activity data needs GraphQL, which mandates a token, and so
  *     is unreachable from the client at all.
  *
+ * As of M05 the fetch half is implemented: `scripts/fetch-github.mjs`. It is
+ * deliberately NOT part of `npm run build`, so a GitHub outage cannot fail a
+ * build or blank a page — see the fallback contract below.
+ *
  * FALLBACK CONTRACT — the reason this module exists now rather than later:
  *   1. `github.generated.json` — fresh, written by the workflow. Gitignored.
  *   2. `github.snapshot.json`  — last known-good, committed to the repo.
@@ -31,7 +35,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 export type Repo = {
   name: string;
@@ -43,6 +47,8 @@ export type Repo = {
   forks: number;
   /** ISO 8601. Kept as a string so the JSON snapshot round-trips exactly. */
   pushedAt: string;
+  /** ISO 8601. When the repository was created — the start of the work. */
+  createdAt: string;
   topics: string[];
   archived: boolean;
   fork: boolean;
@@ -72,8 +78,25 @@ export const EXCLUDED_REPOS: readonly string[] = [
   'A-Universe-For-You',
 ];
 
-/** Load order per the fallback contract above. Build-time only. */
-const SOURCES = ['../data/github.generated.json', '../data/github.snapshot.json'];
+/**
+ * Load order per the fallback contract above. Build-time only.
+ *
+ * Resolved from the PROCESS WORKING DIRECTORY, not from `import.meta.url`.
+ * This module is bundled before it runs, so at build time `import.meta.url`
+ * points at a chunk inside the build output and `../data/...` resolves to
+ * `dist/data/...`, which does not exist. Every read then failed and the
+ * loader returned `null` — indistinguishable from "GitHub is down", and
+ * completely silent, because returning `null` is a legitimate outcome here.
+ *
+ * The bug shipped in M02 and could not be seen until M05: the snapshot held
+ * zero repositories and no page rendered a fact, so a loader that always
+ * failed produced exactly the same output as one that worked. Found by
+ * testing the fallback contract deliberately rather than by looking at a page.
+ *
+ * `astro build` runs from the project root, which is what makes cwd the right
+ * anchor for a build-time-only module.
+ */
+const SOURCES = ['src/data/github.generated.json', 'src/data/github.snapshot.json'];
 
 let cached: GitHubSnapshot | null | undefined;
 
@@ -87,8 +110,7 @@ export function loadGitHubSnapshot(): GitHubSnapshot | null {
 
   for (const source of SOURCES) {
     try {
-      const path = fileURLToPath(new URL(source, import.meta.url));
-      const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'));
+      const parsed: unknown = JSON.parse(readFileSync(resolve(source), 'utf8'));
       if (isSnapshot(parsed)) {
         cached = parsed;
         return cached;
@@ -114,6 +136,28 @@ function isSnapshot(value: unknown): value is GitHubSnapshot {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   return v.version === 1 && Array.isArray(v.repos) && typeof v.login === 'string';
+}
+
+/**
+ * The verified-facts half of a project record.
+ *
+ * PROJECTS joins curated narrative (a content entry, written by hand) to
+ * repository facts (this, fetched from GitHub) on the repo URL. Keeping the
+ * join here means a page never reaches into the snapshot array itself, and a
+ * project whose repository is missing from the snapshot renders its narrative
+ * with the facts simply absent rather than failing.
+ *
+ * Compares case-insensitively and ignores a trailing slash: the URL in a
+ * content file is typed by a human, and `.../YushaCyber` and `.../yushacyber`
+ * are the same repository to GitHub.
+ */
+export function repoByUrl(
+  snapshot: GitHubSnapshot | null,
+  url: string | undefined,
+): Repo | null {
+  if (!snapshot || !url) return null;
+  const want = url.replace(/\/+$/, '').toLowerCase();
+  return snapshot.repos.find((r) => r.url.toLowerCase() === want) ?? null;
 }
 
 /** Public repositories, most recently pushed first, exclusions applied. */

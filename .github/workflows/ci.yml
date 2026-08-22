@@ -35,6 +35,22 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Build-time GitHub retrieval. `continue-on-error` is the whole point:
+      # a GitHub outage, a rate limit or a network blip must never fail this
+      # build. When this step does not produce `github.generated.json`, the
+      # build reads the committed `github.snapshot.json` instead and the site
+      # is complete — just with slightly older repository figures. That is an
+      # integration; failing the build here would be a deployment dependency.
+      #
+      # GITHUB_TOKEN is the runner's own automatic token. It never leaves the
+      # runner, and only the allow-listed fields in fetch-github.mjs are
+      # written to disk, so no credential can reach the output.
+      - name: Refresh GitHub repository data
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run github:fetch
+
       # `npm run verify` = astro check + astro build + scripts/verify-output.mjs.
       # CI runs the exact command a developer runs locally, so the two can
       # never drift: the assertions live in the script, not in this file.
