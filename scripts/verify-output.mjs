@@ -24,7 +24,7 @@ const WORLDS = [
   ['index.html', 'home'],
   ['about/index.html', 'about'],
   ['projects/index.html', 'projects'],
-  ['ai/index.html', 'ai'],
+  ['ai-lab/index.html', 'ai-lab'],
   ['cybersecurity/index.html', 'cybersecurity'],
   ['learning/index.html', 'learning'],
   ['github/index.html', 'github'],
@@ -158,6 +158,58 @@ if (agro) {
         );
       }
     }
+  }
+}
+
+// ── 2g. AI LAB — the two claims the world is built on ──────────────────────
+// This world's whole argument is that it does not overstate. Both of the
+// things it refuses to overstate are invisible failures: a page that quietly
+// starts claiming a trained model, or one that quietly acquires a metric,
+// looks BETTER than the honest version and reads as an improvement to whoever
+// made the change. Neither would fail a build without this.
+const aiLab = read('ai-lab/index.html');
+if (aiLab) {
+  // The provenance table exists and the world still states its central claim.
+  // If a model IS ever trained here, this fails — correctly: that is a change
+  // to what the world asserts, and it should not pass silently.
+  if (!/<table class="provenance"/.test(aiLab)) {
+    fail('AI Lab lost the model provenance table — see the M06 record §1F.5');
+  } else if (!aiLab.includes('Nothing here was trained')) {
+    fail('AI Lab no longer states that no model was trained');
+  }
+
+  // No fabricated measurement. The brief for this world forbids inventing
+  // accuracy, loss, dataset sizes and benchmark figures, and none were taken —
+  // so a metric appearing here did not come from an experiment.
+  const FABRICATED = [
+    /\d+(?:\.\d+)?\s*%\s*(?:accuracy|precision|recall|f1)/i,
+    /(?:accuracy|precision|recall|f1[- ]score)\s*[:=]\s*\d/i,
+    /loss\s*[:=]\s*\d/i,
+    /\d+\s*epochs?/i,
+    /trained\s+on\s+[\d,]+\s/i,
+  ];
+  for (const pattern of FABRICATED) {
+    const hit = aiLab.match(pattern);
+    if (hit) {
+      fail(
+        `AI Lab reports a measurement that was never taken: "${hit[0]}". ` +
+          `No model here was trained or evaluated — see station 07.`,
+      );
+    }
+  }
+
+  // The honest-absence path must still render. Every experiment states a
+  // result, and the ones that were never instrumented say so; if that stops
+  // appearing, either the records were quietly given numbers or the field
+  // stopped rendering, and both matter.
+  if (!/not measured|Result not documented/i.test(aiLab)) {
+    fail('AI Lab no longer records an unmeasured result — the honest-absence path is gone');
+  }
+
+  // Every pipeline is a list, not a drawing. The accessibility property this
+  // world was built around: no important information reachable only via SVG.
+  if (aiLab.includes('<svg')) {
+    fail('AI Lab shipped an SVG — its diagrams must stay lists (see Pipeline.astro)');
   }
 }
 
@@ -324,6 +376,7 @@ if (failures.length > 0) {
 console.log(
   `Build output verified: ${WORLDS.length} worlds, no-JS fallbacks intact, ` +
     `About record verbatim, ${PROJECT_SLUGS.length} project records with sources, no credentials, ` +
+    `AI Lab claims no training and no metrics, ` +
     `${stocks.length} world stocks clear WCAG AA, ` +
     `no inline scripts, no third-party origins, no Pretext ` +
     `(${pages.length} pages).`,
