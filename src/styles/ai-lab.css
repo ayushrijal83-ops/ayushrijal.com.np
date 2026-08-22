@@ -1,0 +1,762 @@
+/* ==========================================================================
+   AI LAB — the experimental laboratory
+   ==========================================================================
+   The furniture of a bench, not of a dashboard.
+
+   Four things carry this world, and each of them is a physical object rather
+   than a visual effect:
+
+     THE GRADUATED MARGIN   a ruler down the inline-start edge of every block
+                            that reports a measurement. The world's ground
+                            already carries one; these are the same scale
+                            brought onto the content.
+     THE SPECIMEN LABEL     the small stuck-on label that names a sample.
+                            Every record and every pipeline wears one.
+     THE SIGNAL PATH        a numbered run of stages with drawn connectors.
+                            Not an SVG — see components/ai-lab/Pipeline.astro.
+     THE RESULT FIELD       a field that is allowed to be empty and says so.
+                            "Not measured" is a value here, not a blank.
+
+   Nothing glows. There is no gradient, no glass, no circuit board, no neon and
+   no animated ornament. The one accent — a muted laboratory green, set in
+   worlds.css — is used the way a reagent label uses colour: to mark the thing
+   that has been measured, and nothing else.
+
+   Consumed only by `/ai-lab`. Every colour, size and duration comes through a
+   token; there is not a hardcoded value in this file.
+   ========================================================================== */
+
+.bench {
+  padding-block-start: var(--space-l);
+}
+
+/* --------------------------------------------------------------------------
+   The sheet head
+   -------------------------------------------------------------------------- */
+.bench__mark {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.bench__title {
+  font-size: var(--step-4);
+  margin-block-start: var(--space-m);
+}
+
+.bench__intro {
+  margin-block-start: var(--space-s);
+  color: var(--ink-secondary);
+}
+
+/* Every major division of the bench opens with a numbered heading, so the page
+   reads as a sequence of stations rather than as a scroll of sections. */
+.station {
+  margin-block-start: var(--space-2xl);
+}
+
+.station__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+}
+
+.station__no {
+  color: var(--world-accent);
+}
+
+.station__title {
+  margin-block-start: var(--space-2xs);
+  font-size: var(--step-2);
+}
+
+.station__lede {
+  margin-block-start: var(--space-s);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   THE CREED — the working principle this world is built around
+   --------------------------------------------------------------------------
+   Set as a specimen under examination rather than as a pull-quote: labelled,
+   ruled on its measuring edge, and given the display face at a size that
+   makes it the largest type on the page after the title. The point is that it
+   is a statement about method, so it gets the treatment a method gets.
+   -------------------------------------------------------------------------- */
+.creed {
+  margin-block-start: var(--space-xl);
+  padding-inline-start: var(--space-m);
+  border-inline-start: 2px solid var(--world-accent);
+  /* The graduated edge: the same instrument as the page margin, brought onto
+     the one block that states what the instrument is for. */
+  background-image: linear-gradient(
+    to bottom,
+    var(--world-accent-wash) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: var(--space-2xs) var(--bench-pitch);
+  background-repeat: repeat-y;
+}
+
+.creed__statement {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+.creed__gloss {
+  margin-block-start: var(--space-m);
+  color: var(--ink-secondary);
+}
+
+.creed__gloss + .creed__gloss {
+  margin-block-start: var(--space-s);
+}
+
+/* --------------------------------------------------------------------------
+   THE SYSTEM INDEX — what is on the bench
+   --------------------------------------------------------------------------
+   A real table. Seven areas, each with what it is built from, where inference
+   happens, and which repository proves it. The INFERENCE column is the one
+   that matters, and it is the reason this is a table rather than a set of
+   cards: local and hosted look identical on a card and are immediately
+   comparable in a column.
+   -------------------------------------------------------------------------- */
+.systems {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-start: var(--space-m);
+}
+
+.systems caption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.systems th,
+.systems td {
+  text-align: start;
+  padding: var(--space-xs) var(--space-s) var(--space-xs) 0;
+  border-block-end: 1px solid var(--rule-faint);
+  vertical-align: baseline;
+}
+
+.systems thead th {
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+  white-space: nowrap;
+}
+
+.systems__no {
+  color: var(--world-accent);
+  inline-size: 1%;
+  white-space: nowrap;
+}
+
+.systems__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-0);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.systems__meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Where the computation happens. The single most load-bearing fact about any
+   AI system on this page, so it gets a mark of its own — a filled square for
+   work that runs on the machine, a hollow one for work that leaves it. Same
+   grammar as the state marks in the workshop, deliberately: it is the same
+   archive. */
+.locus {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+}
+
+.locus::before {
+  content: '';
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  flex: none;
+  translate: 0 -0.05em;
+  border: 1px solid var(--world-accent);
+}
+
+.locus[data-locus='local']::before {
+  background-color: var(--world-accent);
+}
+
+/* Hosted work leaves the machine, so its mark is left open. */
+.locus[data-locus='hosted']::before {
+  background-color: transparent;
+}
+
+/* An area with nothing behind it at all. Dashed, in the faint ink, so it reads
+   as an empty slot in the index rather than as a third kind of system. The
+   index has exactly one of these — model training — and it is there on
+   purpose: the honest way to record an unimplemented area is a row, not an
+   omission a reader has to notice. */
+.locus[data-locus='none'] {
+  color: var(--ink-tertiary);
+}
+
+.locus[data-locus='none']::before {
+  background-color: transparent;
+  border-style: dashed;
+  border-color: var(--ink-tertiary);
+}
+
+/* --------------------------------------------------------------------------
+   THE SIGNAL PATH
+   --------------------------------------------------------------------------
+   Stages in a numbered run, connectors drawn in CSS. Vertical below 52rem,
+   horizontal above — a recomposition, not a scale. See the component for why
+   this is a list rather than a drawing.
+   -------------------------------------------------------------------------- */
+.pipeline {
+  margin-block-start: var(--space-l);
+}
+
+.pipeline__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block-end: var(--space-2xs);
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+}
+
+.pipeline__captiontext {
+  color: var(--world-accent);
+}
+
+.pipeline__legend {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pipeline__flow {
+  list-style: none;
+  display: grid;
+  gap: var(--space-m);
+  margin-block-start: var(--space-m);
+}
+
+.pipeline__stage {
+  position: relative;
+  display: grid;
+  /* Stack from the top. Without this the grid stretches its rows to fill the
+     tallest stage in the run, and a two-line stage ends up with its detail
+     stranded at the bottom of the box while its neighbour's is at the top —
+     which reads as misalignment rather than as a sequence. */
+  align-content: start;
+  gap: var(--space-3xs);
+  padding: var(--space-s);
+  padding-inline-start: var(--space-m);
+  background-color: var(--paper-raised);
+  border: 1px solid var(--rule);
+  /* The measuring edge again, on the leading side of every stage. */
+  border-inline-start: 2px solid var(--world-accent);
+}
+
+/* The connector. A rule from this stage to the next, with a plotted arrowhead
+   at the far end — the mark a pen plotter leaves, not a UI chevron. Drawn on
+   the stage rather than between stages so it cannot desynchronise from the
+   list, and suppressed on the last one because a path has an end. */
+.pipeline__stage:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  background-color: var(--rule-strong);
+  pointer-events: none;
+}
+
+.pipeline__index {
+  color: var(--world-accent);
+}
+
+.pipeline__label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-1);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: var(--leading-tight);
+}
+
+.pipeline__detail {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+.pipeline__note {
+  font-family: var(--font-text);
+  font-size: var(--step--1);
+  color: var(--ink-tertiary);
+  max-inline-size: 34ch;
+}
+
+/* Stacked: the connector drops from the bottom edge into the gap below. */
+.pipeline__stage:not(:last-child)::after {
+  inset-inline-start: var(--space-l);
+  inset-block-end: calc(var(--space-m) * -1);
+  inline-size: 1px;
+  block-size: var(--space-m);
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 0 60%);
+}
+
+/* The arrowhead, as its own mark so the rule stays a rule. */
+.pipeline__stage:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  background-color: var(--rule-strong);
+  inset-inline-start: calc(var(--space-l) - 0.22rem);
+  inset-block-end: calc(var(--space-m) * -1);
+  inline-size: 0.45rem;
+  block-size: 0.45rem;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+}
+
+@media (min-width: 52rem) {
+  .pipeline__flow {
+    /* Even columns so the run reads as a sequence of equal operations. The
+       stages carry different amounts of text; equal width is what makes the
+       PATH legible rather than the prose. */
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  /* Rotated a quarter turn: the connector now runs across the gap. */
+  .pipeline__stage:not(:last-child)::after {
+    inset-inline-start: auto;
+    inset-inline-end: calc(var(--space-m) * -1);
+    inset-block-end: auto;
+    inset-block-start: 50%;
+    inline-size: var(--space-m);
+    block-size: 1px;
+    clip-path: polygon(0 0, 60% 0, 60% 100%, 0 100%);
+  }
+
+  .pipeline__stage:not(:last-child)::before {
+    inset-inline-start: auto;
+    inset-inline-end: calc(var(--space-m) * -1);
+    inset-block-end: auto;
+    inset-block-start: calc(50% - 0.22rem);
+    clip-path: polygon(100% 50%, 0 0, 0 100%);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   EXPERIMENT RECORDS
+   --------------------------------------------------------------------------
+   The schema behind these (content.config.ts, `experiments`) records a
+   hypothesis, an apparatus, an outcome and a result — and makes `result`
+   OPTIONAL on purpose, so an experiment that was never measured can say so
+   instead of having a number invented for it. This is the rendering of that
+   decision: the result field is always present, and when there is nothing in
+   it, it prints "Not measured" in the ink reserved for absence.
+   -------------------------------------------------------------------------- */
+.runs {
+  list-style: none;
+  display: grid;
+  gap: var(--space-l);
+  margin-block-start: var(--space-l);
+}
+
+.run {
+  position: relative;
+  padding: var(--space-m);
+  background-color: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-inline-start: 2px solid var(--world-accent);
+}
+
+.run__mark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+}
+
+.run__no {
+  color: var(--world-accent);
+}
+
+.run__title {
+  margin-block-start: var(--space-2xs);
+  font-size: var(--step-1);
+}
+
+/* The outcome mark. Four states, and the two that are not "succeeded" are the
+   ones this world exists to keep: an experiment that failed and one that could
+   not be resolved are both results. */
+.outcome {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+}
+
+.outcome::before {
+  content: '';
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  flex: none;
+  translate: 0 -0.05em;
+  border: 1px solid var(--ink-tertiary);
+}
+
+.outcome[data-outcome='succeeded']::before {
+  background-color: var(--world-accent);
+  border-color: var(--world-accent);
+}
+
+.outcome[data-outcome='failed']::before {
+  background-color: var(--spot);
+  border-color: var(--spot);
+}
+
+.outcome[data-outcome='inconclusive']::before {
+  /* Half-filled: resolved on one axis and not on the other. */
+  background-image: linear-gradient(
+    to bottom,
+    var(--ink-tertiary) 0 50%,
+    transparent 50% 100%
+  );
+}
+
+.outcome[data-outcome='running']::before {
+  border-style: dashed;
+}
+
+/* Question / apparatus / result, as a definition list, because that is what
+   they are: a labelled field and its value. */
+.run__fields {
+  margin-block-start: var(--space-m);
+  display: grid;
+  gap: var(--space-s);
+}
+
+.run__key {
+  color: var(--ink-faint);
+}
+
+.run__value {
+  margin-block-start: var(--space-3xs);
+  font-family: var(--font-text);
+  color: var(--ink-secondary);
+  max-inline-size: var(--measure);
+}
+
+.run__value--absent {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-tertiary);
+}
+
+.run__apparatus {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) var(--space-2xs);
+  margin-block-start: var(--space-3xs);
+}
+
+.run__apparatus li {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  padding: var(--space-3xs) var(--space-2xs);
+  border: 1px solid var(--rule);
+  background-color: var(--paper);
+  color: var(--ink-secondary);
+}
+
+.run__body {
+  margin-block-start: var(--space-m);
+  padding-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule-faint);
+}
+
+.run__body > * + * {
+  margin-block-start: var(--space-s);
+}
+
+.run__body p {
+  font-family: var(--font-text);
+  color: var(--ink-secondary);
+  max-inline-size: var(--measure);
+}
+
+.run__body code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background-color: var(--paper-recessed);
+  padding: 0.1em 0.3em;
+  /* A file path is one unbreakable token, and these records are full of them.
+     `app/services/ai_service.py` measures 238px, which set the min-content
+     width of its grid item and pushed the whole page 4px wide at 320px — the
+     overflow was in the list track, not in the paragraph, which is why it took
+     measuring to find. Let the path break. */
+  overflow-wrap: anywhere;
+}
+
+.run__source {
+  margin-block-start: var(--space-m);
+}
+
+@media (min-width: 64rem) {
+  .run__fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-m);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   PROVENANCE — where every model on this bench came from
+   --------------------------------------------------------------------------
+   The most important table on the page, and the reason it exists is that its
+   TRAINED column is empty in every row. Nothing here was trained or
+   fine-tuned; every model is somebody else's weights, applied. Saying that
+   plainly, in a table, is worth more than any claim the page could make
+   instead.
+   -------------------------------------------------------------------------- */
+.provenance {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-start: var(--space-m);
+}
+
+.provenance caption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.provenance th,
+.provenance td {
+  text-align: start;
+  padding: var(--space-xs) var(--space-s) var(--space-xs) 0;
+  border-block-end: 1px solid var(--rule-faint);
+  vertical-align: baseline;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+.provenance thead th {
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.provenance tbody th {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.provenance__none {
+  color: var(--ink-tertiary);
+}
+
+/* --------------------------------------------------------------------------
+   Narrow-screen tables
+   --------------------------------------------------------------------------
+   Below 48rem both tables stop being tables and become labelled blocks. The
+   `data-label` on each cell carries the column heading down with the value, so
+   nothing is lost — the alternative, a table scrolled sideways on a phone, is
+   how a register becomes unreadable.
+   -------------------------------------------------------------------------- */
+@media (max-width: 47.999rem) {
+  .systems thead,
+  .provenance thead {
+    /* Not `display: none` — that removes it from the accessibility tree along
+       with the visual layout, and the headers are still what the `data-label`
+       values are quoting. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .systems tr,
+  .provenance tr {
+    display: block;
+    padding-block: var(--space-s);
+    border-block-end: var(--world-rule-weight) solid var(--rule);
+  }
+
+  .systems td,
+  .systems tbody th,
+  .provenance td,
+  .provenance tbody th {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .systems td + td,
+  .systems tbody th + td,
+  .provenance td + td,
+  .provenance tbody th + td {
+    margin-block-start: var(--space-2xs);
+  }
+
+  .systems td[data-label]::before,
+  .provenance td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-faint);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Source links out to the repository that proves a claim
+   -------------------------------------------------------------------------- */
+.bench__source {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--world-accent);
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+}
+
+.bench__source:hover {
+  text-decoration-thickness: 2px;
+}
+
+.bench__out {
+  font-size: 0.85em;
+}
+
+.bench__empty {
+  margin-block-start: var(--space-l);
+  padding-inline-start: var(--space-s);
+  border-inline-start: 2px solid var(--world-accent);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   ENTRANCE
+   --------------------------------------------------------------------------
+   The same policy as every other world: content is painted and opaque at 0ms,
+   and an animation only resolves a small positional offset. `backwards` fill
+   means the UNANIMATED state is the finished state, so nothing here can leave
+   content invisible if animation is unavailable — and the whole block is
+   inside `no-preference`, so a reduced-motion visitor never enters it.
+
+   What moves: the graduated rule draws down the creed, and the station heads
+   settle. Motion in this world is limited to the two marks that mean
+   "measured", which is the only thing motion is allowed to say here.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .creed {
+    animation: bench-graduate var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-rules);
+  }
+
+  .station__head {
+    animation: bench-settle var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-index);
+  }
+}
+
+@keyframes bench-graduate {
+  /* The measuring edge is drawn from the top down, the way a scale is stepped
+     off. Nothing fades; the block is fully opaque throughout. */
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes bench-settle {
+  from {
+    translate: -0.5rem 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Forced colours and print
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .pipeline__stage,
+  .run,
+  .run__apparatus li {
+    border-color: CanvasText;
+  }
+
+  .pipeline__stage::after,
+  .pipeline__stage::before {
+    background-color: CanvasText;
+  }
+
+  /* The locus and outcome marks are the only place in this world where a fill
+     carries meaning. In forced colours a background is not guaranteed to
+     render, so the distinction has to survive on the border alone. */
+  .locus::before,
+  .outcome::before {
+    background-color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .locus[data-locus='hosted']::before,
+  .outcome[data-outcome='inconclusive']::before,
+  .outcome[data-outcome='running']::before {
+    background-color: Canvas;
+    background-image: none;
+  }
+}
+
+@media print {
+  .pipeline__flow {
+    grid-auto-flow: row;
+  }
+
+  .run,
+  .pipeline__stage {
+    break-inside: avoid;
+  }
+}

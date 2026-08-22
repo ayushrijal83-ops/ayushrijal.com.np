@@ -42,70 +42,13 @@
    stamped the same way the archive stamps everything else.
    -------------------------------------------------------------------------- */
 
-.titleblock {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: var(--world-rule-weight) solid var(--rule-strong);
-  margin-block-start: var(--space-m);
-}
+/* The title block's own styles moved into
+   `components/projects/TitleBlock.astro` in M06. They lived here while
+   PROJECTS was the only world using the component; AI LAB then rendered it
+   unstyled, because a shared component whose appearance depends on one world's
+   stylesheet is only shared by accident. Its ENTRANCE is still this world's,
+   further down — that part genuinely is per-world choreography. */
 
-@media (min-width: 48rem) {
-  .titleblock {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.titleblock__cell {
-  /* Every cell rules its own top and inline-start edge, so the grid's internal
-     hairlines are drawn without a single border collapsing trick and without
-     any cell needing to know where it sits. */
-  padding: var(--space-2xs) var(--space-xs);
-  border-block-start: 1px solid var(--rule);
-  border-inline-start: 1px solid var(--rule);
-  min-inline-size: 0;
-}
-
-/* The outer border already draws these edges. */
-.titleblock__cell:nth-child(-n + 2) {
-  border-block-start: 0;
-}
-
-.titleblock__cell:nth-child(odd) {
-  border-inline-start: 0;
-}
-
-@media (min-width: 48rem) {
-  .titleblock__cell:nth-child(-n + 4) {
-    border-block-start: 0;
-  }
-
-  .titleblock__cell:nth-child(odd) {
-    border-inline-start: 1px solid var(--rule);
-  }
-
-  .titleblock__cell:nth-child(4n + 1) {
-    border-inline-start: 0;
-  }
-}
-
-.titleblock__key {
-  display: block;
-  color: var(--ink-tertiary);
-}
-
-.titleblock__value {
-  display: block;
-  margin-block-start: var(--space-3xs);
-  font-family: var(--font-mono);
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-  overflow-wrap: anywhere;
-}
-
-.titleblock__value--accent {
-  color: var(--world-accent);
-}
 
 /* --------------------------------------------------------------------------
    REGISTER — the parts list

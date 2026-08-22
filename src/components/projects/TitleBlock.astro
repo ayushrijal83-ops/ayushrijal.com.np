@@ -7,8 +7,15 @@
  * It is the single most recognisable piece of drawing furniture, which is why
  * the PROJECTS world opens with one and stamps every record with one.
  *
- * Shared between the index and the detail pages — the only reason it is a
- * component rather than markup in a page.
+ * Shared between the PROJECTS index, the project records and the AI LAB
+ * bench — the only reason it is a component rather than markup in a page.
+ *
+ * Its styles are HERE, scoped, and not in a world stylesheet. They were in
+ * `styles/projects.css` until M06, which worked exactly as long as PROJECTS
+ * was the only world importing it: AI LAB rendered the same component as an
+ * unstyled definition list. A shared component that only looks right inside
+ * one world is shared by accident. The per-world ENTRANCE animation stays in
+ * the world stylesheet, because that part really is choreography.
  */
 export type Cell = { key: string; value: string; accent?: boolean };
 
@@ -30,3 +37,70 @@ const { cells, label } = Astro.props;
     ))
   }
 </dl>
+
+<style>
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: var(--world-rule-weight) solid var(--rule-strong);
+    margin-block-start: var(--space-m);
+  }
+
+  @media (min-width: 48rem) {
+    .titleblock {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .titleblock__cell {
+    /* Every cell rules its own top and inline-start edge, so the grid's internal
+       hairlines are drawn without a single border collapsing trick and without
+       any cell needing to know where it sits. */
+    padding: var(--space-2xs) var(--space-xs);
+    border-block-start: 1px solid var(--rule);
+    border-inline-start: 1px solid var(--rule);
+    min-inline-size: 0;
+  }
+
+  /* The outer border already draws these edges. */
+  .titleblock__cell:nth-child(-n + 2) {
+    border-block-start: 0;
+  }
+
+  .titleblock__cell:nth-child(odd) {
+    border-inline-start: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .titleblock__cell:nth-child(-n + 4) {
+      border-block-start: 0;
+    }
+
+    .titleblock__cell:nth-child(odd) {
+      border-inline-start: 1px solid var(--rule);
+    }
+
+    .titleblock__cell:nth-child(4n + 1) {
+      border-inline-start: 0;
+    }
+  }
+
+  .titleblock__key {
+    display: block;
+    color: var(--ink-tertiary);
+  }
+
+  .titleblock__value {
+    display: block;
+    margin-block-start: var(--space-3xs);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .titleblock__value--accent {
+    color: var(--world-accent);
+  }
+</style>
