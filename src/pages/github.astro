@@ -89,10 +89,27 @@ const compiled = snapshot?.generatedAt;
 
 const profileUrl = `https://github.com/${SITE.github}`;
 
+/**
+ * The title block, and the one place the fallback state had a real bug.
+ *
+ * `${records.length} repositories` printed "0 repositories" when the snapshot
+ * was gone — which is not a missing number, it is a WRONG one: there are ten,
+ * and the page simply could not see them. M07 wrote a test for exactly this
+ * ("the archive claims no holdings it cannot list") and the test was inert,
+ * so the defect shipped underneath a passing assertion. Repaired in M08 when
+ * the assertion started running. Counts derived from absent data now read
+ * `Unavailable`, the same as the compiled date beside them.
+ */
 const cells: Cell[] = [
   { key: 'Sheet', value: `${world.ref} · GitHub`, accent: true },
-  { key: 'Holdings', value: `${records.length} repositories` },
-  { key: 'Cross-referenced', value: `${crossReferenced.length} in Projects` },
+  {
+    key: 'Holdings',
+    value: snapshot ? `${records.length} repositories` : 'Unavailable',
+  },
+  {
+    key: 'Cross-referenced',
+    value: snapshot ? `${crossReferenced.length} in Projects` : 'Unavailable',
+  },
   { key: 'Compiled', value: compiled ? day.format(new Date(compiled)) : 'Unavailable' },
 ];
 

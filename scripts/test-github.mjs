@@ -98,7 +98,7 @@ try {
       archive.includes('https://github.com/ayushrijal83-ops'),
     );
     check('the archive shows no empty register', !archive.includes('<table class="holdings"'));
-    check('the archive claims no holdings it cannot list', !/0 repositories/.test(archive));
+    check('the archive claims no holdings it cannot list', !/\b0 repositories\b/.test(archive));
   }
 } finally {
   for (const path of hidden) renameSync(HIDDEN(path), path);

@@ -42,6 +42,32 @@ const read = (relative) => {
   }
 };
 
+/**
+ * A page with its `<style>` and `<script>` contents removed.
+ *
+ * Every check that looks for a CLAIM has to run against this rather than
+ * against the raw file, because Astro inlines the stylesheet under
+ * `assetsInlineLimit` and a `@keyframes` block is full of `0%` and `100%`.
+ * A "no percentage on this page" assertion measured against the raw HTML is
+ * either permanently failing or, worse, quietly special-cased until it is
+ * permanently passing.
+ *
+ * Found in M08 while adding the LEARNING guards, and it was the second half of
+ * a pair: sixteen `\b` word boundaries in this file and two in
+ * `test-github.mjs` had been written as literal U+0008 BACKSPACE bytes by a
+ * shell that interpreted the escape before Node ever saw it. Every pattern
+ * containing one — the whole AI Lab fabricated-metric set, the GitHub
+ * percentage and activity guards, and one of the credential patterns — had
+ * been inert since the milestone that added it, and reported as passing.
+ * Both classes of defect share a cause: a check that CANNOT fire looks exactly
+ * like a check that has nothing to report. Anything added here should be
+ * negative-tested against a planted violation before it is believed.
+ */
+const prose = (html) =>
+  html
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+
 // ── 1. Every world still builds ────────────────────────────────────────────
 for (const [file, id] of WORLDS) {
   const html = read(file);
@@ -167,7 +193,7 @@ if (agro) {
 // starts claiming a trained model, or one that quietly acquires a metric,
 // looks BETTER than the honest version and reads as an improvement to whoever
 // made the change. Neither would fail a build without this.
-const aiLab = read('ai-lab/index.html');
+const aiLab = prose(read('ai-lab/index.html') ?? '') || null;
 if (aiLab) {
   // The provenance table exists and the world still states its central claim.
   // If a model IS ever trained here, this fails — correctly: that is a change
@@ -182,11 +208,11 @@ if (aiLab) {
   // accuracy, loss, dataset sizes and benchmark figures, and none were taken —
   // so a metric appearing here did not come from an experiment.
   const FABRICATED = [
-    /\d+(?:\.\d+)?\s*%\s*(?:accuracy|precision|recall|f1)/i,
-    /(?:accuracy|precision|recall|f1[- ]score)\s*[:=]\s*\d/i,
-    /loss\s*[:=]\s*\d/i,
-    /\d+\s*epochs?/i,
-    /trained\s+on\s+[\d,]+\s/i,
+    /\b\d+(?:\.\d+)?\s*%\s*(?:accuracy|precision|recall|f1)\b/i,
+    /\b(?:accuracy|precision|recall|f1[- ]score)\s*[:=]\s*\d/i,
+    /\bloss\s*[:=]\s*\d/i,
+    /\b\d+\s*epochs?\b/i,
+    /\btrained\s+on\s+[\d,]+\s/i,
   ];
   for (const pattern of FABRICATED) {
     const hit = aiLab.match(pattern);
@@ -217,7 +243,7 @@ if (aiLab) {
 // This world's claim is that it lists everything public. Two ways that stops
 // being true without anyone noticing: a repository quietly stops appearing,
 // or a measurement that was never taken quietly appears.
-const ghWorld = read('github/index.html');
+const ghWorld = prose(read('github/index.html') ?? '') || null;
 if (ghWorld) {
   // Every repository in the snapshot must be on the page. Read from the
   // snapshot rather than from a hardcoded list, so adding a repository cannot
@@ -259,7 +285,7 @@ if (ghWorld) {
   // No proportion. The snapshot holds one primary language per repository and
   // no byte counts, so any percentage on this page is a measurement of
   // something that was never taken.
-  const proportion = ghWorld.match(/\d+(?:\.\d+)?\s*%/);
+  const proportion = ghWorld.match(/\b\d+(?:\.\d+)?\s*%/);
   if (proportion) {
     fail(
       `The GitHub archive reports a percentage ("${proportion[0]}"). No ` +
@@ -272,9 +298,9 @@ if (ghWorld) {
   // able to say so. An exception clause keyed on that disclaimer would have
   // made the whole check inert the moment the disclaimer shipped.
   const INVENTED_ACTIVITY = [
-    /\d[\d,]*\s*commits?/i,
-    /\d+[-\s]day\s+streak/i,
-    /\d[\d,]*\s*contributions?/i,
+    /\b\d[\d,]*\s*commits?\b/i,
+    /\b\d+[-\s]day\s+streak\b/i,
+    /\b\d[\d,]*\s*contributions?\b/i,
     /contributions?\s+in\s+the\s+last\s+year/i,
   ];
   for (const pattern of INVENTED_ACTIVITY) {
@@ -329,7 +355,7 @@ const CREDENTIAL_PATTERNS = [
   // Generic assignments. Deliberately narrow — a value of 16+ characters
   // assigned to something spelled like a secret. `--token-colour: #fff` and
   // `data-secret="1"` do not match; a real key does.
-  [/(?:api[_-]?key|secret|password|access[_-]?token)["'\s:=]{1,4}["']?[A-Za-z0-9_\-]{16,}/i,
+  [/\b(?:api[_-]?key|secret|password|access[_-]?token)\b["'\s:=]{1,4}["']?[A-Za-z0-9_\-]{16,}/i,
     'a credential-shaped assignment'],
 ];
 
@@ -414,18 +440,75 @@ for (const page of pages) {
   }
 }
 
+// ── 3b. Every id on a page is unique ───────────────────────────────────────
+// A duplicate id is invalid HTML, and worse than that it is AMBIGUOUS: a skip
+// link, an `aria-labelledby`, a `<label for>` or a fragment link resolves to
+// whichever copy came first, silently and forever.
+//
+// Added in M08 after the regression sweep found `id="what-i-learned"` twice on
+// /ai-lab — two experiment bodies, the same markdown heading, both slugged by
+// Astro. It had shipped since M06 and nothing noticed, because the page looks
+// exactly the same either way. Fixed at the source in astro.config.mjs; this
+// asserts the outcome for every page, including the ones nobody is thinking
+// about when they add the next markdown file.
+for (const page of pages) {
+  const html = readFileSync(page, 'utf8');
+  const seen = new Set();
+  const twice = new Set();
+  for (const [, id] of html.matchAll(/\sid="([^"]+)"/g)) {
+    if (seen.has(id)) twice.add(id);
+    seen.add(id);
+  }
+  if (twice.size > 0) {
+    fail(`Duplicate id in ${page}: ${[...twice].join(', ')}`);
+  }
+}
+
 // ── 4. No third-party origins ──────────────────────────────────────────────
 // The whole supply-chain posture (docs/SECURITY.md §2) depends on there being
 // no runtime origin but our own.
+//
+// M08 rewrote this. It used to match every `src=` and `href=` and then exempt
+// anything starting `href="https://github.com/`, which got two things wrong in
+// opposite directions: an external STYLESHEET on github.com would have passed
+// (it is a resource, and the exemption did not care), and adding an outbound
+// LINK to any other site failed the build (it is not a resource, and the
+// allowlist did not know). A hostname allowlist on a supply-chain check is the
+// wrong shape — it teaches you to widen it, which is how it stops working.
+//
+// So the two cases are now separated by what they actually are:
+//   RESOURCES the page loads    — no third-party origin, ever.
+//   ANCHORS the visitor clicks  — any origin, but they must be safe links.
+const RESOURCE_PATTERNS = [
+  [/\bsrc="https?:\/\/[^"]+"/g, 'src'],
+  [/\bsrcset="[^"]*https?:\/\/[^"]*"/g, 'srcset'],
+  [/<link\b[^>]*\bhref="https?:\/\/[^"]+"/g, '<link href>'],
+  [/url\(\s*['"]?https?:\/\//g, 'CSS url()'],
+];
+
 for (const page of pages) {
   const html = readFileSync(page, 'utf8');
-  const external = html.match(/(?:src|href)="https?:\/\/(?!ayushrijal\.com\.np)[^"]+"/g);
-  const offending = (external ?? []).filter(
-    // Anchor targets are links a visitor clicks, not resources the page loads.
-    (match) => !match.startsWith('href="https://github.com/'),
-  );
-  if (offending.length > 0) {
-    fail(`Third-party resource in ${page}: ${offending[0]}`);
+
+  for (const [pattern, what] of RESOURCE_PATTERNS) {
+    const hit = html
+      .match(pattern)
+      ?.filter((m) => !m.includes('//ayushrijal.com.np'));
+    if (hit?.length) {
+      fail(`Third-party ${what} in ${page}: ${hit[0]}`);
+    }
+  }
+
+  // Outbound links are allowed anywhere, but never as a bare target: an
+  // external anchor without `noopener` hands the opened page a handle on this
+  // one, and without `noreferrer` it leaks the visitor's path through the
+  // archive. Both were verified by hand in M07; this is that check, kept.
+  for (const anchor of html.match(/<a\b[^>]*\bhref="https?:\/\/[^"]+"[^>]*>/g) ?? []) {
+    if (anchor.includes('//ayushrijal.com.np')) continue;
+    const rel = anchor.match(/\brel="([^"]*)"/)?.[1] ?? '';
+    if (!rel.includes('noopener') || !rel.includes('noreferrer')) {
+      const href = anchor.match(/\bhref="([^"]+)"/)?.[1];
+      fail(`External link without rel="noopener noreferrer" in ${page}: ${href}`);
+    }
   }
 }
 

@@ -55,7 +55,7 @@ One more thing that turned out to matter: frames are captured at 1280×720 and
 coordinates, so nothing downstream notices, and the pipeline gets its frame
 budget back.
 
-## What I learned
+## What the filter taught
 
 That a good input device is mostly a filter. The recognition was library work;
 the smoothing constant and the two thresholds were the engineering, and no
