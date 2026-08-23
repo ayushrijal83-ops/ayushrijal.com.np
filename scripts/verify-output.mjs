@@ -679,6 +679,79 @@ for (const asset of globSync(`${DIST}/**/*.{js,css}`)) {
   }
 }
 
+// ── 6. The build is deployable ─────────────────────────────────────────────
+// Four files that are invisible until the moment they are not there, and two
+// of them take the whole site down when they are missing:
+//
+//   .nojekyll  GitHub Pages runs Jekyll over a branch build, and Jekyll skips
+//              every directory whose name begins with an underscore. Every
+//              stylesheet and script in this build lives under `/_astro/`. No
+//              `.nojekyll` means a site that deploys "successfully" and serves
+//              unstyled HTML with no working navigation.
+//   CNAME      Publishing without it drops the custom domain. `ayushrijal.com.np`
+//              stops resolving to the site and starts resolving to nothing.
+//
+// V1 has both, on `main`, and neither existed in the V2 build until M10 —
+// which is exactly the class of thing that is discovered in production.
+const PROD_HOST = 'ayushrijal.com.np';
+
+const cname = read('CNAME');
+if (cname === null) {
+  fail('dist/CNAME is missing — publishing would drop the custom domain');
+} else if (cname.trim() !== PROD_HOST) {
+  fail(`dist/CNAME reads "${cname.trim()}", expected "${PROD_HOST}"`);
+}
+
+if (read('.nojekyll') === null) {
+  fail(
+    'dist/.nojekyll is missing — GitHub Pages would run Jekyll, which skips ' +
+      '/_astro/ and serves the whole archive unstyled',
+  );
+}
+
+const robots = read('robots.txt');
+if (robots === null) {
+  fail('dist/robots.txt is missing');
+} else {
+  if (!robots.includes(`https://${PROD_HOST}/sitemap.xml`)) {
+    fail('dist/robots.txt does not point at the sitemap on the production host');
+  }
+  if (!/^\s*Disallow:\s*\/lab\//m.test(robots)) {
+    fail('dist/robots.txt no longer excludes /lab/ — those are internal harnesses');
+  }
+}
+
+const sitemap = read('sitemap.xml');
+if (sitemap === null) {
+  fail('dist/sitemap.xml is missing');
+} else {
+  // Derived from the same registry the nav reads, so this asserts the
+  // derivation still runs rather than that someone remembered to edit a file.
+  for (const [file] of WORLDS) {
+    const route = '/' + file.replace(/index\.html$/, '').replace(/\/$/, '');
+    if (!sitemap.includes(`<loc>https://${PROD_HOST}${route === '/' ? '/' : route}</loc>`)) {
+      fail(`dist/sitemap.xml does not list ${route}`);
+    }
+  }
+  for (const slug of PROJECT_SLUGS) {
+    if (!sitemap.includes(`/projects/${slug}</loc>`)) {
+      fail(`dist/sitemap.xml does not list /projects/${slug}`);
+    }
+  }
+  if (sitemap.includes('/lab/')) {
+    fail('dist/sitemap.xml lists a /lab/ page — those are excluded by robots.txt');
+  }
+}
+
+// The only mechanism a static host has for a URL that no longer exists. Six
+// published V1 URLs end in `.html` and none survives the rename.
+const notFound = read('404.html');
+if (notFound === null) {
+  fail('dist/404.html is missing — every stale inbound link would dead-end');
+} else if (!/href="\/(about|projects|learning|github|contact)"/.test(notFound)) {
+  fail('dist/404.html offers no route back into the archive');
+}
+
 // ── Report ─────────────────────────────────────────────────────────────────
 if (failures.length > 0) {
   console.error('\nBuild output verification FAILED:\n');
@@ -693,6 +766,7 @@ console.log(
     `AI Lab claims no training and no metrics, ` +
     `GitHub archive complete with no invented proportion, ` +
     `${stocks.length} world stocks clear WCAG AA, ` +
-    `no inline scripts, no third-party origins, no Pretext ` +
+    `no inline scripts, no third-party origins, no Pretext, ` +
+    `deployable (CNAME, .nojekyll, robots.txt, sitemap.xml, 404.html) ` +
     `(${pages.length} pages).`,
 );
