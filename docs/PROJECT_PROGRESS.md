@@ -32,7 +32,10 @@
 | M09 | Contact world | **Complete** | §1I below. Awaiting review. World renamed to Correspondence; no form, by design. |
 | M10 | Final integration | **Complete** | §1J below. Awaiting review. Deployment artefacts added; first real keyboard audit. |
 | M11 | Cutover preparation | **Complete** | §1K below. Awaiting review. **READY FOR FINAL CUTOVER.** Text-resize limitation closed. |
-| Cutover | V1 → V2 | Blocked on decisions and settings | §14. Not deployed, not merged. |
+| M12 | Final cutover | **Complete** | §1L below. **FINAL CUTOVER READY.** v2 pushed; CI observed passing remotely. |
+| Cutover | V1 → V2 | **Blocked on 4 owner actions** | §14. Pages source, deploy workflow, merge, key revocation. Production still serves V1. |
+
+**M12 scope compliance:** no new world, no redesign, no framework, no CMS, no backend, no third-party contact service, **no dependency added**. **CYBERSECURITY was not built and not modified.** Three changes, each a defect found by this milestone’s own audits: the archive called the head-pose estimate “gaze” in two tables while its own experiment says it is not (§1L.2); the 404 page was indexable; and five assertions were added to hold both. No existing assertion was weakened and no exception was added to make one inert. `v2` was pushed — no force, no history rewritten, nothing merged — and `origin/main` is unchanged at `41d4dc1`. V1 remains byte-identical against both local `main` and `origin/main`. Production still serves V1. See §1L.
 
 **M11 scope compliance:** no new world, no redesign, no framework, no CMS, no backend, no third-party contact service, **no dependency added** (`package.json` and `package-lock.json` unchanged). **CYBERSECURITY was not built and not modified** — only its `summary` string was corrected, because it advertised holdings the archive does not have (§1K.2). Four changes: legacy route handling (§1K.1), the data-table scroll port that closes M10’s text-resize limitation (§1K.11), that summary, and fourteen new assertions. No existing assertion was weakened and no exception was added to make one inert. Nothing is deployed and nothing is merged. V1 remains byte-identical, `main` is unmodified. See §1K.
 
@@ -4125,6 +4128,378 @@ Working tree clean on `v2`. `main` at `f42314e`, untouched. V1 byte-identical.
 
 ---
 
+## 1L. M12 — Final cutover
+
+**Status: FINAL CUTOVER READY — MANUAL ACTIONS REMAIN.**
+
+V2 is built, verified and **pushed**. CI has run on a real GitHub runner and
+passed. **Production has NOT been cut over** — it still serves V1, untouched —
+because switching the Pages source is a repository setting no credential in
+this environment can reach.
+
+Labels used below: **COMPLETE**, **VERIFIED**, **OBSERVED**, **MANUAL ACTION
+REQUIRED**, **NOT TESTED**, **DEFERRED**, **BLOCKED**.
+
+### 1L.0 Baseline — VERIFIED
+
+Branch `v2`, HEAD `9e6defb`, working tree clean before any change.
+`npm ci` clean · `astro check` 0/0/0 · `verify` pass · `test:github` 18/18 ·
+`npm audit` 0.
+
+**One pre-existing condition found and cleared.** Local `main` is one commit
+ahead of `origin/main` — `f42314e`, the M01 documentation commit, which touches
+`docs/PROJECT_PROGRESS.md` and nothing else. V1 was therefore checked against
+**both**: byte-identical against local `main` and against `origin/main`, which
+is what production actually serves. The stronger of the two is the one that
+matters, and it holds.
+
+### 1L.1 Decisions resolved — COMPLETE
+
+| Decision | Resolution |
+|---|---|
+| `/journey.html` | → 404. No verified V2 destination; none invented |
+| `/blog.html` | → 404. No successor exists |
+| `/about.html`, `/contact.html` | → 404. Stubs would shadow the live routes (M11 §1K.1). **BLOCKED** on observing real Pages resolution order |
+| Withheld contact channels | Kept withheld. Nothing published, no consent inferred |
+| Favicon / `og:image` | **DEFERRED** as post-cutover polish. No imagery invented |
+| CYBERSECURITY | Remains ON HOLD. Not built, not modified |
+
+### 1L.2 Two content defects found and corrected
+
+**Head pose is not gaze — and the archive was contradicting itself.**
+
+M06 established from source, and experiment 002 states outright: *"Nose-below-
+eyes is not gaze; it is head pose, and someone can look at a screen with their
+head down."* Two tables went on calling it gaze anyway — the Jarvis record's
+stack table (*"face presence, gaze and gesture"*) and, **on the very page
+carrying that experiment**, the AI Lab provenance table (*"Face and gaze"*).
+
+Both now read "head pose", which is what the code computes.
+
+M11's regression pattern missed it because it only matched *gaze tracking*,
+*gaze detection* and *gaze estimation* — never the bare noun in a table cell.
+The replacement is a negative lookbehind, `(?<!not )\bgaze\b`, not a page-level
+exception: a check phrased as "unless the page also says it is not gaze" goes
+inert the moment that sentence ships, which is the M08 failure mode. Verified
+both ways — it fires on the claim and passes on the denial, in the same
+paragraph, on the same page.
+
+**The 404 page was indexable.** GitHub Pages serves `404.html` for every
+unresolvable path, so a crawler could collect the same page under any number of
+URLs; its canonical also pointed at `/404`, which is not a page. Now `noindex`.
+The legacy stub deliberately does not get it — there the point is for a crawler
+to follow the canonical to the new URL.
+
+### 1L.3 Legacy URL behaviour — VERIFIED locally, one item BLOCKED
+
+Tested by request against the production build served locally:
+
+| URL | Observed | State |
+|---|---|---|
+| `/` | 200, HOME | **VERIFIED** |
+| `/about`, `/contact`, `/projects` | 200, the real worlds | **VERIFIED** — no stub shadowing |
+| `/work.html` | 200, "Moved to Engineering Workshop", canonical → `/projects` | **VERIFIED** |
+| `/about.html` | 404 page | **VERIFIED** (intended) |
+| `/journey.html`, `/blog.html`, `/assets/resume.pdf` | 404 page | **VERIFIED** (intended) |
+| `/ai` | no such route; none created | **VERIFIED** |
+
+**BLOCKED, and it cannot be unblocked from here:** whether GitHub Pages
+resolves `/about` to `about.html` or to `about/index.html`. The local preview
+resolved it to the file, which is why two stubs were withdrawn in M11. The real
+answer needs V2 actually served by Pages. Until then no speculative workaround
+exists, and none was created.
+
+### 1L.4 Content audit — VERIFIED
+
+19 patterns over 17 pages. **Four matches, all reviewed, all legitimate:** an
+EMA smoothing constant (`30%`), the AgroVision scoring weights (`40%`), the
+Bandit log's real commit count (`19 commits`), and CSS quoted in a code block
+on an internal page.
+
+Zero claims of certification, award, employer, client, user count, follower
+count, founder title, deployment, trained model, years of experience,
+proficiency percentage, revenue, CVE, or security engagement.
+
+The corrected AR-04 summary is present on both consuming pages and the previous
+wording appears in **zero** built files:
+
+> *"Nothing is filed here yet — the security work this archive can show is in
+> the field notebook and the workshop."*
+
+### 1L.5 Contact — VERIFIED (link), NOT TESTED (delivery)
+
+Nothing added. The three withheld channels remain withheld and the build fails
+on any `wa.me` link or `tel:` href.
+
+The published address matches the repository-verified one exactly. It is a
+`mailto:` with the `subject=Correspondence` prefill, it is the only address on
+the page, it is also the link text so it can be copied, no form exists
+anywhere, no third-party relay appears, and no contact data is transmitted
+automatically — the shipped JavaScript contains no network-capable construct at
+all.
+
+**No external test email was sent.** Real mailbox delivery remains a manual
+user test — **MANUAL ACTION REQUIRED**, §1L.13.
+
+### 1L.6 Accessibility — VERIFIED, limits unchanged
+
+Every tabbable element on all 12 production routes, focused in turn with the
+browser window genuinely focused:
+
+| Route | Tabbables | Problems |
+|---|---|---|
+| `/` | 16 | 0 |
+| `/about` | 10 | 0 |
+| `/projects` | 21 | 0 |
+| `/ai-lab` | 29 | 0 |
+| `/cybersecurity` | 10 | 0 |
+| `/learning` | 38 | 0 |
+| `/github` | 31 | 0 |
+| `/contact` | 15 | 0 |
+| `/404.html` | 17 | 0 |
+| 3 project records | 13 each | 0 |
+
+"Problems" counts anything without a visible focus ring, off-screen, without an
+accessible name, or refusing focus. Also on every route: the skip link moves
+focus to `<main>` (**true on all twelve**), zero positive `tabindex`, exactly
+one `<h1>`, zero duplicate ids, zero broken `aria-labelledby`, correct
+`aria-current`, zero external links missing `rel="noopener noreferrer"`.
+
+Tables: every authored table keeps its `<caption>` and `scope` attributes.
+**One exception, recorded rather than fixed:** the Jarvis record contains a
+markdown-rendered table with no `<caption>` and no explicit `scope`. Its `<th>`
+cells sit in a `<thead>`, which makes them implicit column headers, so it is
+usable but not ideal. Adding either would need raw HTML in a verified content
+file or a rehype plugin — and M08 established that rehype plugins require a
+dependency that swaps Astro's whole Markdown processor. **DEFERRED.**
+
+**NOT TESTED, and not claimed: WCAG compliance.** No axe, no Lighthouse, no
+screen reader — at any point in this project.
+
+### 1L.7 Responsive — VERIFIED
+
+**10 widths × 12 pages = 120 combinations, zero horizontal overflow.**
+320, 360, 375, 390, 414, 768, 1024, 1280, 1440, 1920.
+
+**Text-only 200% resize: 12 of 12 pages, zero overflow.**
+
+Stress test at 320px with adversarial unbroken strings — an 80-character email
+address, an 87-character repository URL, a 66-character repository name, a
+53-character space-free personal name, long link labels — on `/contact`,
+`/github` and `/learning`: **zero overflow on all three.**
+
+### 1L.8 Security — VERIFIED
+
+| Check | Result |
+|---|---|
+| Credential scan | 35 text files, 41 total, **0 hits** |
+| GitHub tokens / PATs / Authorization headers | none |
+| API keys, private keys, credential-shaped assignments | none |
+| Environment values, local filesystem paths | none |
+| Source maps emitted | **0** |
+| `sourceMappingURL` references | **0** |
+| Shipped JS | 6 files, **6,195 bytes** |
+| `fetch` / XHR / WebSocket / EventSource / sendBeacon / dynamic import | **0** — the client code cannot make a network request |
+| `api.github.com` anywhere | absent |
+| Third-party **resources** | **none.** Zero absolute `src=` in the entire build |
+| Outbound **anchors** | `github.com`, `www.linkedin.com`, `overthewire.org` |
+| Debug artefacts, `.env` files, dev-only files, test fixtures | none |
+
+`localhost:11434` appears as prose only, on `/ai-lab` and `/learning`, never in
+an attribute — confirmed at attribute level. It is Ollama's documented default
+port.
+
+No matched value was printed at any point, and no security assertion was
+weakened.
+
+### 1L.9 Build — VERIFIED
+
+Clean sequence from a clean tree: `npm ci` · `astro check` **0 errors, 0
+warnings, 0 hints** · `npm run verify` pass · `npm run test:github` 18/18 ·
+`npm audit` **0**.
+
+17 HTML files: 8 worlds, 3 project records, 4 lab pages, `404.html`, 1 legacy
+stub. Plus `sitemap.xml` (11 URLs), `robots.txt`, `CNAME`, `.nojekyll`.
+
+No lab route in the sitemap or in any world's navigation. 252 internal links
+and fragments checked: **0 broken, 0 references to `/ai`, `/journey` or
+`/blog`, 0 stray `.html`, 0 dead fragments.** No dependency added.
+
+### 1L.10 Push — OBSERVED
+
+```
+git push -u origin v2
+ * [new branch]      v2 -> v2
+```
+
+| | |
+|---|---|
+| Destination | `https://github.com/ayushrijal83-ops/ayushrijal.com.np.git` |
+| `origin/v2` | `0ad99ef` — matches local HEAD exactly |
+| `origin/main` | `41d4dc1` — **unchanged** |
+| Remote branches | `main`, `v2`, and nothing else |
+| Force push | none |
+| History rewritten | none |
+
+### 1L.11 GitHub Actions — OBSERVED for the first time
+
+**CI ran on a real GitHub runner and passed.** Run #1, workflow `CI`, branch
+`v2`, event `push`, sha `0ad99ef`, conclusion **success**, 24 seconds.
+
+| Step | Result |
+|---|---|
+| Set up job | success |
+| `actions/checkout@v4` | success |
+| `actions/setup-node@v4` | success |
+| Install (`npm ci`) | success |
+| **Refresh GitHub repository data** | success — a live authenticated fetch |
+| **Verify** | success |
+| **Test the GitHub fallback and secret isolation** | success |
+| **Audit dependencies** | success |
+
+This closes an item open since M05. Every previous milestone recorded the
+workflows as never executed; they have now executed, remotely, and passed.
+
+**`github-data.yml` did NOT register — and this is a GitHub constraint, not a
+defect.** Only two workflows are listed on the repository: `CI` and the dynamic
+Pages build. GitHub registers `schedule` and `workflow_dispatch` triggers **only
+from the default branch**, and the default branch is `main`. So the scheduled
+snapshot refresh is dormant, cannot be dispatched, and **cannot be observed
+until `v2` is merged into `main`.** Nothing in the workflow needs changing;
+neither workflow was modified.
+
+Static inspection of `github-data.yml` stands from M11: `contents: write` is
+the minimum needed to commit, the token is passed only as an environment
+variable to one step and never written to a file, `npm run verify` runs before
+the unattended push, and `--promote` is a no-op unless a repository fact moved.
+
+### 1L.12 GitHub Pages and production — BLOCKED, then NOT TESTED
+
+**Pages source could not be read or changed.** The Pages API returns 404
+unauthenticated, and this environment has no `gh` CLI, no `GH_TOKEN` and no
+`GITHUB_TOKEN`. Nothing was attempted blindly and no setting is claimed to have
+changed.
+
+**MANUAL ACTION REQUIRED — the exact step:**
+> GitHub → repository **Settings** → **Pages** → **Build and deployment** →
+> **Source** → change from *Deploy from a branch* to **GitHub Actions**.
+
+**Production has not been cut over.** Verified as of this milestone:
+
+| | |
+|---|---|
+| `https://ayushrijal.com.np/` | HTTP **200**, 0.64 s |
+| TLS chain | valid (`ssl_verify_result 0`) |
+| Content served | **still V1** — V1's title and its three.js import map are present |
+| Pages deployments since the push | **none.** The v2 push triggered exactly one run, CI on `v2` |
+
+So the push did not disturb production, which was the point of checking.
+
+**Everything in Phases 12–13 that concerns V2 in production is NOT TESTED**,
+because V2 is not in production. Every one of those checks — status codes,
+titles, one `<h1>`, CSS and font loading, gate, navigation, skip link,
+overflow, console errors, `/_astro/` assets — was performed against the
+identical build served locally and is recorded above. They are not the same
+thing as a production observation and are not presented as one.
+
+### 1L.13 DNS — VERIFIED
+
+Checked, not assumed:
+
+| Record | Value |
+|---|---|
+| `ayushrijal.com.np` A | `185.199.108.153`, `.109.153`, `.110.153`, `.111.153` — the four GitHub Pages apex addresses |
+| `www.ayushrijal.com.np` CNAME | `ayushrijal83-ops.github.io.` |
+| TLS | valid chain, HTTPS serving 200 |
+
+DNS is already correct for GitHub Pages and needs **no change** at cutover: the
+same records serve whatever Pages publishes. What changes is only which build
+Pages publishes.
+
+### 1L.14 Browser coverage
+
+| Browser | Version | Coverage |
+|---|---|---|
+| Chrome | 151 / Windows 11 | Full — interaction, keyboard, focus, responsive, no-JS, console |
+| Firefox | 154 | Visual spot-check (M10). **Not re-run in M12** |
+| Edge | 151.0.4129.101 | Screenshot only (M10). Chromium — same engine as Chrome |
+| Safari / WebKit | — | **NOT TESTED.** Not available on this machine |
+
+### 1L.15 Reduced motion and no-JS — VERIFIED
+
+45 animation declarations: 43 inside `prefers-reduced-motion: no-preference`,
+one (the HOME wordmark strike) cancelled by an explicit `reduce` override and
+protected again by the zeroed duration clock, and the 45th "declaration" is
+that cancellation. **Zero unguarded.** No infinite animation. No
+`outline: none` in any stylesheet.
+
+No-JS: `<main>` text is identical with and without JavaScript on **8 of 9**
+routes — ABOUT 1,007 · PROJECTS 1,683 · AI LAB 21,064 · CYBERSECURITY 372 ·
+LEARNING 11,781 · GITHUB 6,506 · CONTACT 3,652 · 404 435 characters. Zero
+inline scripts anywhere.
+
+HOME differs by exactly 10 characters, and that is the designed island: with
+JavaScript the wordmark renders per-glyph (`AyushRijal`) alongside the static
+fallback (`Ayush Rijal`). The static HTML carries the fallback `<h1>`, the
+standfirst and the verbatim philosophy line — all three asserted on every
+build since M03-B.
+
+### 1L.16 Manual actions remaining
+
+1. **MANUAL ACTION REQUIRED — switch the Pages source to GitHub Actions**
+   (§1L.12). Nothing deploys until this happens.
+2. **MANUAL ACTION REQUIRED — add a deploy workflow** and verify it on `v2`
+   before merging.
+3. **MANUAL ACTION REQUIRED — merge `v2` into `main`**, which is also what
+   makes `github-data.yml` register and its cron start (§1L.11).
+4. **MANUAL ACTION REQUIRED — observe Pages resolution order** once V2 is
+   served, then decide whether `/about.html` and `/contact.html` stubs can be
+   enabled (§1L.3).
+5. **MANUAL ACTION REQUIRED — send one real test email** to the published
+   address and confirm receipt. CI cannot prove delivery.
+6. **EXTERNAL — revoke and rotate the exposed OpenWeatherMap credential** in
+   `Agriculture_simulator`. Outside this repository, not touched, value not
+   reproduced anywhere. **OpenWeatherMap credential revocation remains an
+   external manual action, and this project is not fully security-clean while
+   it stands.**
+
+### 1L.17 Commits
+
+| Hash | |
+|---|---|
+| `3f79216` | `fix(content): head pose is not gaze` |
+| `f21a2f4` | `fix(seo): keep the 404 page out of search` |
+| `0ad99ef` | `test(cutover): assert indexability and the gaze correction` |
+| _this_ | `docs: record M12 — final cutover` |
+
+Working tree clean on `v2`. `origin/v2` = `0ad99ef`. `origin/main` = `41d4dc1`,
+untouched. V1 byte-identical against both local `main` and `origin/main`.
+`git diff --check` clean. No dependency change. No history rewritten, no force
+push, nothing merged.
+
+### 1L.18 Exact final project state
+
+**FINAL CUTOVER READY — MANUAL ACTIONS REMAIN.**
+
+| | |
+|---|---|
+| V2 built | **COMPLETE** |
+| V2 verified | **COMPLETE** |
+| V2 deployable | **COMPLETE** |
+| V2 pushed | **OBSERVED** — `origin/v2` at `0ad99ef` |
+| GitHub Actions | **OBSERVED** — CI passed remotely in 24 s. `github-data.yml` dormant until merge |
+| Pages source switched | **BLOCKED** — no credential; manual setting |
+| Production cut over | **NOT DONE** — production still serves V1 |
+| Custom domain | **VERIFIED** — DNS and TLS correct, no change needed |
+| Production smoke test of V2 | **NOT TESTED** — V2 is not in production |
+| Redirect / 404 behaviour | **VERIFIED locally**, one question **BLOCKED** on deployment |
+| Security | **VERIFIED** in the build; one **EXTERNAL** action outstanding |
+| `main` | untouched |
+| V1 | byte-identical |
+| CYBERSECURITY | ON HOLD, not built |
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -4503,7 +4878,95 @@ npm audit
 
 ---
 
-## 14. The cutover — what is blocking it, and the order to do it in
+## 14. Where the project actually stands, and the six steps left
+
+**FINAL CUTOVER READY — MANUAL ACTIONS REMAIN.** This is no longer a plan for
+future engineering. There is none left. V2 is built, verified, pushed, and CI
+has passed on a real runner. What remains is six actions, four of which only
+the repository owner can perform, and they must happen roughly in this order.
+
+### 1. Switch the Pages source — BLOCKED on you
+
+> GitHub → **Settings** → **Pages** → **Build and deployment** → **Source** →
+> change from *Deploy from a branch* to **GitHub Actions**.
+
+Nothing deploys until this happens. The Pages API is unreadable without a
+credential, so this could not be done or verified from the build environment
+and no attempt was made to guess at it.
+
+### 2. Add a deploy workflow, and verify it on `v2` before merging
+
+There is deliberately no deploy workflow in the repository — `ci.yml` says so
+in its own header, and that is what has kept V1 safe for eleven milestones. One
+is now needed: build `main`, upload `dist/`, deploy to Pages. Verify it runs on
+`v2` first; a broken deploy discovered after the merge is a broken production
+site.
+
+### 3. Merge `v2` into `main`
+
+This is the cutover. It is also what makes `github-data.yml` register: GitHub
+only honours `schedule` and `workflow_dispatch` from the **default branch**, so
+the six-hourly snapshot refresh has never been able to run and cannot be
+observed until the merge (§1L.11). Watch its first run afterwards and confirm
+it commits only when a repository fact has actually moved.
+
+Note when you merge: local `main` carries one unpushed docs-only commit
+(`f42314e`). It touches no V1 file, but it will go up with the merge.
+
+### 4. Observe Pages resolution order, then decide two redirects
+
+Once V2 is served, request `/about`. If it returns the About world, the
+`/about.html` and `/contact.html` stubs can be enabled unchanged — the map and
+the generator are already in place, it is two lines in `src/lib/legacy.ts`. If
+it returns a file instead, they stay off. M11 measured the local preview
+choosing the file, which is why they were withdrawn; the real answer needs the
+real host.
+
+### 5. Verify production, then send one email
+
+After deployment: the custom domain, the eight world routes, the three project
+records, `/work.html` redirecting to `/projects`, the orphans reaching the 404,
+`sitemap.xml` and `robots.txt` serving, and — the one that `.nojekyll` exists
+for — `/_astro/` assets actually loading. Then open `/contact`, click the email
+channel, and send a real message to confirm the mailbox receives it. CI cannot
+prove delivery and never claimed to.
+
+DNS needs no change: the apex already points at the four GitHub Pages
+addresses and `www` at `ayushrijal83-ops.github.io`, with a valid certificate.
+
+### 6. Revoke the OpenWeatherMap key — EXTERNAL
+
+`Agriculture_simulator` still contains an exposed credential committed as a
+string literal. Outside this repository, untouched, value never reproduced
+here. Open since M05, and the oldest item in this document.
+
+**OpenWeatherMap credential revocation remains an external manual action.** The
+project is not fully security-clean while it stands.
+
+### Deferred, deliberately
+
+- **Favicon and `og:image`.** Both absent, both correct to be absent — no
+  verified asset exists and inventing one would put the archive's only
+  decorative image into its social preview. Post-cutover polish.
+- **CYBERSECURITY.** ON HOLD, on the terms M09 set: hold as a stub, give it one
+  real lab write-up, or fold it into the worlds that already carry the
+  material. Its summary no longer overstates, so holding is stable.
+- **A screen-reader pass and an axe run.** The two forms of accessibility
+  evidence this project has never had. Everything claimed is measured in one
+  browser or read from source, and §1L.6 says so.
+- **Safari/WebKit.** Never tested; unavailable on the build machine.
+- **The Jarvis markdown table's caption and `scope`** (§1L.6).
+- **§9.7 — YushaCyber**, referenced from four worlds with no destination beyond
+  a repository.
+
+### Keep
+
+`v1-final` stays until V2 has been stable in production for a week. Rollback is
+one command for as long as it exists.
+
+---
+
+## 14A. M12 recommendation (M11 record, now complete)
 
 M11 finished the engineering. `READY FOR FINAL CUTOVER` is the state; nothing
 is deployed and nothing is merged. What remains is decisions and settings.
@@ -4572,7 +5035,7 @@ rather than a temporary one.
 
 ---
 
-## 14A. M11 recommendation (M10 record, now complete)
+## 14B. M11 recommendation (M10 record, now complete)
 
 M10 was the last engineering milestone. The archive is truthful, accessible,
 secure, fast and reproducible; what stands between it and production is a set
@@ -4638,7 +5101,7 @@ six V1 URLs resolving to something deliberate. `v1-final` kept for a week.
 
 ---
 
-## 14B. M10 recommendation (M09 record, now complete)
+## 14C. M10 recommendation (M09 record, now complete)
 
 **M10 — CUTOVER PREPARATION, not another world.** Seven of eight worlds are
 built. The eighth is blocked on a decision rather than on engineering, and the
@@ -4707,7 +5170,7 @@ revoked; a scheduled `github-data.yml` run observed; CI green including
 
 ---
 
-## 14C. M09 recommendation (M08 record, now complete)
+## 14D. M09 recommendation (M08 record, now complete)
 
 **M09 — CONTACT, and an architect decision about CYBERSECURITY.** Two worlds
 remain and the §9.4 verification run during M08 changed which of them is
@@ -4768,7 +5231,7 @@ and unmodified throughout.
 
 ---
 
-## 14D. M08 recommendation (M07 record, now complete)
+## 14E. M08 recommendation (M07 record, now complete)
 
 **M08 — LEARNING, and content verification for CYBERSECURITY started in
 parallel.** Three worlds remain and they are not equally ready. GITHUB was
@@ -4814,7 +5277,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14E. M07 recommendation (M06 record, now complete)
+## 14F. M07 recommendation (M06 record, now complete)
 
 **M07 — GITHUB, because it is the world the architecture has already built.**
 Four worlds remain and they are not equally ready. Pick by what can be
@@ -4855,7 +5318,7 @@ still unobserved since M05. V1 still live and unmodified throughout.
 
 ---
 
-## 14F. M06 recommendation (M05 record, now complete)
+## 14G. M06 recommendation (M05 record, now complete)
 
 **M06 — one more world, on the system that now has two worlds' worth of
 evidence behind it.** PROJECTS is the second content world built on the M04
@@ -4889,7 +5352,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14G. M03 recommendation (M02 record, now complete)
+## 14H. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -4906,7 +5369,7 @@ Recommended order:
 
 ---
 
-## 14H. M02 recommendation (M01 record, now complete)
+## 14I. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -4930,4 +5393,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M11 — READY FOR FINAL CUTOVER. Not deployed, not merged. Seven of eight worlds built and verified; CYBERSECURITY remains ON HOLD, and its summary no longer overstates what it holds. The text-only 200% resize limitation carried since M10 is closed — 12 of 12 pages, zero overflow. Legacy routing found and avoided a redirect loop that would have taken two worlds off the site. What remains is five decisions and five external actions, set out in §14. Awaiting architectural review. Do not deploy, do not merge `v2` into `main`, do not begin CYBERSECURITY, and do not redesign a built world until the architect approves the cutover.*
+*End of M12 — FINAL CUTOVER READY, MANUAL ACTIONS REMAIN. V2 is built, verified and pushed; `origin/v2` is `0ad99ef` and CI passed on a real GitHub runner in 24 seconds — the first observed workflow execution in this project. Production has NOT been cut over and still serves V1: switching the Pages source is a repository setting no credential in this environment can reach. `main` is untouched, V1 is byte-identical, nothing is merged. Six actions remain, four of them only the owner can perform, set out in §14 — including revoking the exposed OpenWeatherMap credential, which is external and still open. Do not begin CYBERSECURITY, do not redesign a built world, and do not merge until the architect approves the cutover.*
