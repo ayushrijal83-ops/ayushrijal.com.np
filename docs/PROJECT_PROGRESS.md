@@ -28,7 +28,10 @@
 | M05 | Projects world + K4 build-time GitHub integration | **Complete** | §1E below. Awaiting review. K4 and §9.6 closed. |
 | M06 | AI Lab world | **Complete** | §1F below. Awaiting review. `/ai` renamed `/ai-lab`. |
 | M07 | GitHub world | **Complete** | §1G below. Awaiting review. `EXCLUDED_REPOS` retired. |
-| M08+ | Remaining three worlds, content collections, redirects, cutover | Not started | Cybersecurity, Learning, Contact. Each is a CSS entrance block plus a page. |
+| M08 | Learning world + §9.4 verification for Cybersecurity | **Complete** | §1H below. Awaiting review. Eighteen inert verification regexes repaired. |
+| M09+ | Contact, a decision on Cybersecurity, redirects, cutover | Not started | §9.4 found CYBERSECURITY has no content of its own — §14. |
+
+**M08 scope compliance:** the LEARNING world was built. **CYBERSECURITY and CONTACT are NOT STARTED** — they remain M02 shells. No world was redesigned and no built world changed visually. Four changes fell outside LEARNING, each a consequence rather than scope: the verification scripts, whose existing guards turned out not to run at all (§1H.9); four lines in `github.astro` fixing the “0 repositories” fallback that the repaired guard immediately caught; one markdown heading renamed to clear a duplicate id on `/ai-lab`; and `worlds.ts`, for this world’s own summary and entrance. No dependency was added — one was proposed for the duplicate-id fix and rejected as disproportionate. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1H.14.
 
 **M07 scope compliance:** the GITHUB world was built. **CYBERSECURITY, LEARNING and CONTACT are NOT STARTED** — they remain M02 shells. No world outside GITHUB was modified, not even by a sentence. `lib/github.ts` changed, but it is the M05 data layer this world consumes: `EXCLUDED_REPOS` was retired in favour of `REPO_KIND`, because an archive that hides three of its ten holdings is not an archive (§1G.1). No workflow was touched and no snapshot field was added. No dependency was added. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1G.13.
 
@@ -2331,6 +2334,489 @@ Unchanged, deliberately: `.github/workflows/*`, `scripts/fetch-github.mjs`,
 
 ---
 
+## 1H. M08 — Learning world, and §9.4 verification for Cybersecurity
+
+**Status: M08 — LEARNING — COMPLETE.** Awaiting architectural review.
+**Scope:** two objectives. Build the LEARNING world, and run the §9.4 content
+verification for CYBERSECURITY in parallel without building it. Both done; the
+second produced a conclusion that changes M09 (§1H.8, §14).
+
+Route `/learning`. World name **Field Notebook**, sheet **AR-05**, ground
+`graph`, entrance `leaf`. Eight numbered leaves, seventeen subjects, a
+thirteen-entry dated log, five open questions. No client JavaScript beyond the
+shared world gate.
+
+### 1H.0 The failure mode this world is designed against
+
+Every other world in the archive can be audited against something. PROJECTS
+against three repositories, AI LAB against source constants, GITHUB against a
+snapshot fetched at build time. A skills page can be audited against nothing,
+and that is not an accident of how they are usually written — it is the format.
+
+"Python — 90%" has no truth conditions. There is no observation that would make
+it false, so it cannot be wrong, so the number written is the number the author
+would like to be true. Every generic portfolio on the internet contains one and
+none of them is lying in any way that can be caught.
+
+So the work of M08 was not designing a page. It was finding a shape for this
+content that **can be wrong**, and then filling it only with things that
+survived being checked. Everything below follows from that.
+
+### 1H.1 Visual system — the engineering computation pad
+
+| | |
+|---|---|
+| Stock | `#e9eee9` — pale green pad paper. Raised `#f1f5f0`, recessed `#dfe4df`, edge `#d2d9d2` |
+| Ink ramp on that stock | 14.78 / 7.48 / 5.72 / 4.85 — every step above AA, and above the global paper |
+| Channel | `#33406b`, writing-ink indigo, **8.57:1** on the stock, so it carries text as well as linework |
+| Ground | Fine grid at `--notebook-module / 5`, emphasised every fifth line |
+| Spot | Three marks, one meaning |
+
+The stock is the only green paper in the archive. The accent was previously
+`#2f4858` — the same drafting blue PROJECTS is drawn in, which is how eight
+worlds converge on one look; indigo is the colour of the **pen** rather than of
+the print, and this is the one world whose marks were made by hand.
+
+Three devices carry the identity and no others:
+
+1. **The margin rule.** One red vertical line down the inline-start of the
+   writing area. The most recognisable piece of furniture on a sheet of
+   computation paper, and the place this world's spot use is defined.
+2. **The annotation register.** Where other worlds tabulate a fact, this one
+   tabulates a fact *and its basis*, set as a marginal note in mono.
+3. **The date in the margin.** The field log puts its date outside the writing,
+   as the thing that files the entry rather than as a column of data.
+
+**On the spot colour.** GITHUB spends its red exactly once, on the compiled
+stamp. This world spends it three times — the margin rule, the numbering of the
+open questions, and the single standing that reads `Not attempted` — for six
+marks on the page in total. That is the same discipline rather than a
+relaxation of it, because all six mean one thing: *this still wants attention*.
+The rule is written at the top of `styles/learning.css`, because a spot colour
+without a stated rule becomes decoration within one milestone.
+
+Below 48rem the margin rule stays but its indent goes to zero. A phone has no
+room for a margin, and spending 40px of a 280px measure on one costs the
+evidence column more than the device is worth — the lesson of the M06 overflow,
+where an unbreakable literal three levels down a grid set the minimum width.
+
+### 1H.2 The register — standing and basis
+
+Nothing carries a level. Every subject carries two fields, and both can be
+wrong:
+
+**STANDING** — what was actually done. Five values, and they are **not a
+ranking**: `Built`, `Experimented`, `Currently learning`, `Exploring`,
+`Not attempted`.
+
+**BASIS** — whether anyone else can check. `Verified` (read out of source, with
+the file, constant or commit range named), `Partly verified` (the evidence says
+which half is which), `Stated` (the owner said so and this archive holds
+nothing that shows it).
+
+Both axes are explained in a legend on the page before the register uses them,
+because the whole design fails if a reader collapses them into one scale.
+
+Two decisions inside that:
+
+**`Stated` is a first-class answer.** C, German and the degree have no artifact
+here. They are in the register, marked, rather than dropped. Dropping them
+would make the register look stronger by removing exactly the parts nobody can
+check — the same lie in a subtler shape.
+
+**`Not attempted` is a standing.** The most useful line on a page about
+learning is often the one saying a thing was never done. *Training a model*
+carries it, and its evidence is an absence read out of every repository.
+
+Grouped by strand, never sorted by standing. Sorting by standing would put the
+bar chart back on the page with the numbers taken off.
+
+### 1H.3 What was verified, subject by subject
+
+Seventeen subjects in five strands. Sources: the public repositories through
+the GitHub API, `YushaCyber` from the local clone verified in M05, and the AI
+capabilities from the M06 audit (§1F.3).
+
+| Strand | Verified | Partly | Stated |
+|---|---|---|---|
+| AI and language models | 5 | — | — |
+| Programming | 3 | — | 1 |
+| Cybersecurity | 4 | 1 | — |
+| Systems and hardware | — | 1 | — |
+| Away from the machine | — | — | 2 |
+
+Three of the seventeen are `Stated`, and the page says so in its own opening
+paragraph rather than leaving it to be counted.
+
+Where the M08 verification changed what would otherwise have been written:
+
+- **Nmap and packet analysis** were going to be `Stated` — the brief lists them
+  as things being learned and no repository has a scan or a capture in it.
+  Reading `YushaCyber` turned them into `Verified`, but for a different claim
+  than the obvious one. See §1H.5.
+- **Networking** is the only `Partly verified` in its strand, and the split is
+  stated on the row: SSH and ports from Bandit 0, then five lab modules with
+  tests. "Advanced networking", which V1 claims, is not supported by either.
+- **Hardware** was going to be `Stated` from the personal record's interest
+  list. The vision and speech constants — 1280×720 captured, 320×240 inferred,
+  capture stopping 450 ms below energy 400 — are evidence of working against
+  real devices, so it is `Partly verified` with the boundary written out.
+
+### 1H.4 The field log — Bandit 0 to 13
+
+The strongest content in the world, and none of it was written for the site.
+
+| | |
+|---|---|
+| Source | `ayushrijal83-ops/cyber-security`, public |
+| Levels | 0 → 13, thirteen transitions, each with its own note file |
+| Commits | 19, across 6 active days |
+| Range | 13 → 20 August 2026 (repository created 11 August) |
+| Own notes | 6 commands got a second file of their own |
+
+Each row states what the level turned on, taken from the note written for it —
+`cat ./-` versus `cat -`, escaping spaces, `file ./*`, finding by owner and
+size, `grep`, `sort | uniq -u` and why `uniq` only compares neighbours,
+`strings`, Base64, ROT13 through `tr`, and a hex dump under layered
+compression.
+
+**The level passwords are in those notes and are not reproduced here.** They
+are public wargame answers rather than anyone's secret, which is exactly why
+republishing them would be pointless as well as rude. `verify-output.mjs` fails
+the build on any 32-character base62 token appearing on this page.
+
+**The last column is the argument.** Six of the thirteen levels produced a
+second file about the *command itself* — not what it did in that level, but
+what it does. Those files were written after the level was already solved.
+That is the same instinct as §1H.5, and it is why the log is on this page
+rather than being summarised as "learning Linux".
+
+**Claim and record, side by side.** The repository describes itself as *"I will
+going to upload daily basis for 6 months."* The record shows 19 commits across
+6 days. Both are printed, neither edited to agree with the other, and the
+stated intention is labelled as an intention — the same two-layer treatment
+GITHUB gives YushaCyber's "thriving community" (§1G.4).
+
+### 1H.5 Re-implementation as a method
+
+The one editorial claim the world makes, and it is made because the source
+keeps making it: **faced with a tool that is not understood, the response here
+is to write a version of it.**
+
+| Tool | What was built | Scale |
+|---|---|---|
+| The shell | 54 commands over a virtual filesystem: pipes, redirection, variable assignment and expansion, command substitution, single-line `if` and `for` | 297 lines of shell, 1,195 of commands |
+| Nmap | A scanner over a virtual network — services and versions, filtered ports, a host that drops ICMP, UDP, an OS guess. `-p-`, `-sn`, `-sV`, `-sU`, `-sT`, `-O`, `-Pn` | 358 lines of network, 484 of tests |
+| A packet analyser | Capture, display filters and stream following, addressed by the same simulated terminal | 409 lines of packets, 536 of tests |
+
+`app/core/terminal/shell.py` says it exists so the terminal behaves *"like a
+real (sandboxed) shell rather than fake string-matching"*. That is the
+philosophy of §1F.2 — understand it rather than trust it — appearing
+independently in the security work, written before this site existed.
+
+**The page states the boundary explicitly.** This is evidence that the
+behaviour of these tools was understood well enough to reproduce and grade. It
+is not a record of running them against a real network, and the register says
+so on every affected row. Getting that distinction wrong would have been the
+single most damaging fabrication available in this milestone.
+
+### 1H.6 Open questions
+
+Five things that were built, shipped, and never measured. Each is keyed to an
+experiment in the `experiments` collection whose `result` field records the
+absence the question is about.
+
+The join **throws at build time** if an experiment is missing. A question whose
+source has been deleted is a question with nothing behind it, and failing the
+build is the correct response — the same policy `getWorld` applies to an
+unknown world.
+
+This is the notebook's most valuable page, and it exists because M06 wrote
+`result` as optional in the schema and then used it honestly. Four of five
+experiments already reported an absence; this world turns each one into the
+work that has not been done yet.
+
+### 1H.7 Transition — `leaf`
+
+A notebook leaf turned. **The sixth entrance, and the first that leaves the
+plane of the page.** The other five all move flat: a mask withdraws to both
+margins (`register`), a drawer front travels down (`drawer`), two halves part
+along a crease (`sheet`), a slide traverses laterally (`traverse`), columns are
+ruled away upward (`ruling`). This one is hinged at the inline-start spine and
+rotates about a vertical axis.
+
+Three things make it a leaf rather than a rotating rectangle:
+
+- **the spine** — a binding rule with stitch holes down the inline-start edge,
+  pitched off `--notebook-module`, so the binding and the pad's ruling are the
+  same stationery;
+- **the ruling** — the plate carries the pad's squared grid, so the squares
+  foreshorten and converge as it turns. That is what makes the rotation legible
+  as depth; a blank plate would read as a shrinking rectangle;
+- **the direction** — the free edge swings *away* from the reader.
+
+The last one is mechanical as well as editorial. Under `perspective()` a face
+moving toward the camera projects **outward**, and a fixed viewport-sized
+element doing that can push past the viewport edge. Measured mid-rotation
+(paused at 300 ms of 560 ms), the plate's right edge sits at **213 / 523 /
+1321** px at viewport widths 320 / 768 / 1920, and document overflow is zero at
+all three.
+
+It stops at exactly 90°, where the projected width is zero, so the type on the
+leaf is never seen mirrored and no sliver is left standing at the spine.
+560 ms on `--ease-drawer`, hold 20% — inside the 400–800 ms window, over
+content the browser has already painted. Leaving lays the leaf back down
+(`gate-leaf-close`, verified to play and to complete the navigation).
+
+### 1H.8 §9.4 — CYBERSECURITY content verification
+
+Run in parallel with the build, as the brief directs, and it produced a
+conclusion that changes the next milestone.
+
+**V1's `journey.html` copy, item by item:**
+
+| V1 claim | Verdict | Evidence |
+|---|---|---|
+| "Started serious cybersecurity learning" (2026) | **Supported** | `cyber-security` created 11 Aug 2026; `YushaCyber` created 5 Jul 2026 |
+| "Built cybersecurity learning roadmap" | **Supported** | `roadmap` is one of YushaCyber's fourteen registered blueprints (§1E.6) |
+| "Started building YushaCyber" | **Supported** | Repository, 5 Jul 2026 |
+| "Built interactive cybersecurity labs" | **Supported, and understated** | 48 test files; a 4,669-line simulated terminal across shell, filesystem, network, packets and web; 54 commands; graded missions |
+| "Launched personal technology brand" | **Not a verifiable fact** | Marketing language with no referent. Must not enter V2 |
+| "Learning advanced networking" | **Not supported as stated** | "Advanced" is unevidenced. What exists is five lab modules and Bandit-level SSH |
+| "Improving cybersecurity fundamentals" | Supported but vague | Superseded by the register in §1H.2, which is checkable |
+| Identity: "Cybersecurity Developer • AI Builder • Founder" | **Conflicts with the approved record** | M03-A approved "AI Developer / AI Builder · Cybersecurity Learner". "Founder" was never supplied and appears nowhere in V2 |
+
+**What does not exist anywhere in any repository**, checked rather than
+assumed: no certification, no completed course, no CTF placement, no
+engagement, no CVE, no disclosure, no report, no client. The `labs` schema's
+`cve`, `authorisation` and `severity` fields — written in M02 precisely so that
+world could prove its claims — have nothing to populate them.
+
+**The finding that matters, and it is not what the roadmap assumed.**
+Everything verifiable about security in this archive **is already published, in
+another world**:
+
+- the Bandit log → LEARNING §04;
+- the lab content and the simulated terminal → LEARNING §03 and the PROJECTS
+  record;
+- the two security decisions inside YushaCyber (global CSRF, `bleach` on
+  rendered markdown against an allow-list) → the PROJECTS record and the
+  LEARNING register.
+
+So **CYBERSECURITY currently has no content of its own.** Built today it would
+either restate three worlds or fabricate, and the second is what a security
+page under content pressure actually does. This is an architect decision, not
+an engineering one — see §14.
+
+**Unchanged and still outstanding:** `Agriculture_simulator` contains an
+exposed OpenWeatherMap credential, identified in M05 and not revoked. That
+repository must not be described as security-clean anywhere. The value is not
+reproduced in this archive.
+
+### 1H.9 A defect in the verification script itself
+
+Found while adding the LEARNING guards, and it is the most important thing in
+this milestone.
+
+**Eighteen `\b` word boundaries across `verify-output.mjs` and
+`test-github.mjs` were literal U+0008 BACKSPACE bytes.** A shell had
+interpreted the escape before Node ever saw the file. Every regex containing
+one could not match anything a browser will render, so every one of them had
+been *passing* since the milestone that wrote it:
+
+| Guard | Added | Status until M08 |
+|---|---|---|
+| AI Lab fabricated metrics — accuracy, loss, epochs, "trained on N" | M06 | Inert (5 patterns) |
+| GitHub percentage / no-proportion | M07 | Inert |
+| GitHub invented activity — commits, streaks, contributions | M07 | Inert (4 patterns) |
+| One credential-shaped-assignment pattern | M05 | Inert |
+| `test-github`: "claims no holdings it cannot list" | M07 | Inert |
+
+All eighteen were repaired and then **negative-tested**: three planted
+paragraphs now produce fourteen detections. The M07 final report described
+these guards as working; that was wrong, and this is the correction.
+
+**One of them was hiding a real defect.** With the snapshot absent, the GitHub
+title block printed **"0 repositories"** — not a missing number but a wrong
+one, since there are ten and the page simply could not see them. The assertion
+written in M07 to catch exactly that could not run. Counts derived from absent
+data now read `Unavailable`, like the compiled date beside them.
+
+Two further repairs the first one exposed:
+
+- **Content assertions now run against `prose(html)`** — the page with
+  `<style>` and `<script>` stripped. Astro inlines the stylesheet and
+  `@keyframes` is full of `0%`, so a "no percentage on this page" check
+  measured against raw HTML is either permanently failing or quietly
+  special-cased until it is permanently passing. The GitHub guard would have
+  hit `0%` in a keyframe the moment it started working.
+- **The third-party-origin check no longer allowlists a hostname.** It matched
+  every `src` and `href` and exempted anything starting
+  `href="https://github.com/`, which got it wrong in both directions: an
+  external *stylesheet* on that host would have passed, and an outbound *link*
+  to any other site failed the build. Resources and anchors are now separated
+  by what they are — no third-party resource ever, any outbound link but only
+  with `rel="noopener noreferrer"`, which is the check M07 ran by hand.
+
+Plus a new assertion for **duplicate ids on any page**, which immediately found
+`id="what-i-learned"` twice on `/ai-lab`: two experiment bodies, the same
+markdown heading, both slugged by Astro. Invalid HTML and an ambiguous target
+for anything resolving an id, shipped since M06.
+
+The general fix — namespacing markdown heading ids by source file via a rehype
+plugin — was written, then reverted: Astro 7's default Markdown processor is
+Sätteri, and `rehypePlugins` requires installing `@astrojs/markdown-remark`,
+which swaps the processor for the whole site. A dependency and a rendering
+change to deduplicate one id is the wrong trade. One heading was renamed
+instead, and **the assertion is the durable part** — the next collision fails
+the build by name.
+
+**The common cause, and the rule that follows from it:** a check that *cannot*
+fire looks exactly like a check with nothing to report. Nothing is added to
+`verify-output.mjs` from here on without being negative-tested against a
+planted violation first. That instruction is now written in the file.
+
+### 1H.10 Accessibility
+
+| | |
+|---|---|
+| Headings | 1 `<h1>`, 8 `<h2>`, no level skipped |
+| Landmarks | one `<main>`, one `<nav>`, skip link, `aria-current` on the nav |
+| Duplicate ids | 0 (and now asserted on every page) |
+| Broken fragment links | 0 |
+| `aria-labelledby` targets | all resolve |
+| Tables | 2, each with a `<caption>`, 4 `<th scope="col">`, and row headers — 17 and 13 |
+| Strand headings | `<th scope="colgroup">`, so a screen reader hears the strand without it being repeated on every row |
+| External links | 3, all `rel="noopener noreferrer"`, all with a `↗` |
+| Tab stops | 36 |
+| Colour | Standing and basis are always **words**. `Not attempted` is red *and* says "Not attempted"; `Stated` is italic lower-case *and* says "Stated" |
+| Narrow screens | Both tables recompose into labelled blocks; `<thead>` is clipped, not `display: none`, because the headings are what the `data-label` values quote |
+| Forced colours | Margin rule, quote rules and the two spot marks all resolve to `CanvasText` |
+
+**Not verified, and not claimed:** the live focus-visible pass could not run —
+`document.hasFocus()` was `false` throughout, as in M06 and M07, because the
+browser window had no OS focus. What was done instead is a static audit: no
+rule in any stylesheet sets `outline: none` or `outline: 0`, so nothing
+suppresses the ring. That is weaker evidence and is recorded as weaker.
+
+No axe run, no Lighthouse run, no screen-reader pass. Unchanged since M05.
+
+### 1H.11 Performance
+
+| | |
+|---|---|
+| `/learning` HTML | 36,779 B |
+| `learning.css` | 10,095 B |
+| `BaseLayout.css` | 22,366 B (from 20,340 — the `leaf` entrance) |
+| **JavaScript on `/learning`** | **639 B**, one script, the world gate |
+| `dist/` total | 475,268 B, 15 pages |
+| `npm audit` | 0 vulnerabilities |
+| `astro check` | 0 errors, 0 warnings, 0 hints |
+
+No dependency was added. Two tables, no filter UI, no charting: a
+seventeen-row register does not need one, and a bar would be the exact thing
+this world exists to refuse.
+
+### 1H.12 Responsive, browser and no-JS testing
+
+**Eleven widths × eleven pages — 121 combinations, zero horizontal overflow.**
+320, 360, 390, 414, 480, 640, 768, 1024, 1280, 1440, 1920, across all eight
+worlds and the three project records.
+
+Then a stress test at 320px for content that does not exist yet: a 66-character
+unbroken identifier in an evidence cell, a full URL with escaped spaces in a
+log row, and a 60-character space-free subject name. Still zero.
+
+**No-JS:** the `<main>` text is byte-identical with and without JavaScript —
+11,781 characters, 17 subject rows, 13 log rows, 5 questions. The gate's
+resting state is `visibility: hidden`, so the notebook is simply open.
+
+**Console:** clean across all 11 routes.
+
+**Browser:** Chrome 151 on Windows 11 only. Firefox, Safari, Edge and real
+mobile devices are **not tested**, and nothing is claimed about them. The
+`leaf` entrance is the first use of a 3D transform in the archive, which makes
+this gap slightly more expensive than it was last milestone.
+
+**Reduced motion:** every `animation:` declaration in `learning.css` and
+`gate.css` is inside `@media (prefers-reduced-motion: no-preference)` — checked
+by parsing both files, not by reading them. The clock is zeroed at the token
+source, and the resting state of every stage is the finished state.
+
+### 1H.13 Security
+
+Credential scan clean; `npm audit` 0. No token, header, secret, key,
+environment value or local path in `dist/`. The 32-character-token guard on
+`/learning` is new and specific to this world.
+
+One credential pattern that had been inert since M05 now works (§1H.9), and it
+fires on a planted `Password: <32 chars>` string.
+
+**Unchanged:** the exposed OpenWeatherMap key in `Agriculture_simulator`
+requires revocation and rotation. Outside this repository, outstanding since
+M05, and no page here describes that repository as security-clean.
+
+### 1H.14 Regression and scope compliance
+
+All eight worlds swept: correct gate kind on each (`register` / `drawer` /
+`sheet` / `traverse` / `seal` / `leaf` / `ruling` / `transmit`), one `<h1>`
+each, no duplicate ids, no external link missing `rel`, no broken fragment,
+zero console errors.
+
+**Built:** `/learning` only. **Not started:** CYBERSECURITY, CONTACT — as the
+brief requires.
+
+**Touched outside the Learning world, and why each was necessary:**
+
+- `scripts/verify-output.mjs`, `scripts/test-github.mjs` — the inert-regex
+  repair (§1H.9). Not optional: the milestone's own guards were being added to
+  a file whose existing guards did not run.
+- `src/pages/github.astro` — the "0 repositories" fallback defect, surfaced by
+  that repair. Four lines.
+- `src/content/experiments/hand-tilt-as-a-steering-axis.md` — one heading
+  renamed to clear a duplicate id on `/ai-lab`.
+- `src/lib/worlds.ts` — Learning's summary and the `leaf` documentation.
+
+No world was redesigned. No visual change was made to HOME, ABOUT, PROJECTS,
+AI LAB or GITHUB.
+
+### 1H.15 Known limitations
+
+1. **Focus pass not run** — `document.hasFocus()` false again; static audit
+   only (§1H.10).
+2. **One browser.** Firefox, Safari, Edge, real mobile untested — and this is
+   the first milestone shipping a 3D transform.
+3. **No axe, no Lighthouse, no screen reader.** Unchanged since M05.
+4. **The `learning` collection is still empty**, so §06 renders its written
+   empty state and the populated branch has never been exercised.
+5. **`lib/learning.ts` is hand-maintained.** The completeness guard catches a
+   subject that stops *rendering*; it cannot catch a subject that is *wrong*.
+   Re-verification is a human act, as it is for `profile.ts`.
+6. **Three subjects rest on the owner's word alone.** That is stated on the
+   page, which is the mitigation, but it is not evidence.
+7. **The field log will go stale.** It is a snapshot of a repository that is
+   still being committed to; nothing refetches it. Unlike the GitHub world,
+   this content is not on the build-time pipeline — a deliberate choice, since
+   the log's value is the written notes rather than the commit count, but it
+   means the numbers are true as of 20 August 2026 and no later.
+8. **OpenWeatherMap key still live.**
+9. **The scheduled `github-data.yml` run remains unobserved** since M05.
+
+### 1H.16 Commits
+
+| Hash | |
+|---|---|
+| `223edd7` | `fix(verify): repair eighteen inert regexes, and the bug one was hiding` |
+| `00a9b3a` | `feat(world): print Learning on pad stock, in pen ink` |
+| `06a5113` | `feat(learning): turn the leaf` |
+| `c2d85ef` | `feat(learning): build the field notebook` |
+| `f0d8f9f` | `test(learning): assert the register keeps both axes, and claims no level` |
+| _this_ | `docs: record M08 — the field notebook, and a verification repair` |
+
+Working tree clean on `v2`. `main` untouched; V1 byte-identical.
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -2571,13 +3057,17 @@ Drop three.js as a default dependency (R4). Most of the brief's visual direction
 
 **9.3 Typography.** Inter + JetBrains Mono is the generic-portfolio default and should go. The editorial/archive direction needs a deliberate pairing — a text serif or a technical grotesque, plus a monospace for the archival/technical register. Needs an explicit type direction and a self-hosting weight budget from design.
 
-**9.4 Content verification session with Ayush. BLOCKING for any copy work.** Timeline entries, tech lists and the cybersecurity section must be confirmed line by line before they enter V2. The brief forbids fabricated certifications, labs, CTF results or experience, and the existing V1 copy has not been verified against reality.
+**9.4 Content verification session with Ayush. CYBERSECURITY COVERED IN M08; one decision now sits with the architect.** Timeline entries, tech lists and the cybersecurity section had to be confirmed line by line before entering V2. M08 ran that pass against source rather than against Ayush’s recollection — see §1H.8 for the item-by-item verdict on V1’s `journey.html`. Two V1 claims do not survive (“launched personal technology brand”, “learning advanced networking”) and the V1 identity line conflicts with the approved M03-A record. Neither has entered V2.
+
+The finding that matters is not a copy correction: **every verifiable security claim in this archive is already published in another world**, and no certification, course, CTF placement, engagement, CVE or disclosure exists anywhere to fill the `labs` schema. CYBERSECURITY therefore has no content of its own. Whether it is held back as a stub, given new work, or folded into LEARNING and PROJECTS is an architect decision — §14.
+
+Still uncovered by §9.4: CONTACT copy, which is small and unambiguous.
 
 **9.5 Information architecture and URL scheme.** *M06 amendment: the AI world moved from `/ai` to `/ai-lab` when it was built (§1F.0). The eight-world list is otherwise unchanged, and the redirect map (R10) is still outstanding.*  The brief names 8 worlds; the site has 5 content pages. Confirm the final section list, the URL for each, and the redirect map for the 6 currently-indexed URLs (R10).
 
 **9.6 GitHub Actions budget. CLOSED in M05.** Implemented at the recommended cadence: `github-data.yml` runs every 6 hours plus on demand, and `ci.yml` refreshes on every push to `v2`. Four scheduled runs a day at roughly twenty seconds each. See §1E.3.
 
-**9.7 YushaCyber. Still open, and now the most-linked thing on the site.** Three worlds reference it — the PROJECTS record, the AI LAB system index and the GITHUB register, where its GitHub description claims "a thriving community" against a curated record that says it has no users (§1G.4).  Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
+**9.7 YushaCyber. Still open, and now the most-linked thing on the site.** Four worlds reference it — LEARNING joined them in M08, where the platform is the evidence behind five register rows and all three re-implementation instances (§1H.5). Three worlds reference it — the PROJECTS record, the AI LAB system index and the GITHUB register, where its GitHub description claims "a thriving community" against a curated record that says it has no users (§1G.4).  Its "Explore" CTA is currently a disabled `#`. Is a real destination expected during V2, or does it remain GitHub-only?
 
 ---
 
@@ -2705,7 +3195,68 @@ npm audit
 
 ---
 
-## 14. Next milestone — M08 recommendation
+## 14. Next milestone — M09 recommendation
+
+**M09 — CONTACT, and an architect decision about CYBERSECURITY.** Two worlds
+remain and the §9.4 verification run during M08 changed which of them is
+buildable.
+
+### The decision that has to come first
+
+**CYBERSECURITY has no content of its own.** §1H.8 checked every security claim
+in the archive against source. Everything that survives is already published in
+another world: the Bandit log in LEARNING §04, the lab content and the
+simulated terminal in LEARNING §03 and the YushaCyber record, the two platform
+security decisions in both. Nothing else exists — no certification, no course,
+no CTF placement, no engagement, no CVE, no disclosure, no report. The `labs`
+schema's `cve`, `authorisation` and `severity` fields have nothing to populate
+them.
+
+Built today, that world would either restate three others or fabricate, and
+fabricating is what a security page under content pressure actually does. Three
+ways forward, and this is the architect's call, not an engineering one:
+
+1. **Hold it back.** Cut over with seven worlds and the eighth as a stub that
+   says what it is waiting for. Honest, and the nav already renders it.
+2. **Give it new work.** One real lab write-up — an environment, an
+   authorisation, a finding, a fix — populates the schema and justifies the
+   world. That is a task for Ayush, not for a milestone.
+3. **Fold it in.** Retire the world and let LEARNING and PROJECTS carry the
+   security work they already carry, which would take the archive to seven.
+
+Recommended: **(1) now, (2) as the standing task.** It costs nothing, breaks no
+URL, and leaves the door open. (3) is a bigger IA change than it looks — the
+brief names eight worlds, and dropping one is an architectural decision.
+
+### Then, in order
+
+1. **Build CONTACT.** The smallest world left, its one overflow fix already
+   landed in M05, and the only one whose content is unambiguous. `transmit` is
+   the last unimplemented entrance.
+2. **Revoke the OpenWeatherMap key** in `Agriculture_simulator` (§1E.5, §1G.9,
+   §1H.13). Outstanding since M05, outside this repository, not waiting on a
+   milestone. This is now the oldest open item in the document.
+3. **Observe a scheduled `github-data.yml` run.** Also unobserved since M05,
+   and the fallback path is now the only thing that has ever been exercised.
+4. **Add a second browser.** Firefox at minimum. Five milestones of visual work
+   have been verified in Chrome alone, and M08 shipped the archive's first 3D
+   transform.
+5. **Answer §9.7.** YushaCyber is referenced from four worlds now and none of
+   them can offer a destination beyond a repository.
+6. **Measure something on the AI Lab bench** (§1F.14.4). LEARNING §05 now
+   *publishes* the five unmeasured results as open questions, which raises the
+   cost of leaving them unmeasured — the page names them.
+7. **Build the redirect map** (R10) before any cutover discussion.
+8. **Then** tune the gate choreography across six implemented entrances.
+
+**M09 exit criteria:** CONTACT built and reviewed; a written decision on
+CYBERSECURITY; CI green including `npm run test:github`; a scheduled
+`github-data.yml` run observed; the OpenWeatherMap key revoked. V1 still live
+and unmodified throughout.
+
+---
+
+## 14A. M08 recommendation (M07 record, now complete)
 
 **M08 — LEARNING, and content verification for CYBERSECURITY started in
 parallel.** Three worlds remain and they are not equally ready. GITHUB was
@@ -2751,7 +3302,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14A. M07 recommendation (M06 record, now complete)
+## 14B. M07 recommendation (M06 record, now complete)
 
 **M07 — GITHUB, because it is the world the architecture has already built.**
 Four worlds remain and they are not equally ready. Pick by what can be
@@ -2792,7 +3343,7 @@ still unobserved since M05. V1 still live and unmodified throughout.
 
 ---
 
-## 14B. M06 recommendation (M05 record, now complete)
+## 14C. M06 recommendation (M05 record, now complete)
 
 **M06 — one more world, on the system that now has two worlds' worth of
 evidence behind it.** PROJECTS is the second content world built on the M04
@@ -2826,7 +3377,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14C. M03 recommendation (M02 record, now complete)
+## 14D. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -2843,7 +3394,7 @@ Recommended order:
 
 ---
 
-## 14D. M02 recommendation (M01 record, now complete)
+## 14E. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -2867,4 +3418,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M07 — GITHUB COMPLETE. Five worlds built: HOME, ABOUT, PROJECTS, AI LAB, GITHUB. Awaiting architectural review. CYBERSECURITY, LEARNING and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
+*End of M08 — LEARNING COMPLETE. Six worlds built: HOME, ABOUT, PROJECTS, AI LAB, GITHUB, LEARNING. §9.4 content verification for CYBERSECURITY is complete and its conclusion is in §1H.8 — that world has no content of its own and needs an architect decision before anything is built. Awaiting architectural review. CYBERSECURITY and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
