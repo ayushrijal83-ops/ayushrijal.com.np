@@ -1,88 +1,262 @@
 ---
 /**
- * CONTACT — the transmission room.
+ * CONTACT — correspondence.
+ * ============================================================================
+ * The last sheet in the archive, and the only one addressed to someone.
  *
- * Only channels that can be verified from the repository itself are listed.
- * The rest are not guessed at: publishing an address that turns out to be
- * wrong is worse than publishing none, and the no-fabrication rule applies to
- * contact details as much as to credentials.
+ * Seven worlds document: what was built, how the intelligence in it works,
+ * where the source is, what is being learned. This one stops documenting. That
+ * change of mode is the design problem — the page has to read as the natural
+ * final action of an archive rather than as the thing bolted to the end of a
+ * portfolio, which is why it is a letter and not a card with three icons on it.
+ *
+ * ── Three decisions ────────────────────────────────────────────────────────
+ *
+ * 1. NO FORM, AND THE PAGE SAYS WHY. This site is static HTML on GitHub Pages.
+ *    There is no server, so a form would need a third party to receive it —
+ *    and the version that gets built by accident is worse: one that validates,
+ *    clears itself, prints "message sent" and transmits nothing. Clause 04 is
+ *    that reasoning, published, because an unexplained absence reads as an
+ *    oversight and an explained one reads as a decision.
+ *
+ * 2. THREE CHANNELS, NOT SIX. V1 publishes six. Three are carried forward;
+ *    two personal social accounts and a WhatsApp link containing a mobile
+ *    number are not. They passed verification — they failed relevance, and in
+ *    the phone number's case a privacy judgement that belongs to its owner
+ *    rather than to a page being rebuilt. See the note in `lib/contact.ts`.
+ *
+ * 3. SUBJECTS, NOT AVAILABILITY. Clause 01 lists what a correspondence can be
+ *    ABOUT. It does not say "open for work", because this archive holds no
+ *    employment status, no capacity and no notice period, and clause 05 names
+ *    those absences rather than leaving them to be assumed.
+ *
+ * ── Client JavaScript ──────────────────────────────────────────────────────
+ * None. The mail link is a plain `mailto:`, and the address is also the link
+ * text, so it can be copied by anyone with no mail client registered. Nothing
+ * on this page needs a script to be usable, which is the correct property for
+ * the one page a visitor arrives at in order to do something.
  */
 import WorldLayout from '@layouts/WorldLayout.astro';
-import { SITE } from '@lib/site';
+import TitleBlock, { type Cell } from '@components/projects/TitleBlock.astro';
+import { getWorld } from '@lib/worlds';
+import { PROFILE } from '@lib/profile';
+import { CHANNELS, MATTERS, UNLISTED } from '@lib/contact';
+import '@styles/contact.css';
 
-const CHANNELS = [
-  {
-    label: 'GitHub',
-    value: `github.com/${SITE.github}`,
-    href: `https://github.com/${SITE.github}`,
-  },
+const world = getWorld('contact');
+
+const cells: Cell[] = [
+  { key: 'Sheet', value: `${world.ref} · Contact`, accent: true },
+  { key: 'Channels', value: `${CHANNELS.length}, all verified` },
+  { key: 'Form', value: 'None — see 04' },
+  { key: 'Reply', value: 'No time promised' },
 ];
+
+/** External links need the mark and the rel; `mailto:` needs neither. */
+const isExternal = (href: string) => href.startsWith('http');
 ---
 
-<WorldLayout world="contact">
-  <section class="sheet channels" aria-labelledby="channels-heading">
-    <h2 class="t-label" id="channels-heading">Open channels</h2>
-
-    <ul class="channels__list" role="list">
-      {
-        CHANNELS.map((c) => (
-          <li class="channels__row">
-            <span class="t-label channels__label">{c.label}</span>
-            <a class="channels__value" href={c.href} rel="noopener noreferrer">
-              {c.value}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-
-    <p class="t-text channels__note">
-      Further channels are added here once they are confirmed. Until then this
-      list stays short rather than speculative.
+<WorldLayout
+  world="contact"
+  title="Contact"
+  description="Three verified ways to write to Ayush Rijal — email, GitHub and LinkedIn. No form, because this site is static and a form with nowhere to send would be a lie."
+  masthead={false}
+>
+  <div class="sheet letter">
+    <p class="t-label letter__mark">
+      <span>{world.ref} · {world.gateTitle}</span>
+      <span>{world.world}</span>
     </p>
-  </section>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display letter__title">Correspondence</h1>
+    <p class="t-text letter__lede">
+      Everything before this sheet is a record. This one is a channel: the point
+      where the archive stops describing what has been done and a person answers.
+    </p>
+
+    <TitleBlock cells={cells} label="Correspondence details" />
+
+    {/* The reference block — the archive's only end-aligned furniture. */}
+    <dl class="refs" aria-label="Sheet references">
+      <div class="refs__row">
+        <dt class="t-label refs__key">Compiled</dt>
+        <dd class="refs__value">{world.ref} · Ayush Rijal Archive</dd>
+      </div>
+      <div class="refs__row">
+        <dt class="t-label refs__key">Preceding sheets</dt>
+        <dd class="refs__value">AR-00 to AR-06</dd>
+      </div>
+      <div class="refs__row">
+        <dt class="t-label refs__key">This sheet</dt>
+        <dd class="refs__value refs__value--accent">Open</dd>
+      </div>
+    </dl>
+
+    <div class="body">
+      {/* ── 01 The standing invitation ──────────────────────────────── */}
+      <section class="clause" aria-labelledby="invitation">
+        <h2 class="t-label clause__head" id="invitation">
+          <span class="clause__no">01</span>
+          <span class="clause__title">What this channel is for</span>
+        </h2>
+
+        <p class="invitation">
+          If you have something worth building, investigating, challenging or
+          discussing, open a correspondence.
+        </p>
+
+        <p class="t-text clause__lede">
+          Five subjects, in no order of preference. This is a list of what a
+          letter here can be <em>about</em> — not a list of services, and not a
+          statement of availability, which is a claim this archive does not
+          hold and clause 05 says so.
+        </p>
+
+        <ol class="matters" role="list">
+          {
+            MATTERS.map((m, i) => (
+              <li class="matter">
+                <span class="t-label matter__no">{String(i + 1).padStart(2, '0')}</span>
+                <span class="matter__name">{m.name}</span>
+                <p class="matter__gloss">{m.gloss}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      {/* ── 02 The correspondent ────────────────────────────────────── */}
+      <section class="clause" aria-labelledby="correspondent">
+        <h2 class="t-label clause__head" id="correspondent">
+          <span class="clause__no">02</span>
+          <span class="clause__title">Correspondent</span>
+        </h2>
+
+        <div class="correspondent">
+          <p class="correspondent__name">{PROFILE.name}</p>
+          <ul class="correspondent__roles" role="list">
+            {PROFILE.identity.primary.map((role) => <li>{role}</li>)}
+            <li class="correspondent__roles-secondary">
+              {PROFILE.identity.secondary}
+            </li>
+          </ul>
+        </div>
+
+        <p class="t-text correspondent__where">
+          {PROFILE.education.level} at {PROFILE.education.institution}, currently
+          working through {PROFILE.learning.join(', ')}. The rest of the record
+          is on the <a href="/about">personal sheet</a>, and what is being
+          learned — with the evidence for each line — is in the{' '}
+          <a href="/learning">field notebook</a>.
+        </p>
+      </section>
+
+      {/* ── 03 Channels ─────────────────────────────────────────────── */}
+      <section class="clause" aria-labelledby="channels">
+        <h2 class="t-label clause__head" id="channels">
+          <span class="clause__no">03</span>
+          <span class="clause__title">Open channels</span>
+        </h2>
+        <p class="t-text clause__lede">
+          Three, and each one states where its value was read from. A contact
+          address is the one fact on a site that fails silently when it is
+          wrong — nobody writes back to tell you.
+        </p>
+
+        <ul class="channels" role="list">
+          {
+            CHANNELS.map((c) => (
+              <li class="channel">
+                <span class="t-label channel__label">
+                  {c.label}
+                  {c.primary && <span class="channel__primary"> · preferred</span>}
+                </span>
+                <a
+                  class="channel__value"
+                  href={c.href}
+                  rel={isExternal(c.href) ? 'noopener noreferrer' : undefined}
+                >
+                  {c.value}
+                  {isExternal(c.href) && (
+                    <span class="ext" aria-hidden="true">
+                      {' '}
+                      &#8599;
+                    </span>
+                  )}
+                </a>
+                <span class="t-label channel__basis">{c.verifiedBy}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      {/* ── 04 There is no form ─────────────────────────────────────── */}
+      <section class="clause" aria-labelledby="noform">
+        <h2 class="t-label clause__head" id="noform">
+          <span class="clause__no">04</span>
+          <span class="clause__title">There is no form on this page</span>
+        </h2>
+
+        <div class="t-text noform">
+          <p>
+            This site is a directory of static HTML files served by GitHub
+            Pages. There is no server behind it, which is deliberate — it is
+            also why no credential exists anywhere in this archive to be
+            leaked. It does mean there is nowhere for a submitted message to
+            arrive.
+          </p>
+          <p>
+            A form here would have to hand your message and your address to a
+            third-party service: a company neither of us chose, under a privacy
+            policy neither of us read, for the sake of a text box. That is a
+            real cost paid by you, to save one click by me.
+          </p>
+          <p>
+            The alternative is worse and it is the one that gets built by
+            accident — a form that validates, clears itself and prints{' '}
+            <strong>message sent</strong> while transmitting nothing. It works
+            perfectly in every test and lies to the one visitor who most wanted
+            to reach you.
+          </p>
+          <p>
+            So the address in clause 03 is the mechanism. It is a
+            <code> mailto:</code> link and also plain text, so it works whether
+            or not you have a mail client, with or without JavaScript. It goes
+            to a person.
+          </p>
+        </div>
+      </section>
+
+      {/* ── 05 Not on this sheet ────────────────────────────────────── */}
+      <section class="clause" aria-labelledby="unlisted">
+        <h2 class="t-label clause__head" id="unlisted">
+          <span class="clause__no">05</span>
+          <span class="clause__title">Not on this sheet</span>
+        </h2>
+
+        <ul class="unlisted" role="list">
+          {UNLISTED.map((field) => <li>{field}</li>)}
+        </ul>
+        <p class="unlisted__note">
+          None of these is recorded anywhere in the archive, so none of them
+          appears here. They are named individually rather than quietly omitted,
+          because a contact page that simply leaves out rates reads as
+          expensive, and one that leaves out availability reads as unavailable.
+          Neither is a thing this page knows.
+        </p>
+        <p class="unlisted__note">
+          Social accounts are not indexed here either. They exist; this is a
+          correspondence sheet rather than a directory, and the address above
+          reaches the same person faster.
+        </p>
+      </section>
+
+      <p class="t-text signoff">
+        The archive is still being written. If you find something in it that is
+        wrong, that is the most useful letter you can send.
+      </p>
+    </div>
+  </div>
 </WorldLayout>
-
-<style>
-  .channels {
-    padding-block-start: var(--space-xl);
-  }
-
-  .channels__list {
-    margin-block-start: var(--space-m);
-    border-block-start: 1px solid var(--rule);
-  }
-
-  .channels__row {
-    display: grid;
-    gap: var(--space-3xs);
-    padding-block: var(--space-s);
-    border-block-end: 1px solid var(--rule-faint);
-  }
-
-  .channels__value {
-    font-family: var(--font-mono);
-    font-size: var(--step-1);
-    color: var(--world-accent);
-    text-underline-offset: 4px;
-    inline-size: fit-content;
-    /* An email address is one unbreakable token. `fit-content` sizes to it and
-       pushes the page 3px wide at 320px, which is a horizontal scrollbar on the
-       narrowest phones for the sake of a link. Let it break. */
-    overflow-wrap: anywhere;
-    max-inline-size: 100%;
-  }
-
-  .channels__note {
-    margin-block-start: var(--space-l);
-    color: var(--ink-secondary);
-  }
-
-  @media (min-width: 40rem) {
-    .channels__row {
-      grid-template-columns: 8rem minmax(0, 1fr);
-      gap: var(--space-m);
-      align-items: baseline;
-    }
-  }
-</style>
