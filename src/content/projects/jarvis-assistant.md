@@ -48,7 +48,7 @@ are all substitutions for a hosted service:
 | Speech to text | faster-whisper |
 | Language model | Ollama, self-hosted, Mistral by default |
 | Speech synthesis | pyttsx3 |
-| Vision | OpenCV with MediaPipe — face presence, gaze and gesture |
+| Vision | OpenCV with MediaPipe — face presence, head pose and gesture |
 | Desktop control | PyAutoGUI |
 
 Voice and vision are the two largest modules in the repository — roughly 25 KB
