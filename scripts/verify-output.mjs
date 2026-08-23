@@ -384,6 +384,58 @@ if (learning !== null) {
   }
 }
 
+// ── 2j. CONTACT — a real address, and nothing pretending to send ───────────
+// The one page a visitor arrives at in order to DO something, which makes its
+// failure modes different from every other world's: a wrong address fails
+// silently (nobody writes back to say so), and a form with no backend fails
+// dishonestly (it says "sent" and transmits nothing).
+const contact = prose(read('contact/index.html') ?? '') || null;
+if (contact !== null) {
+  const contactTs = readFileSync('src/lib/contact.ts', 'utf8');
+
+  // Every channel declared in the source reaches the page, cross-checked
+  // against the source rather than against a copy of it. A channel that stops
+  // rendering is invisible: the page still looks complete with two.
+  const rendered = (contact.match(/class="channel"/g) ?? []).length;
+  const declared = (contactTs.match(/^\s+label: '/gm) ?? []).length;
+  if (rendered !== declared) {
+    fail(
+      `Contact renders ${rendered} channels but lib/contact.ts declares ` +
+        `${declared}. A verified channel is not reaching the page.`,
+    );
+  }
+
+  // The address itself, read out of the source. Guards the value drifting or
+  // the mail link being replaced by something that only looks like one.
+  const address = contactTs.match(/href: 'mailto:([^'?]+)/)?.[1];
+  if (!address) {
+    fail('lib/contact.ts no longer declares a mailto: address');
+  } else if (!contact.includes(`mailto:${address}`) || !contact.includes(address)) {
+    fail(
+      'Contact does not publish its declared address as both a mailto: link ' +
+        'and readable text. Both are required — a visitor with no mail client ' +
+        'registered has to be able to copy it.',
+    );
+  }
+
+  // Claims a contact page reaches for and this archive cannot support. Each
+  // matches a CLAIM, never a mention: the page prints "Availability" in its
+  // struck list of things it does not hold, and has to stay able to.
+  const OVERCLAIMS = [
+    [/\bhire me\b/i, 'a hire-me call to action'],
+    [/\bopen to work\b/i, 'an employment status'],
+    [/\bavailable for\b/i, 'an availability claim'],
+    [/\bwithin \d+ (?:hours?|days?|weeks?)\b/i, 'a response time'],
+    [/\brepl(?:y|ies) within\b/i, 'a response time'],
+    [/\bfreelanc/i, 'a service offering'],
+  ];
+  for (const [pattern, what] of OVERCLAIMS) {
+    if (pattern.test(contact)) {
+      fail(`Contact states ${what} (${pattern}). See UNLISTED in lib/contact.ts.`);
+    }
+  }
+}
+
 // ── 2e. GitHub data is build-time only ─────────────────────────────────────
 // The single most important property of the GitHub integration: V1 called the
 // API from the visitor's browser. If that ever returns, it returns silently —
@@ -523,6 +575,40 @@ for (const page of pages) {
   }
   if (twice.size > 0) {
     fail(`Duplicate id in ${page}: ${[...twice].join(', ')}`);
+  }
+}
+
+// ── 2k. No form anywhere, and no telephone number ──────────────────────────
+// Site-wide, not Contact-only, because both rules are properties of the whole
+// build rather than of one page.
+//
+// A FORM: the output is static HTML on GitHub Pages. There is no server, so
+// any form here is either wired to an undeclared third party — which would
+// also breach the no-third-party-origin rule below — or it is the version that
+// gets built by accident: validates, clears itself, prints "message sent" and
+// transmits nothing. That one passes every test a browser can run on it.
+//
+// A TELEPHONE NUMBER: V1 publishes a `wa.me` link containing a personal
+// mobile. M09 deliberately did not carry it forward (see lib/contact.ts) —
+// it is a standing privacy cost, and re-publishing it should be an explicit
+// decision by its owner rather than a paste that nobody reviews. Deleting
+// this check is how that decision gets made.
+const STATIC_SITE_VIOLATIONS = [
+  [/<form\b/i, 'a <form> element — this site has no server to receive it'],
+  [/<(?:input|textarea|select)\b/i, 'a form control'],
+  [/\bwa\.me\//i, 'a WhatsApp link — see the channel note in lib/contact.ts'],
+  [/href="tel:/i, 'a telephone link — see the channel note in lib/contact.ts'],
+  [
+    /message\s+(?:sent|received)\s+successfully|thanks?\s+for\s+(?:your\s+)?message/i,
+    'a delivery confirmation, with nothing behind it to deliver',
+  ],
+];
+for (const page of pages) {
+  const html = prose(readFileSync(page, 'utf8'));
+  for (const [pattern, what] of STATIC_SITE_VIOLATIONS) {
+    if (pattern.test(html)) {
+      fail(`${page} contains ${what}`);
+    }
   }
 }
 
