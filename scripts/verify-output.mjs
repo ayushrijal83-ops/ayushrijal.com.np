@@ -407,6 +407,12 @@ if (contact !== null) {
 
   // The address itself, read out of the source. Guards the value drifting or
   // the mail link being replaced by something that only looks like one.
+  //
+  // M11 established the address from repository evidence alone, three ways
+  // that agree: V1's published `contact.html` on `main` (9 occurrences, no
+  // other address), the V2 tree (6, no other), and the authorship of every
+  // commit in the repository. The GitHub profile carries no email at all.
+  // There is no second address anywhere in the repository — see §1K.4.
   const address = contactTs.match(/href: 'mailto:([^'?]+)/)?.[1];
   if (!address) {
     fail('lib/contact.ts no longer declares a mailto: address');
@@ -416,6 +422,21 @@ if (contact !== null) {
         'and readable text. Both are required — a visitor with no mail client ' +
         'registered has to be able to copy it.',
     );
+  }
+
+  // The subject prefill. It is what makes an arriving message identifiable as
+  // having come from the site, and it is one query parameter that a refactor
+  // of the link would silently drop.
+  if (!/mailto:[^"']+\?subject=/.test(contact)) {
+    fail('The Contact mail link lost its subject prefill');
+  }
+
+  // Exactly one mail link. A second address on the page is either a typo or a
+  // channel that never went through the verification in lib/contact.ts.
+  const mailtos = [...contact.matchAll(/href="mailto:([^"?]+)/g)].map((m) => m[1]);
+  const distinct = [...new Set(mailtos)];
+  if (distinct.length > 1) {
+    fail(`Contact publishes ${distinct.length} different addresses: ${distinct.join(', ')}`);
   }
 
   // Claims a contact page reaches for and this archive cannot support. Each
@@ -602,6 +623,14 @@ const STATIC_SITE_VIOLATIONS = [
     /message\s+(?:sent|received)\s+successfully|thanks?\s+for\s+(?:your\s+)?message/i,
     'a delivery confirmation, with nothing behind it to deliver',
   ],
+  // Hosted form relays. Any of these would be a third party receiving a
+  // stranger's message and address on this site's behalf — the arrangement
+  // clause 04 of the Contact world exists to refuse. They would also breach
+  // the no-third-party-origin rule below, but naming them says why.
+  [
+    /formspree\.io|getform\.io|formsubmit\.co|usebasin\.com|netlify\b[^>]*forms|form-?spark|web3forms|formcarry/i,
+    'a third-party form relay endpoint',
+  ],
 ];
 for (const page of pages) {
   const html = prose(readFileSync(page, 'utf8'));
@@ -752,6 +781,116 @@ if (notFound === null) {
   fail('dist/404.html offers no route back into the archive');
 }
 
+// ── 7. The legacy URLs still land somewhere deliberate ─────────────────────
+// Read from `src/lib/legacy.ts`, which is the map the stubs are generated
+// from, so this asserts the generation still runs rather than that somebody
+// remembered to keep a second list in step.
+//
+// A stub that silently stops being emitted is invisible: the build is green,
+// every V2 route works, and only the people arriving from a two-year-old link
+// or a search result ever find out.
+const legacySrc = readFileSync('src/lib/legacy.ts', 'utf8');
+const legacyPairs = [...legacySrc.matchAll(/\{ from: '([^']+)', to: '([^']+)'/g)];
+
+if (legacyPairs.length === 0) {
+  fail('lib/legacy.ts declares no legacy routes — the redirect map is empty');
+}
+
+for (const [, from, to] of legacyPairs) {
+  const stub = read(from);
+  if (stub === null) {
+    fail(`Missing legacy redirect stub: /${from} (should go to ${to})`);
+    continue;
+  }
+  // Zero delay. A timed refresh is WCAG failure F40 — a reader who needs
+  // longer than the delay cannot stop it. Zero is treated as a redirect and
+  // is explicitly exempt, so the digit matters.
+  if (!new RegExp(`content="0;\\s*url=${to}"`).test(stub)) {
+    fail(`/${from} has no zero-delay meta refresh to ${to}`);
+  }
+  if (!stub.includes(`<link rel="canonical" href="https://${PROD_HOST}${to}"`)) {
+    fail(`/${from} has no canonical pointing at ${to}`);
+  }
+  // Refresh can be blocked by an extension or a hardened browser. The page has
+  // to be usable when it is.
+  if (!new RegExp(`<a href="${to}"`).test(stub)) {
+    fail(`/${from} has no visible link to ${to} for readers whose refresh is blocked`);
+  }
+  if (/<script/i.test(stub)) {
+    fail(`/${from} contains a script — a redirect stub must work with nothing running`);
+  }
+}
+
+// THE COLLISION RULE. A stub is a file at a bare path, and a static host
+// resolving `/about` tries `about.html` BEFORE `about/index.html`. So a stub
+// named after a live route does not redirect to that route — it REPLACES it,
+// and since the stub then redirects to the URL it is itself serving, it is an
+// infinite loop reached from the site's own navigation.
+//
+// Measured in M11 with `about.html` and `contact.html` present: `/about` and
+// `/contact` both served the stub. Two of seven worlds, unreachable. This is
+// the guard that stops a plausible-looking line in `LEGACY_ROUTES` doing it
+// again — it is cheap, and the failure it prevents is total.
+const worldPaths = new Set(
+  WORLDS.map(([file]) => file.replace(/index\.html$/, '').replace(/\/$/, '')),
+);
+for (const [, from] of legacyPairs) {
+  const stem = from.replace(/\.html$/, '');
+  if (worldPaths.has(stem)) {
+    fail(
+      `Legacy stub /${from} shadows the live route /${stem}. A static host ` +
+        `serves ${from} for /${stem}, so the world becomes unreachable and the ` +
+        `stub redirects to itself. See the collision rule in lib/legacy.ts.`,
+    );
+  }
+}
+
+// The V1 URLs with no destination must NOT acquire one by accident. Read from
+// `LEGACY_UNRESOLVED` rather than a second hardcoded list, so the two cannot
+// disagree: everything documented as unresolved must actually be absent.
+const unresolved = [...legacySrc.matchAll(/\{\s*from: '\/([^']+)',\s*$/gm)].map((m) => m[1]);
+for (const orphan of unresolved) {
+  if (read(orphan) !== null) {
+    fail(
+      `dist/${orphan} exists. That URL is recorded as unresolved and is meant ` +
+        `to reach /404.html. See LEGACY_UNRESOLVED in lib/legacy.ts.`,
+    );
+  }
+}
+if (unresolved.length === 0) {
+  fail('lib/legacy.ts records no unresolved legacy URLs — the parse is wrong');
+}
+
+// ── 8. CYBERSECURITY does not advertise holdings it has not got ────────────
+// The world's page has always been honest — "0 entries", nothing filed. Its
+// SUMMARY was not, and the summary is the string that travels: the HOME
+// contents gloss, the route's meta description, and the masthead line above
+// that empty state. Corrected in M11; this stops it coming back, and stops any
+// equivalent from arriving in its place.
+const OVERSTATED_HOLDINGS = [
+  /Defensive security research/i,
+  /lab write-ups and findings/i,
+  /security (?:research|findings|advisor|assessment)s?\s+(?:conducted|performed|delivered)/i,
+];
+for (const page of pages) {
+  const text = prose(readFileSync(page, 'utf8'));
+  for (const pattern of OVERSTATED_HOLDINGS) {
+    const hit = text.match(pattern);
+    if (hit) {
+      fail(
+        `${page} advertises security holdings that do not exist ("${hit[0]}"). ` +
+          `See §1H.8 — every verifiable security claim is already filed in ` +
+          `LEARNING and PROJECTS.`,
+      );
+    }
+  }
+}
+
+const cyber = prose(read('cybersecurity/index.html') ?? '');
+if (cyber && !/No security work has been filed yet/.test(cyber)) {
+  fail('The Cybersecurity world stopped declaring itself empty');
+}
+
 // ── Report ─────────────────────────────────────────────────────────────────
 if (failures.length > 0) {
   console.error('\nBuild output verification FAILED:\n');
@@ -767,6 +906,7 @@ console.log(
     `GitHub archive complete with no invented proportion, ` +
     `${stocks.length} world stocks clear WCAG AA, ` +
     `no inline scripts, no third-party origins, no Pretext, ` +
-    `deployable (CNAME, .nojekyll, robots.txt, sitemap.xml, 404.html) ` +
+    `deployable (CNAME, .nojekyll, robots.txt, sitemap.xml, 404.html), ` +
+    `${legacyPairs.length} legacy redirects intact, no overstated holdings ` +
     `(${pages.length} pages).`,
 );
