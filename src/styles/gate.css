@@ -137,14 +137,15 @@
    implementing it are separate steps and neither blocks the other.
 
    Implemented so far: `register` (HOME), `drawer` (ABOUT), `sheet` (PROJECTS),
-   `traverse` (AI LAB) and `ruling` (GITHUB). The remaining three are declared
-   and inherit the base wipe until their own world is built.
+   `traverse` (AI LAB), `ruling` (GITHUB) and `leaf` (LEARNING). The remaining
+   two are declared and inherit the base wipe until their own world is built.
 
-   The five implemented kinds are five different MOTIONS, not five timings of
-   one motion — outward to both margins, downward, apart along a crease,
-   laterally across, and column by column in sequence. That is the constraint
-   each new world's entrance has to satisfy: if it moves the way a built world
-   already moves, it is a duration change wearing a different name.
+   The six implemented kinds are six different MOTIONS, not six timings of one
+   motion — outward to both margins, downward, apart along a crease, laterally
+   across, column by column in sequence, and hinged out of the plane
+   altogether. That is the constraint each new world's entrance has to satisfy:
+   if it moves the way a built world already moves, it is a duration change
+   wearing a different name.
 
    A kind chooses its own DURATION here too, off the shared clock in tokens.css
    — `--dur-base` / `--dur-slow` / `--dur-plate`. It is not a field in
@@ -712,5 +713,143 @@
     opacity: 1;
     visibility: visible;
     clip-path: inset(0 0 0 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   LEARNING — `leaf`
+   --------------------------------------------------------------------------
+   A notebook leaf turned.
+
+   Every other entrance in the archive is FLAT. A mask withdraws to the
+   margins, a drawer front travels down, two halves part along a crease, a
+   slide traverses, columns are ruled away upward — five motions, all of them
+   in the plane of the page. This one is the first that leaves it: the plate is
+   hinged at the inline-start spine and swings about a vertical axis until it
+   is edge-on, which is what turning a page looks like and what nothing else
+   here does.
+
+   Three things make it a leaf rather than a rotating rectangle:
+
+     - the SPINE. A rule and a line of sewn perforations down the inline-start
+       edge, pitched off `--notebook-module` — the world's own token, so the
+       binding and the pad's ruling are the same stationery.
+     - the RULING. The plate carries the pad's squared grid, so as the leaf
+       turns the squares foreshorten and converge. That is what makes the
+       rotation legible as depth; a blank plate would read as a shrinking
+       rectangle. Same principle as GITHUB's column rules travelling with the
+       columns.
+     - the direction. The free edge swings AWAY from the reader, not toward
+       them. Partly because that is how you turn a page you are reading, and
+       partly for a mechanical reason: under `perspective()` a face moving
+       toward the camera projects OUTWARD, and a fixed, viewport-sized element
+       doing that can push past the viewport edge. Receding cannot.
+
+   Stops at exactly 90deg, where the projected width is zero, so the type on
+   the leaf is never seen mirrored — there is no back face to read.
+
+   --dur-slow (560ms) on --ease-drawer, of which the first 20% is the hold.
+   Inside the brief's 400-800ms window, over content the browser has already
+   painted. Resting state is hidden, as for every kind, so reduced motion and a
+   failed animation both resolve to "notebook open".
+   -------------------------------------------------------------------------- */
+.gate[data-gate-kind='leaf'] {
+  /* Hinged at the spine. */
+  transform-origin: left center;
+  /* The label is set clear of the binding, the way a note is written inside
+     the margin rule rather than across the stitching. */
+  padding-inline-start: calc(var(--sheet-gutter) + var(--space-l));
+  /* The leaf is ruled paper. See the note above. */
+  background-image: linear-gradient(
+      to right,
+      var(--world-grid) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%);
+  background-size: var(--notebook-module, 2.5rem) var(--notebook-module, 2.5rem);
+}
+
+.gate[data-gate-kind='leaf']::after {
+  /* The spine: the binding rule, and the stitch holes along it. */
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--space-s);
+  border-inline-start: 2px solid var(--world-accent);
+  background-image: radial-gradient(
+    circle at center,
+    var(--world-accent) 0 2px,
+    transparent 2.5px
+  );
+  background-size: 100% var(--notebook-module, 2.5rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='leaf'] {
+    animation: gate-leaf var(--dur-slow) var(--ease-drawer) forwards;
+  }
+
+  /* The label is printed on the leaf, so it turns with it. It gets a short
+     settle that finishes before the turn starts, rather than the base
+     `gate-line` entrance running underneath the rotation — which would be two
+     motions on one object. Same reasoning as PROJECTS' and AI LAB's labels. */
+  .gate[data-gate-kind='leaf'] .gate__rule,
+  .gate[data-gate-kind='leaf'] .gate__title,
+  .gate[data-gate-kind='leaf'] .gate__enter {
+    animation: gate-leaf-label var(--dur-slow) var(--ease-plot) backwards;
+  }
+
+  /* Leaving LEARNING lays the leaf back down. */
+  .gate[data-gate-kind='leaf'][data-state='leaving'] {
+    animation: gate-leaf-close var(--dur-base) var(--ease-drawer) forwards;
+  }
+
+  .gate[data-gate-kind='leaf'][data-state='leaving'] .gate__rule,
+  .gate[data-gate-kind='leaf'][data-state='leaving'] .gate__title,
+  .gate[data-gate-kind='leaf'][data-state='leaving'] .gate__enter {
+    animation: none;
+    translate: 0 0;
+  }
+}
+
+@keyframes gate-leaf {
+  0%,
+  20% {
+    opacity: 1;
+    visibility: visible;
+    transform: perspective(150vw) rotateY(0deg);
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    /* Edge-on. Projected width is zero here, so there is no mirrored type and
+       no sliver left standing at the spine. */
+    transform: perspective(150vw) rotateY(90deg);
+  }
+}
+
+@keyframes gate-leaf-label {
+  /* Written, then the page is turned. A settle, not a reveal: the type is
+     opaque throughout, and it is finished before the leaf starts to move. */
+  0% {
+    translate: 0 0.4rem;
+  }
+  20%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes gate-leaf-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    transform: perspective(150vw) rotateY(90deg);
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    transform: perspective(150vw) rotateY(0deg);
   }
 }
