@@ -26,6 +26,14 @@ import { WORLDS } from '@lib/worlds';
   title="Not in this archive"
   description="No sheet is filed at this address. The archive's eight sheets are listed here."
 >
+  {/* A 404 must never be indexed. GitHub Pages serves this file for every
+      unresolvable path, so without `noindex` a crawler can collect it under
+      any number of URLs — and its canonical points at /404, which is not a
+      page that exists. `noindex` settles both: the canonical becomes moot and
+      the page stays out of results. Added in M12; the legacy redirect stub
+      deliberately does NOT carry it, because there the whole point is to let a
+      crawler follow the canonical to the new URL. */}
+  <meta name="robots" content="noindex" slot="head" />
   <div class="world-body">
     <SiteHeader current="none" />
 
