@@ -108,6 +108,21 @@ body {
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
+  /* Display type is set at up to `--step-5`, where a single long word is wider
+     than a 320px phone: "CORRESPONDENCE" measures 340px against a 305px
+     viewport. Hyphenate where the engine can, and hard-break where it cannot,
+     so a world's name can never be the thing that puts a horizontal scrollbar
+     on the archive.
+
+     Added in M09, when renaming one world from "Transmission Room" (two words,
+     wraps freely) to "Correspondence" (one word, does not) pushed BOTH its own
+     page and the HOME contents index wide. Fixed here rather than on the two
+     selectors that happened to break, because the property being asserted is
+     "display type never overflows", and it should hold for the next world name
+     nobody has written yet. `break-word` only acts when a word genuinely does
+     not fit, so nothing that fits today changes. */
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .t-heading {

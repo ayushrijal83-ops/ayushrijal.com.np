@@ -87,6 +87,12 @@ const entries = WORLDS.filter((w) => w.id !== 'home');
     line-height: 1;
     text-transform: uppercase;
     letter-spacing: 0.01em;
+    /* This index prints whatever a world calls itself, so it inherits that
+       world's longest word. Same guarantee as `.t-display` in global.css, and
+       the same reason — it does not use that class because its weight, size
+       and tracking differ. See the note there. */
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
 
   .contents__summary {
