@@ -1,0 +1,742 @@
+/* ==========================================================================
+   LEARNING — the field notebook
+   ==========================================================================
+   PROJECTS is a drawing sheet, ABOUT a catalogue card, AI LAB a bench, GITHUB
+   a ledger. Those are all documents that get SET: ruled, registered, filed.
+   This one is the document that gets WRITTEN IN, and everything below follows
+   from that single difference.
+
+   Three devices carry it, and no others:
+
+   1. THE MARGIN RULE. One red vertical line down the inline-start of the page,
+      with the writing kept to its right. It is the most recognisable piece of
+      furniture on a sheet of school or computation paper.
+
+      It is also where this world's use of the archive's spot colour is
+      DEFINED, and the definition is a rule the rest of the page keeps: red is
+      what still wants attention. The margin rule, the numbering of the open
+      questions, and the one standing that reads `Not attempted` — six marks on
+      the whole page, and every one of them means the same thing. GITHUB spends
+      its spot exactly once; this world spends it three times under one
+      meaning, which is the same discipline rather than a relaxation of it.
+
+   2. THE ANNOTATION REGISTER. Where the other worlds tabulate a fact, this one
+      tabulates a fact AND its basis. The basis is set as a marginal note in
+      mono, because that is what a marginal note is: the reader's own remark
+      about the line next to it.
+
+   3. THE DATE IN THE MARGIN. The field log puts its date where a notebook puts
+      one — outside the writing, in the margin, as the thing that files the
+      entry rather than as a column of data.
+
+   No new colour, no new type, no new spacing. Every value here is a token.
+   ========================================================================== */
+
+.pad {
+  /* Distance from the writing edge to the margin rule. Zero below 48rem: a
+     phone has no room for a margin, and spending 40px of a 280px measure on
+     one costs the evidence column more than the device is worth. The rule
+     still draws — at the sheet edge — so the world is recognisable at 320px.
+     Learned the hard way in M06: an unbreakable literal three levels down a
+     grid is what actually sets the minimum width. */
+  --pad-margin: 0rem;
+  --pad-writing: var(--space-2xs);
+
+  padding-block-start: var(--space-l);
+}
+
+@media (min-width: 48rem) {
+  .pad {
+    --pad-margin: var(--space-xl);
+    --pad-writing: calc(var(--space-xl) + var(--space-m));
+  }
+}
+
+.pad__mark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-s);
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.pad__title {
+  font-size: var(--step-4);
+  margin-block-start: var(--space-m);
+}
+
+.pad__intro {
+  margin-block-start: var(--space-s);
+  max-inline-size: 58ch;
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   THE WRITING AREA — everything to the right of the margin rule
+   -------------------------------------------------------------------------- */
+.pad__body {
+  position: relative;
+  margin-block-start: var(--space-xl);
+  padding-inline-start: var(--pad-writing);
+}
+
+.pad__body::before {
+  /* The margin rule. Decoration, so it is a pseudo-element and carries no
+     text. It is the first of this world's three spot marks — see the note at
+     the top of this file for the rule they all obey. */
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--pad-margin);
+  border-inline-start: 1px solid var(--spot);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pad__body::before {
+    /* The margin is ruled down the page before anything is written in it.
+       Nothing else in the archive draws a rule along its length — HOME's rules
+       draw across, GITHUB's columns lift away — so the entrance says
+       "notebook" before a single leaf has settled. */
+    animation: pad-margin var(--dur-plate) var(--ease-plot) backwards;
+  }
+}
+
+@keyframes pad-margin {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   LEAF — one numbered section of the notebook
+   -------------------------------------------------------------------------- */
+.leaf {
+  padding-block: var(--space-xl);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.leaf:last-of-type {
+  border-block-end: 0;
+}
+
+.leaf__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+  margin: 0;
+}
+
+.leaf__no {
+  color: var(--world-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.leaf__title {
+  color: var(--ink);
+}
+
+.leaf__lede {
+  margin-block-start: var(--space-s);
+  max-inline-size: 62ch;
+  color: var(--ink-secondary);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .leaf {
+    animation: leaf-settle var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-body);
+  }
+}
+
+@keyframes leaf-settle {
+  from {
+    /* Opaque from the first frame. See the entrance policy note in home.css:
+       fading a stage in gates the paint of its text. */
+    translate: 0 var(--space-3xs);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THE STANDING NOTE — the thesis, and how to read the register
+   -------------------------------------------------------------------------- */
+.thesis {
+  margin-block-start: var(--space-m);
+  font-family: var(--font-text);
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  max-inline-size: 30ch;
+  text-wrap: balance;
+}
+
+.position {
+  margin: var(--space-l) 0 0;
+  padding-inline-start: var(--space-m);
+  border-inline-start: 2px solid var(--world-accent);
+}
+
+.position__quote {
+  margin: 0;
+  font-size: var(--step-0);
+  line-height: var(--leading-snug);
+  max-inline-size: 54ch;
+}
+
+/* Quotation marks drawn rather than typed, so the statement stored in
+   profile.ts stays the verbatim sentence with no punctuation added to it. */
+.position__quote p::before {
+  content: '\201C';
+}
+
+.position__quote p::after {
+  content: '\201D';
+}
+
+.position__on {
+  margin-block-start: var(--space-2xs);
+  color: var(--ink-tertiary);
+}
+
+/* The legend. Two definition lists, because the register has two axes and
+   confusing them is the whole failure this world is designed against. */
+.legend {
+  display: grid;
+  gap: var(--space-m);
+  margin-block-start: var(--space-l);
+  padding-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule);
+}
+
+@media (min-width: 48rem) {
+  .legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-xl);
+  }
+}
+
+.legend__axis {
+  margin: 0;
+}
+
+.legend__title {
+  color: var(--world-accent);
+}
+
+.legend__list {
+  margin-block-start: var(--space-2xs);
+}
+
+.legend__row {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-2xs);
+  border-block-start: 1px solid var(--rule-faint);
+}
+
+@media (min-width: 30rem) {
+  .legend__row {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: var(--space-s);
+    align-items: baseline;
+  }
+}
+
+.legend__key {
+  color: var(--ink-tertiary);
+}
+
+.legend__def {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   SUBJECTS — the register
+   --------------------------------------------------------------------------
+   A real table. Five strands, each a `tbody` with a `colgroup`-scoped heading
+   row, so a screen reader hears which strand it is inside without the strand
+   name being repeated on every row.
+   -------------------------------------------------------------------------- */
+.subjects {
+  inline-size: 100%;
+  margin-block-start: var(--space-m);
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.subjects caption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.subjects th,
+.subjects td {
+  padding: var(--space-xs) var(--space-s) var(--space-xs) 0;
+  vertical-align: baseline;
+  text-align: start;
+}
+
+.subjects thead th {
+  padding-block: var(--space-2xs);
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+  white-space: nowrap;
+}
+
+.strand__name {
+  padding-block: var(--space-m) var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--world-accent);
+  border-block-end: 1px solid var(--rule);
+}
+
+.subject__row td,
+.subject__row th {
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.subject__name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* Standing and basis are WORDS, never a colour and never a bar. The only
+   visual distinction either carries is weight, and the word is always there. */
+.standing {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink);
+}
+
+.standing[data-standing='not-attempted'] {
+  color: var(--spot);
+}
+
+.basis {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.basis[data-basis='stated'] {
+  /* Not a demotion — an annotation. A stated subject is a real part of the
+     record; what changes is who can check it. */
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.evidence {
+  max-inline-size: 62ch;
+  color: var(--ink-secondary);
+  overflow-wrap: anywhere;
+}
+
+.evidence__more {
+  /* Its own line. Inline, it butted straight up against the last word of the
+     evidence sentence — `margin-block-start` does nothing to an inline box. */
+  display: block;
+  margin-block-start: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+/* --------------------------------------------------------------------------
+   REMAKE — re-implementation as a method
+   -------------------------------------------------------------------------- */
+.remakes {
+  display: grid;
+  gap: 0;
+  margin-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule);
+}
+
+.remake {
+  display: grid;
+  gap: var(--space-2xs);
+  padding-block: var(--space-m);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+@media (min-width: 48rem) {
+  .remake {
+    grid-template-columns: 11rem minmax(0, 1fr);
+    column-gap: var(--space-m);
+  }
+}
+
+.remake__tool {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--world-accent);
+}
+
+.remake__built {
+  margin: 0;
+  max-inline-size: 62ch;
+}
+
+.remake__scale {
+  margin-block-start: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+/* --------------------------------------------------------------------------
+   LOG — the dated field log
+   -------------------------------------------------------------------------- */
+.log__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+  margin-block-start: var(--space-m);
+  padding-block: var(--space-2xs);
+  border-block: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.log__intent {
+  margin-block-start: var(--space-m);
+  padding-inline-start: var(--space-m);
+  border-inline-start: 2px solid var(--rule-strong);
+  max-inline-size: 62ch;
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+.log {
+  inline-size: 100%;
+  margin-block-start: var(--space-m);
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.log caption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.log th,
+.log td {
+  padding: var(--space-xs) var(--space-s) var(--space-xs) 0;
+  vertical-align: baseline;
+  text-align: start;
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.log thead th {
+  padding-block: var(--space-2xs);
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+  white-space: nowrap;
+}
+
+.log__date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+}
+
+.log__level {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--world-accent);
+}
+
+.log__learned {
+  max-inline-size: 62ch;
+  overflow-wrap: anywhere;
+}
+
+.log__own {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--ink-tertiary);
+  overflow-wrap: anywhere;
+}
+
+.log__own--none {
+  color: var(--ink-faint);
+}
+
+/* A closing remark under a leaf's content. Shared, because three leaves end
+   with one and they should all read at the same weight. */
+.leaf__note {
+  margin-block-start: var(--space-m);
+  max-inline-size: 62ch;
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   QUERIES — the open questions
+   --------------------------------------------------------------------------
+   Numbered, because a notebook numbers the things it means to come back to.
+   -------------------------------------------------------------------------- */
+.queries {
+  display: grid;
+  gap: 0;
+  margin-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule);
+}
+
+.query {
+  display: grid;
+  gap: var(--space-2xs);
+  padding-block: var(--space-m);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+@media (min-width: 48rem) {
+  .query {
+    grid-template-columns: 3rem minmax(0, 1fr);
+    column-gap: var(--space-m);
+  }
+}
+
+.query__no {
+  color: var(--spot);
+  font-variant-numeric: tabular-nums;
+}
+
+.query__text {
+  margin: 0;
+  max-inline-size: 62ch;
+  font-size: var(--step-1);
+  line-height: var(--leading-snug);
+}
+
+.query__from {
+  margin-block-start: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+/* --------------------------------------------------------------------------
+   FILED — entries from the `learning` collection
+   -------------------------------------------------------------------------- */
+.filed {
+  display: grid;
+  gap: 0;
+  margin-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule);
+}
+
+.filed__item {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-s);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.filed__date {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-tertiary);
+}
+
+.filed__title {
+  font-size: var(--step-1);
+}
+
+.filed__empty {
+  margin-block-start: var(--space-m);
+  max-inline-size: 62ch;
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   OMITTED — what the notebook does not contain
+   -------------------------------------------------------------------------- */
+.omitted {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-s);
+  margin-block-start: var(--space-m);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.omitted li {
+  /* Struck out, the way an unfilled field on a form is. Same device ABOUT uses
+     for its unrecorded fields, deliberately: it is the same statement. */
+  text-decoration: line-through;
+  text-decoration-color: var(--rule-strong);
+}
+
+.omitted__note {
+  margin-block-start: var(--space-m);
+  max-inline-size: 62ch;
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   SOURCES
+   -------------------------------------------------------------------------- */
+.sources {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-block-start: var(--space-m);
+}
+
+.sources__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+  padding-block: var(--space-2xs);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.sources__what {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+  inline-size: 9rem;
+  flex: none;
+}
+
+.sources__link {
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+
+.out {
+  /* The external mark. Not colour-only, and not the link's only signal. */
+  font-size: 0.85em;
+  color: var(--ink-tertiary);
+}
+
+/* --------------------------------------------------------------------------
+   NARROW SCREENS — both tables recompose into labelled blocks
+   --------------------------------------------------------------------------
+   Not a horizontal scroll: four columns of prose do not survive one, and the
+   evidence column is the content. Same device as the GITHUB register.
+   -------------------------------------------------------------------------- */
+@media (max-width: 47.999rem) {
+  .subjects thead,
+  .log thead {
+    /* Clipped, not `display: none`: the headings are what the `data-label`
+       values quote, and they belong in the accessibility tree. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .subject__row,
+  .log tbody tr {
+    display: block;
+    padding-block: var(--space-s);
+    border-block-end: var(--world-rule-weight) solid var(--rule);
+  }
+
+  .subject__row td,
+  .subject__row th,
+  .log tbody td,
+  .log tbody th {
+    display: block;
+    padding: var(--space-3xs) 0;
+    border-block-end: 0;
+  }
+
+  .subjects td[data-label]::before,
+  .log td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-faint);
+  }
+
+  .strand__name {
+    display: block;
+    padding-block: var(--space-l) var(--space-2xs);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Forced colours: the margin rule and the struck-out omissions are the two
+   things that would otherwise disappear or turn to noise.
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .pad__body::before,
+  .position,
+  .log__intent {
+    border-color: CanvasText;
+  }
+
+  .standing[data-standing='not-attempted'],
+  .query__no {
+    color: CanvasText;
+  }
+}
+
+@media print {
+  .leaf,
+  .remake,
+  .query {
+    break-inside: avoid;
+  }
+
+  .pad__body {
+    padding-inline-start: 0;
+  }
+
+  .pad__body::before {
+    display: none;
+  }
+}
