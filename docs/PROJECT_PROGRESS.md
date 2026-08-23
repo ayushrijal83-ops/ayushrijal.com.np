@@ -31,7 +31,10 @@
 | M08 | Learning world + §9.4 verification for Cybersecurity | **Complete** | §1H below. Awaiting review. Eighteen inert verification regexes repaired. |
 | M09 | Contact world | **Complete** | §1I below. Awaiting review. World renamed to Correspondence; no form, by design. |
 | M10 | Final integration | **Complete** | §1J below. Awaiting review. Deployment artefacts added; first real keyboard audit. |
-| Cutover | V1 → V2 | Blocked on decisions | Four of them, §14. No engineering left. |
+| M11 | Cutover preparation | **Complete** | §1K below. Awaiting review. **READY FOR FINAL CUTOVER.** Text-resize limitation closed. |
+| Cutover | V1 → V2 | Blocked on decisions and settings | §14. Not deployed, not merged. |
+
+**M11 scope compliance:** no new world, no redesign, no framework, no CMS, no backend, no third-party contact service, **no dependency added** (`package.json` and `package-lock.json` unchanged). **CYBERSECURITY was not built and not modified** — only its `summary` string was corrected, because it advertised holdings the archive does not have (§1K.2). Four changes: legacy route handling (§1K.1), the data-table scroll port that closes M10’s text-resize limitation (§1K.11), that summary, and fourteen new assertions. No existing assertion was weakened and no exception was added to make one inert. Nothing is deployed and nothing is merged. V1 remains byte-identical, `main` is unmodified. See §1K.
 
 **M10 scope compliance:** no new world was built and no world was redesigned. **CYBERSECURITY was not built, not modified and not verified further.** Four changes, each an integration defect rather than a feature: `overflow-wrap: anywhere` on `body`, fixing a measured text-resize overflow on every world (§1J.3); `tabindex="-1"` on every `<main>`, fixing a skip link that scrolled without moving focus (§1J.4); five production artefacts the build had never shipped, two of which are deployment blockers (§1J.8); and seven assertions over them. **No dependency was added. No third-party service was introduced. No content claim was rewritten** — the one questionable claim found by the audit is reported in §1J.1 and left for decision. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1J.
 
@@ -3674,6 +3677,454 @@ Working tree clean on `v2`. `main` untouched; V1 byte-identical.
 
 ---
 
+## 1K. M11 — Cutover preparation
+
+**Status: M11 — READY FOR FINAL CUTOVER, pending four architect decisions.**
+Not deployed. Not merged. CYBERSECURITY not built, not modified.
+
+Every item below is labelled **IMPLEMENTED**, **VERIFIED**, **NOT VERIFIED**,
+**REQUIRES ARCHITECT ACTION** or **REQUIRES EXTERNAL ACTION**. Nothing is
+called complete that is not.
+
+### 1K.0 Baseline — VERIFIED
+
+Branch `v2`, HEAD `26de95c`, working tree clean before any change.
+
+| Check | Result |
+|---|---|
+| `npm ci` | clean |
+| `astro check` | 0 errors, 0 warnings, 0 hints |
+| `npm run verify` | pass (16 pages) |
+| `npm run test:github` | 18/18 |
+| `npm audit` | 0 vulnerabilities |
+| V1 integrity | byte-identical against `main` |
+
+### 1K.1 Legacy URL migration — IMPLEMENTED, and it caught a defect it created
+
+**One stub ships, not three, and the reason is the most important finding of
+this milestone.**
+
+`about.html`, `work.html` and `contact.html` were all written first. With them
+present, requests to the live routes returned:
+
+```
+/about     -> 200  <title>Moved to Personal Archive …
+/contact   -> 200  <title>Moved to Correspondence …
+```
+
+**The stubs replaced two of the seven worlds.** A static host resolving
+`/about` tries `about.html` before `about/index.html`, so a stub named after a
+live route does not redirect *to* that route — it *becomes* it. And since the
+stub redirects to `/about`, which resolves to the stub again, that is an
+infinite loop reached from the site's own navigation bar.
+
+Measured by request against the built output, not reasoned about. Both
+colliding stubs were withdrawn.
+
+| V1 URL | Handling | State |
+|---|---|---|
+| `/` | Serves `/` directly | **VERIFIED** |
+| `/work.html` | Stub → `/projects` | **IMPLEMENTED, VERIFIED** |
+| `/about.html` | → `/404.html` | **REQUIRES ARCHITECT ACTION** — destination known, blocked by the collision |
+| `/contact.html` | → `/404.html` | **REQUIRES ARCHITECT ACTION** — same collision |
+| `/journey.html` | → `/404.html` | **REQUIRES ARCHITECT ACTION** — no destination exists |
+| `/blog.html` | → `/404.html` | **REQUIRES ARCHITECT ACTION** — no successor |
+| `/assets/resume.pdf` | → `/404.html` | Not carried forward. Contents are unverified V1 copy |
+| `/ai` | Nothing | Renamed before publication; no such URL exists |
+
+`work.html` survives for one reason: there is no `/work` route for it to
+shadow. It is also the only legacy URL whose destination a visitor could not
+guess.
+
+**Unblocking `/about.html` and `/contact.html`** needs one external
+observation: deploy to a Pages preview and request `/about`. If the directory
+wins, both stubs can be enabled unchanged. If the file wins — as the local
+preview server showed — they must stay off, or target the trailing-slash form.
+
+The stub is hand-written HTML with no script, no external resource and no
+dependency on the archive's CSS: it has to work when everything else has
+failed. Zero-delay refresh (which is what keeps it clear of WCAG failure F40 —
+a timed refresh cannot be stopped by a reader who needs longer), plus a
+canonical and a visible link for readers whose refresh is blocked.
+
+`src/lib/legacy.ts` is the single authority. The stubs are generated from it
+and `verify-output.mjs` asserts against it, including a guard that fails the
+build if any entry collides with a world route.
+
+### 1K.2 AR-04 content correction — IMPLEMENTED, VERIFIED
+
+Was: *"Defensive security research, lab write-ups and findings."*
+Now: *"Nothing is filed here yet — the security work this archive can show is
+in the field notebook and the workshop."*
+
+The page was never the problem; it prints "0 entries". The summary was, because
+it is the string that travels — HOME's contents gloss, the route's meta
+description, and the masthead line directly above that empty state.
+
+Consumed in three places, all from one field in `worlds.ts`. The old phrase now
+appears in zero built files, and cannot return: three patterns are checked on
+every page, and `/cybersecurity` must keep declaring itself empty.
+
+The world's NAME is kept, deliberately. "Security Research Archive" labels what
+the drawer is for rather than what is in it, and it is only ever read on the
+page that immediately says it is empty.
+
+### 1K.3 Contact channels — UNCHANGED, still withheld
+
+Default kept. Nothing published, nothing restored, no consent inferred from V1.
+
+| Channel | State |
+|---|---|
+| `ayushrijal83@gmail.com` | Published, marked preferred |
+| `github.com/ayushrijal83-ops` | Published |
+| `linkedin.com/in/ayush-rijal-429516410` | Published |
+| WhatsApp / mobile number | **Withheld — REQUIRES ARCHITECT ACTION** |
+| Personal social account ×2 | **Withheld — REQUIRES ARCHITECT ACTION** |
+| `/assets/resume.pdf` | Not carried forward |
+
+Enforced, not merely intended: the build fails on any `wa.me` link or `tel:`
+href on any page.
+
+### 1K.4 The email discrepancy — RESOLVED from repository evidence
+
+M09 and M10 recorded this as open. It is closed, and it closes in the direction
+of no change.
+
+**The repository contains exactly one email address**, and three independent
+authoritative sources inside it agree:
+
+| Source | Finding |
+|---|---|
+| V1's published pages on `main` | `ayushrijal83@gmail.com` × 9. No other address |
+| The V2 tree | `ayushrijal83@gmail.com` × 6. No other address |
+| Authorship of **every commit** in the repository | `ayushrijal83@gmail.com` |
+| GitHub REST profile | `email: null` — carries nothing |
+
+There is **no conflicting address anywhere in the repository**. The
+near-identical string noted in M09 came from the session's own account
+metadata, which is not repository evidence and is not something this site may
+publish. The published address stands unchanged, and the build now asserts that
+exactly one address appears on the page.
+
+What repository evidence cannot establish is whether the mailbox is *read*.
+That is §1K.14.
+
+### 1K.5 Contact end-to-end — IMPLEMENTED (assertions), NOT VERIFIED (delivery)
+
+Asserted on every build: the `mailto:` exists, carries the declared address,
+carries its `subject=` prefill, is the only address on the page, no form or
+form control exists anywhere on the site, no hosted form relay appears
+(Formspree, Getform, Formsubmit, Basin, Netlify Forms, Web3Forms, Formcarry),
+no delivery-confirmation copy, and no credential in the output.
+
+**Mail delivery is NOT tested and cannot be.** CI can prove the link is
+correct; only a human can prove a message arrives. See §1K.14.
+
+### 1K.6 Deployment artefacts — VERIFIED
+
+| File | State |
+|---|---|
+| `public/CNAME` | `ayushrijal.com.np`, and nothing else |
+| `public/.nojekyll` | present |
+| `public/robots.txt` | allows the archive, disallows `/lab/`, names the sitemap on the production host |
+| `sitemap.xml` | 11 URLs, generated from `lib/worlds.ts` and the projects collection |
+| `404.html` | present, links back into the archive |
+
+Sitemap contains no `/lab/` page, no `.html` route, no development route, no
+`localhost`, no API endpoint. No source path or local filesystem path appears
+anywhere in the output.
+
+### 1K.7 Custom domain — VERIFIED in code, REQUIRES EXTERNAL ACTION to serve
+
+`public/CNAME` reads `ayushrijal.com.np`, matching `SITE.url`. DNS was not
+touched and **is not claimed to be configured** — that was not externally
+verified.
+
+**REQUIRES ARCHITECT ACTION:** the GitHub Pages source must be switched from
+the `main` branch to **GitHub Actions** by the repository owner. That is a
+repository setting; it cannot be done from code, and it must happen in the same
+window as the merge or the site serves a half-migrated tree.
+
+### 1K.8 GitHub Actions — inspected statically, NOT VERIFIED by execution
+
+Neither workflow was modified. No defect was found by inspection.
+
+| Property | `ci.yml` | `github-data.yml` |
+|---|---|---|
+| Triggers | push `v2`, PR, dispatch | cron `0 */6 * * *`, dispatch |
+| `permissions` | `contents: read` | `contents: write` — the minimum to commit |
+| Concurrency | grouped, cancel-in-progress | grouped, no cancel (correct: a fetched run should finish) |
+| Token handling | env var on one step only | env var on one step only |
+| Token written to a file | no | no |
+| Secrets committed | none | none |
+| Fetch script dependencies | — | zero; no `npm ci` before the fetch |
+| Verify before unattended commit | n/a | **yes** — `npm run verify` runs before `git push` |
+| Snapshot churn | — | `--promote` is a no-op unless a repository fact moved |
+
+**Still never executed.** `git ls-remote --heads origin` returns only `main`;
+`v2` has never been pushed, so GitHub has never seen either file. Static
+inspection is all that has been done, and that is recorded as the limit of it.
+Execution becomes an external verification step the moment the branch is
+pushed.
+
+### 1K.9 Security — VERIFIED
+
+Scan over the full build: **43 files, 37 of them text, 0 hits.**
+
+No GitHub token or PAT, no `Authorization` header, no OpenAI/Google/Slack-shaped
+key, no private key marker, no credential-shaped assignment, no local Windows
+path, no `process.env` reference, no `.env` value.
+
+| Property | Result |
+|---|---|
+| Source maps emitted | **0** |
+| Files with `sourceMappingURL` | **0** |
+| Shipped JS | 6 files, **6,195 bytes** |
+| `fetch` / `XMLHttpRequest` / `WebSocket` / `EventSource` / `sendBeacon` / dynamic `import` in shipped JS | **0** — the client code cannot make a network request at all |
+| `api.github.com` anywhere | **absent** |
+| Client-side GitHub token | none |
+| Client-side Ollama request | none |
+
+`localhost:11434` appears as **prose only**, on `/ai-lab` and `/learning` —
+never in an `href` or `src`, confirmed by attribute-level grep. It is Ollama's
+documented default port, published in M06 as an engineering constant.
+
+### 1K.10 Third-party origins — VERIFIED
+
+**Zero absolute `src=` attributes exist in the entire build.**
+
+| Class | Hosts |
+|---|---|
+| Resources (script, stylesheet, image, font, iframe, CSS `url()`) | **none** |
+| Outbound anchors (allowed, published deliberately) | `github.com`, `www.linkedin.com`, `overthewire.org` |
+
+No CDN, no external stylesheet, no external script, no analytics, no tracking
+pixel, no external font. Fonts remain self-hosted in `public/fonts`.
+
+The only `<iframe>` elements in the build are on `/lab/viewports` — the
+viewport measurement rig. They carry **no `src` attribute**, are populated at
+runtime with same-origin paths, have `title` attributes, and that page is
+disallowed in `robots.txt` and absent from the sitemap.
+
+### 1K.11 Responsive — VERIFIED, and the M10 limitation is closed
+
+**Normal text size: 10 widths × 12 pages = 120 combinations, zero horizontal
+overflow.** 320, 360, 375, 390, 414, 768, 1024, 1280, 1440, 1920.
+
+**Text-only 200% resize: 12 of 12 pages, zero overflow.** M10 left three
+failing; all three are fixed.
+
+| Page | M10 | M11 |
+|---|---|---|
+| PROJECTS | 137px | **0** |
+| AI LAB | 110px | **0** |
+| LEARNING | 97px | **0** |
+
+Four causes, four fixes, each aimed at a measurement:
+
+1. **The scroll port.** Five data tables wrapped in
+   `role="region"` + `aria-label` + `tabindex="0"`, the wrapper *outside* the
+   table so every caption, `thead` and `scope` is untouched. At 320px/32px the
+   three tables that cannot fit scroll inside their own region (346 > 209,
+   402 > 215, 374 > 225); the two that fit do not scroll and show no scrollbar.
+   `display: block` on the tables was explicitly not used.
+2. `.runs` → `grid-template-columns: minmax(0, 1fr)`. An implicit auto track is
+   at least its item's min-content, and a `.run` carries 96px of padding at a
+   32px root.
+3. `.sources__what` → `flex: 0 1 9rem` with `min-inline-size: 0`. As
+   `flex: none` it was a 288px label in a 249px row.
+4. `.outcome` loses `white-space: nowrap`. Every value it renders is one word,
+   so nowrap protected nothing that could wrap, and "INCONCLUSIVE" at 235px in
+   a 225px box was the last element on the site pushing a page sideways.
+
+No table scrolls at normal size, so no composition changed.
+
+### 1K.12 Accessibility — VERIFIED, with the limits stated
+
+Real keyboard audit, browser window genuinely focused (`document.hasFocus()`
+`true`), on every production route.
+
+| Page | Tabbables | No ring | Off-screen | Unnamed | Refused focus |
+|---|---|---|---|---|---|
+| HOME | 17 (real Tab traversal) | 0 | 0 | 0 | 0 |
+| ABOUT | 10 | 0 | 0 | 0 | 0 |
+| PROJECTS | 21 | 0 | 0 | 0 | 0 |
+| AI LAB | 29 | 0 | 0 | 0 | 0 |
+| LEARNING | 38 | 0 | 0 | 0 | 0 |
+| GITHUB | 31 | 0 | 0 | 0 | 0 |
+| CONTACT | 15 | 0 | 0 | 0 | 0 |
+| 404 | 17 | 0 | 0 | 0 | 0 |
+
+Also verified: **no positive `tabindex` anywhere** (the only `tabindex` in the
+build is `-1` on `<main>`, plus `0` on the five scroll regions); the skip link
+is the first stop and moves focus to `<main>` itself; `<main tabindex="-1">`
+draws no ring on a mouse click because the focus style is
+`:where(:focus-visible)`; no focus trap (the HOME chain wrapped through the
+browser chrome and back); one `<h1>` per page; zero duplicate ids; zero broken
+`aria-labelledby`; landmarks and `aria-current` intact; every external anchor
+carries `rel="noopener noreferrer"`.
+
+Every table keeps its `<caption>`, its `<thead>` (in the accessibility tree,
+clipped rather than `display: none` at narrow widths), and its `scope`
+attributes: 6/3, 5/7, 4/9, 4/17 + 5 colgroup, 4/13 col/row headers.
+
+**NOT VERIFIED, and not claimed: WCAG compliance.** No axe run, no Lighthouse
+run, no screen-reader pass has ever been done on this project. What is claimed
+is exactly the list above.
+
+### 1K.13 Reduced motion and no-JS — VERIFIED
+
+**45 animation declarations.** 43 are inside
+`@media (prefers-reduced-motion: no-preference)`. One — the HOME wordmark glyph
+strike — uses the opposite valid pattern, an explicit
+`@media (prefers-reduced-motion: reduce) { animation: none }`, and is protected
+twice because the duration token is zeroed under reduce as well. The 45th
+"declaration" my parser counted *is* that cancellation. **Zero unguarded.**
+
+No infinite animation in any stylesheet. No `outline: none` or `outline: 0`
+anywhere. The reduced-motion block still zeroes `--motion-scale` and the whole
+duration clock at the token source.
+
+**No-JS:** `<main>` text is identical with and without JavaScript on every
+world — ABOUT 1,683 · PROJECTS 1,683 · AI LAB 21,059 · CYBERSECURITY 372 ·
+LEARNING 11,781 · GITHUB 6,506 · CONTACT 3,652 · 404 435 characters. Zero
+inline scripts on any page. The redirect stub contains no script at all.
+
+### 1K.14 Manual test for the architect — REQUIRES ARCHITECT ACTION
+
+CI cannot prove mail is delivered. This is the only end-to-end test the Contact
+world has:
+
+1. Open `/contact`.
+2. Click the preferred email channel.
+3. Confirm the mail client opens with recipient `ayushrijal83@gmail.com`.
+4. Confirm the subject reads `Correspondence`.
+5. Send a real test message.
+6. Confirm it arrives, in that mailbox.
+
+### 1K.15 Internal link audit — VERIFIED
+
+17 HTML files, **252 internal links and fragments checked**.
+
+| Check | Result |
+|---|---|
+| Broken internal links | **0** |
+| References to `/ai`, `/journey`, `/blog` | **0** |
+| Stray `.html` links | **0** |
+| Dead fragments | **0** |
+| `/lab/` links | 3, all *within* `/lab/index.html` — never from a world's navigation |
+
+### 1K.16 Content claim audit — VERIFIED
+
+Fourteen fabrication patterns plus five M08-specific regression patterns, over
+all 17 pages. **Four matches, all reviewed and all legitimate:**
+
+| Match | Page | Why it stands |
+|---|---|---|
+| `30%` | /ai-lab | An EMA smoothing factor read from source (`SMOOTHING_FACTOR = 0.3`) |
+| `40%` | /projects/agrovision-nepal | The scoring weights read from source in M05 |
+| `19 commits` | /learning | The Bandit log's actual commit count, counted in a named public repository |
+| `52%` | /lab/pretext | CSS shown in a code block on an internal, robots-disallowed page |
+
+**Zero claims** of certification, award, employer, client, user count, follower
+count, founder title, deployment, trained model, years of experience,
+proficiency level, revenue, CVE, or security engagement.
+
+The M08 corrections were checked positively, not just by absence:
+
+| Correction | Present |
+|---|---|
+| "Running nmap against a real network is not recorded here" | yes |
+| "No capture of my own is published" | yes |
+| "Nothing here was trained" | yes |
+| Training a model → `Not attempted` | yes |
+| Jarvis says "no cloud API is involved", never "fully offline"/"no network" | yes |
+| "It is named the emotion engine and it does not detect emotion." | yes |
+| Head pose described as a nose-and-eye-line estimate, never "gaze" | yes |
+| AgroVision "Not built" roadmap boundary | yes |
+
+### 1K.17 Build and CI — VERIFIED
+
+Clean sequence from a clean tree: `npm ci` · `astro check` 0/0/0 ·
+`npm run verify` pass · `npm run test:github` 18/18 · `npm audit` 0.
+
+**17 HTML files** — 8 worlds, 3 project records, 4 lab pages, `404.html`, and
+1 legacy stub. Plus `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll`.
+
+No lab route appears in the sitemap or in any world's navigation. No missing
+asset, no broken internal link, no credential hit, no API origin.
+
+**No dependency was added.** `package.json` and `package-lock.json` are
+unchanged.
+
+### 1K.18 Assertions added — 14, all negative-tested
+
+Legacy: stub exists · zero-delay refresh to the right target · canonical ·
+visible fallback link · no script in a stub · **no stub may shadow a world
+route** · every unresolved URL is absent · the map is non-empty.
+Cybersecurity: three overstatement patterns · the empty state survives.
+Contact: subject prefill · exactly one address · hosted form relays.
+
+One planted paragraph, one deleted stub, one broken stub, one orphan file and
+one colliding map entry produce fourteen distinct failures.
+
+**A control character was caught again.** A `\b` was corrupted to U+0008 by the
+shell while writing the form-relay pattern — the third occurrence in this
+project. Found by the byte-level scan that M08 made standing practice, repaired
+before the result was believed. Zero remain in any script.
+
+### 1K.19 Browser coverage — Chrome VERIFIED, others NOT
+
+| Browser | Version | Coverage |
+|---|---|---|
+| Chrome | 151 / Windows 11 | Full: interaction, keyboard, focus, responsive, no-JS |
+| Firefox | 154 | Visual spot-check only (M10), not re-run in M11 |
+| Edge | 151.0.4129.101 | Screenshot only. Chromium — same engine as Chrome |
+| Safari / WebKit | — | **Not available on this machine. Not tested** |
+
+The M11 changes were verified in Chrome only. `overflow-x: auto` with
+`role="region"` is long-settled across engines, but that is reasoning, not a
+measurement, and it is recorded as such.
+
+### 1K.20 External actions still required
+
+1. **REQUIRES EXTERNAL ACTION — revoke and rotate the exposed OpenWeatherMap
+   credential in `Agriculture_simulator`.** Outside this repository, not
+   touched, value not reproduced anywhere in this archive, and no page
+   describes that repository as security-clean. Open since M05.
+2. **REQUIRES EXTERNAL ACTION — switch the GitHub Pages source to GitHub
+   Actions.** A repository setting; not possible from code.
+3. **REQUIRES EXTERNAL ACTION — push `v2`**, which is the only way CI and
+   `github-data.yml` can ever be observed.
+4. **REQUIRES ARCHITECT ACTION — send one real test email** (§1K.14).
+5. **REQUIRES EXTERNAL ACTION — confirm DNS** for `ayushrijal.com.np` points
+   where the new deployment will serve. Not verified here.
+
+### 1K.21 Unresolved architect decisions
+
+1. `/journey.html` and `/blog.html` destinations.
+2. Whether to enable `/about.html` and `/contact.html` stubs, which needs the
+   Pages resolution-order observation in §1K.1 first.
+3. The three withheld contact channels.
+4. Favicon and `og:image` — both still absent, both still correct to be absent,
+   both visible to every visitor and every shared link.
+5. CYBERSECURITY: hold as a stub, give it one real write-up, or fold it in.
+
+### 1K.22 Commits
+
+| Hash | |
+|---|---|
+| `8d56ec3` | `fix(cutover): finalize legacy route handling` |
+| `91a05c7` | `fix(a11y): make the data tables reflow safely under enlarged text` |
+| `555ab59` | `fix(content): correct the unsupported archive summary` |
+| `631b0cb` | `test(cutover): harden deployment verification` |
+| _this_ | `docs: record M11 cutover readiness` |
+
+Working tree clean on `v2`. `main` at `f42314e`, untouched. V1 byte-identical.
+`git diff --check` clean. No dependency change.
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -4052,7 +4503,76 @@ npm audit
 
 ---
 
-## 14. Next — the cutover, and four decisions that block it
+## 14. The cutover — what is blocking it, and the order to do it in
+
+M11 finished the engineering. `READY FOR FINAL CUTOVER` is the state; nothing
+is deployed and nothing is merged. What remains is decisions and settings.
+
+### Decisions, in the order they block things
+
+**1. `/journey.html` and `/blog.html`.** The two V1 URLs with no V2
+destination (§1K.1). `journey` was a timeline of claims, two of which M08 found
+unsupported; `blog` has no successor. Both currently reach `/404.html`, which
+names every sheet — a defensible answer, but it should be a chosen one.
+
+**2. `/about.html` and `/contact.html`.** Destinations are known. Stubs are
+NOT shipped because they would shadow the live routes and loop (§1K.1) — this
+was measured, not predicted. Enabling them needs one observation: deploy to a
+Pages preview and request `/about`. If the directory wins, both go back in
+unchanged; if the file wins, they stay off.
+
+**3. The three withheld contact channels** (§1K.3). A personal mobile and two
+social accounts, all real, all public on V1, all held back on a judgement made
+on your behalf. Default is KEEP WITHHELD and the build enforces it.
+
+**4. Favicon and `og:image`.** Both absent. Both correct to be absent —
+inventing card artwork would put the only decorative image on the site into its
+social preview — and both visible to every visitor and every shared link.
+
+**5. CYBERSECURITY.** Unchanged terms: hold it as a stub, give it one real lab
+write-up, or fold it into the worlds that already carry the material. Its
+summary no longer overstates (§1K.2), so holding is now a stable position
+rather than a temporary one.
+
+### Then, the cutover itself
+
+1. **Push `v2`.** Nothing else can be observed until this happens. It is also
+   what makes CI and `github-data.yml` run for the first time — watch both
+   before going further, and confirm the scheduled snapshot job commits only
+   when a repository fact has actually moved.
+2. **Revoke the OpenWeatherMap key** in `Agriculture_simulator`. Oldest open
+   item in this document, outside this repository, blocking nothing and
+   waiting on nobody.
+3. **Confirm DNS** for `ayushrijal.com.np`. Not verified from here.
+4. **Add the deploy workflow** on `v2` and verify it builds. Then, and only
+   then, switch the Pages source from the `main` branch to **GitHub Actions**
+   — a repository setting the owner must change, in the same window as the
+   merge, or the site serves a half-migrated tree.
+5. **Merge `v2` into `main`** and let the workflow deploy.
+6. **Verify in production:** the custom domain resolves; `/`, all eight world
+   routes and the three project records serve; `/work.html` redirects to
+   `/projects`; `/about.html` and the other orphans reach the 404; the sitemap
+   and `robots.txt` are served; `/_astro/` assets load, which is what
+   `.nojekyll` exists to guarantee.
+7. **Send one real email** to the published address (§1K.14). The only
+   end-to-end test the Contact world has.
+8. **Keep `v1-final`** until V2 has been stable in production for a week.
+
+### After cutover, when there is time
+
+- **A screen-reader pass and an axe run.** The two forms of accessibility
+  evidence this project has never had. Everything claimed so far is measured in
+  one browser or reasoned from source, and §1K.12 says so explicitly.
+- **Safari/WebKit.** Never tested; unavailable on the build machine.
+- **§9.7 — YushaCyber.** Referenced from four worlds, and none can offer a
+  destination beyond a repository.
+- **Measure something on the AI Lab bench** (§1F.14.4). LEARNING §05 publishes
+  five unmeasured results as open questions, which is a standing invitation to
+  close one.
+
+---
+
+## 14A. M11 recommendation (M10 record, now complete)
 
 M10 was the last engineering milestone. The archive is truthful, accessible,
 secure, fast and reproducible; what stands between it and production is a set
@@ -4118,7 +4638,7 @@ six V1 URLs resolving to something deliberate. `v1-final` kept for a week.
 
 ---
 
-## 14A. M10 recommendation (M09 record, now complete)
+## 14B. M10 recommendation (M09 record, now complete)
 
 **M10 — CUTOVER PREPARATION, not another world.** Seven of eight worlds are
 built. The eighth is blocked on a decision rather than on engineering, and the
@@ -4187,7 +4707,7 @@ revoked; a scheduled `github-data.yml` run observed; CI green including
 
 ---
 
-## 14B. M09 recommendation (M08 record, now complete)
+## 14C. M09 recommendation (M08 record, now complete)
 
 **M09 — CONTACT, and an architect decision about CYBERSECURITY.** Two worlds
 remain and the §9.4 verification run during M08 changed which of them is
@@ -4248,7 +4768,7 @@ and unmodified throughout.
 
 ---
 
-## 14C. M08 recommendation (M07 record, now complete)
+## 14D. M08 recommendation (M07 record, now complete)
 
 **M08 — LEARNING, and content verification for CYBERSECURITY started in
 parallel.** Three worlds remain and they are not equally ready. GITHUB was
@@ -4294,7 +4814,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14D. M07 recommendation (M06 record, now complete)
+## 14E. M07 recommendation (M06 record, now complete)
 
 **M07 — GITHUB, because it is the world the architecture has already built.**
 Four worlds remain and they are not equally ready. Pick by what can be
@@ -4335,7 +4855,7 @@ still unobserved since M05. V1 still live and unmodified throughout.
 
 ---
 
-## 14E. M06 recommendation (M05 record, now complete)
+## 14F. M06 recommendation (M05 record, now complete)
 
 **M06 — one more world, on the system that now has two worlds' worth of
 evidence behind it.** PROJECTS is the second content world built on the M04
@@ -4369,7 +4889,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14F. M03 recommendation (M02 record, now complete)
+## 14G. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -4386,7 +4906,7 @@ Recommended order:
 
 ---
 
-## 14G. M02 recommendation (M01 record, now complete)
+## 14H. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -4410,4 +4930,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M10 — FINAL INTEGRATION COMPLETE. Seven of eight worlds built and verified; CYBERSECURITY remains ON HOLD with no content of its own. The build is deployable for the first time — it was missing `.nojekyll` and `CNAME`, either of which would have broken production. The first real keyboard audit found and fixed a skip link that never moved focus. No engineering work remains before cutover: what remains is four decisions, set out in §14. Awaiting architectural review. Do not begin CYBERSECURITY, do not redesign a built world, and do not deploy until those decisions are answered.*
+*End of M11 — READY FOR FINAL CUTOVER. Not deployed, not merged. Seven of eight worlds built and verified; CYBERSECURITY remains ON HOLD, and its summary no longer overstates what it holds. The text-only 200% resize limitation carried since M10 is closed — 12 of 12 pages, zero overflow. Legacy routing found and avoided a redirect loop that would have taken two worlds off the site. What remains is five decisions and five external actions, set out in §14. Awaiting architectural review. Do not deploy, do not merge `v2` into `main`, do not begin CYBERSECURITY, and do not redesign a built world until the architect approves the cutover.*
