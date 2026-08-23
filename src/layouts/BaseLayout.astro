@@ -60,7 +60,13 @@ const fullTitle = title === SITE.title ? `${SITE.title} — ${SITE.role}` : `${t
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical.href} />
-    <meta name="twitter:card" content="summary_large_image" />
+    {/* `summary`, not `summary_large_image`. The archive publishes no
+        `og:image` — there is no photograph, screenshot or card artwork in it,
+        and inventing one for social previews would be the only decorative
+        image on the whole site. Declaring a large-image card with no image
+        tells X to render a card it cannot fill; `summary` is what this page
+        actually is. Corrected in M10. */}
+    <meta name="twitter:card" content="summary" />
 
     {/*
       Only the two faces used above the fold are preloaded. Preloading the
