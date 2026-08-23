@@ -137,15 +137,22 @@
    implementing it are separate steps and neither blocks the other.
 
    Implemented so far: `register` (HOME), `drawer` (ABOUT), `sheet` (PROJECTS),
-   `traverse` (AI LAB), `ruling` (GITHUB) and `leaf` (LEARNING). The remaining
-   two are declared and inherit the base wipe until their own world is built.
+   `traverse` (AI LAB), `ruling` (GITHUB), `leaf` (LEARNING) and `transmit`
+   (CONTACT). Only `seal` (CYBERSECURITY) is still declared and inheriting the
+   base wipe, which is a complete entrance in its own right.
 
-   The six implemented kinds are six different MOTIONS, not six timings of one
-   motion — outward to both margins, downward, apart along a crease, laterally
-   across, column by column in sequence, and hinged out of the plane
-   altogether. That is the constraint each new world's entrance has to satisfy:
-   if it moves the way a built world already moves, it is a duration change
-   wearing a different name.
+   The seven implemented kinds are seven different MOTIONS, not seven timings
+   of one motion — outward to both margins, downward, apart along a crease,
+   laterally across, column by column in sequence, hinged out of the plane, and
+   ratcheted behind a slanted edge. That is the constraint each new world's
+   entrance has to satisfy: if it moves the way a built world already moves, it
+   is a duration change wearing a different name.
+
+   By `transmit` the axis-aligned rectangle was exhausted, and the two axes
+   left were GEOMETRY (a non-rectangular clip) and CHARACTER (indexed rather
+   than continuous motion). It uses both. `seal` should expect to find the
+   space tighter still, and the honest answer there may be that the base wipe
+   plus one strong mark is better than a seventh variation.
 
    A kind chooses its own DURATION here too, off the shared clock in tokens.css
    — `--dur-base` / `--dur-slow` / `--dur-plate`. It is not a field in
@@ -851,5 +858,139 @@
     opacity: 1;
     visibility: visible;
     transform: perspective(150vw) rotateY(0deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   CONTACT — `transmit`
+   --------------------------------------------------------------------------
+   A sheet drawn off through a franking machine.
+
+   By M09 the rectangle has run out. Six entrances already own the obvious
+   `inset()` geometries — collapse to a vertical centre line (`register`), down
+   and clipped from the top (`drawer`), two leaves apart along a crease
+   (`sheet`), a straight edge travelling to the end margin (`traverse`), and
+   bands cut upward on a column pitch (`ruling`) — and `leaf` owns rotation.
+   Anything else built out of an axis-aligned rectangle is one of those
+   mirrored, which the note at the top of this file rules out by name.
+
+   So this one is distinguished on the two axes nobody has used:
+
+   1. THE EDGE IS NOT AXIS-ALIGNED. Every other kind is a rectangle or a mask
+      of rectangles. This is the archive's only `polygon()`: the plate is
+      withdrawn behind a SLANTED edge, top corner leading, the angle a sheet
+      leaves a feed at. It does not translate — the sheet is not carried away,
+      it is drawn THROUGH something.
+
+   2. THE MOTION IS INDEXED. Every other entrance moves continuously.
+      This one advances in discrete clicks, and it is the first and only use of
+      `--ease-step` — a token that has been sitting in tokens.css since M02
+      waiting for the world that had a mechanical reason for it. A franking
+      machine does not glide; it ratchets.
+
+   The mark that makes it a mechanism rather than a wipe, as every kind has
+   one: the cancellation. Five parallel bars in the correspondence ink across
+   the leading corner, the way post is franked. They are ON the plate, so they
+   are drawn off with it, one click at a time.
+
+   --dur-slow (560ms) on --ease-step, of which the first 18% is the hold —
+   inside the 400-800ms guideline, over content the browser has already
+   painted. Resting state is hidden, as for every kind, so reduced motion and a
+   failed animation both resolve to "correspondence open".
+   -------------------------------------------------------------------------- */
+.gate[data-gate-kind='transmit'] {
+  /* The label sits low and at the start edge — where a letter is signed,
+     rather than where it is headed. It is the last thing drawn off. */
+  align-content: end;
+  padding-block-end: var(--space-2xl);
+}
+
+.gate[data-gate-kind='transmit']::after {
+  /* The cancellation. Five bars, in the correspondence ink, across the corner
+     the sweep reaches first. Drawn with a repeating gradient rather than five
+     elements for the same reason GITHUB masks two pseudo-elements instead of
+     rendering N columns: one world's entrance should not cost every world's
+     DOM. */
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  inline-size: min(42vw, 22rem);
+  block-size: var(--space-2xl);
+  background-image: repeating-linear-gradient(
+    -68deg,
+    var(--world-accent) 0 2px,
+    transparent 2px 0.75rem
+  );
+  border-block-end: 1px solid var(--world-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gate[data-gate-kind='transmit'] {
+    animation: gate-transmit var(--dur-slow) var(--ease-step) forwards;
+  }
+
+  /* The signature is on the sheet, so it is drawn off with it, and it is
+     indexed like everything else here. A continuous settle underneath a
+     ratcheting plate would be two clocks running at once — the same reason
+     PROJECTS' and AI LAB's labels take their plate's motion. */
+  .gate[data-gate-kind='transmit'] .gate__rule,
+  .gate[data-gate-kind='transmit'] .gate__title,
+  .gate[data-gate-kind='transmit'] .gate__enter {
+    animation: gate-transmit-label var(--dur-slow) var(--ease-step) backwards;
+  }
+
+  /* Leaving feeds the sheet back in, the same way round. */
+  .gate[data-gate-kind='transmit'][data-state='leaving'] {
+    animation: gate-transmit-close var(--dur-base) var(--ease-step) forwards;
+  }
+
+  .gate[data-gate-kind='transmit'][data-state='leaving'] .gate__rule,
+  .gate[data-gate-kind='transmit'][data-state='leaving'] .gate__title,
+  .gate[data-gate-kind='transmit'][data-state='leaving'] .gate__enter {
+    animation: none;
+    translate: 0 0;
+  }
+}
+
+@keyframes gate-transmit {
+  0%,
+  18% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    /* Withdrawn past the inline-start edge, top corner first. The two moving
+       vertices travel different distances, which is what keeps the trailing
+       edge slanted the whole way across instead of squaring up at the end. */
+    clip-path: polygon(0% 0%, -40% 0%, 0% 100%, 0% 100%);
+  }
+}
+
+@keyframes gate-transmit-label {
+  /* Fed in from the start edge and stopped, before the sheet is drawn off.
+     Opaque throughout: this is a settle, not a reveal. */
+  0% {
+    translate: -0.6rem 0;
+  }
+  18%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes gate-transmit-close {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: polygon(0% 0%, -40% 0%, 0% 100%, 0% 100%);
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
 }
