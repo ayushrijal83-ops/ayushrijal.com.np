@@ -29,7 +29,10 @@
 | M06 | AI Lab world | **Complete** | §1F below. Awaiting review. `/ai` renamed `/ai-lab`. |
 | M07 | GitHub world | **Complete** | §1G below. Awaiting review. `EXCLUDED_REPOS` retired. |
 | M08 | Learning world + §9.4 verification for Cybersecurity | **Complete** | §1H below. Awaiting review. Eighteen inert verification regexes repaired. |
-| M09+ | Contact, a decision on Cybersecurity, redirects, cutover | Not started | §9.4 found CYBERSECURITY has no content of its own — §14. |
+| M09 | Contact world | **Complete** | §1I below. Awaiting review. World renamed to Correspondence; no form, by design. |
+| M10+ | Cutover preparation | Not started | Redirect map (R10), the CYBERSECURITY decision, text-resize pass. §14. |
+
+**M09 scope compliance:** the CONTACT world was built. **CYBERSECURITY was not built, not modified and not verified further** — it remains on hold pending the §14 decision recorded in M08. Three changes fell outside CONTACT, each a consequence rather than scope: `global.css` and `ArchiveContents.astro`, because renaming the world to “Correspondence” put a fourteen-character unbreakable word into display type and a horizontal scrollbar onto HOME (§1I.5); `worlds.ts`, for this world’s own name, gate copy and entrance; and `verify-output.mjs`, for the new assertions. **No third-party service and no dependency were introduced** — the no-form decision is what made that possible rather than something that had to be worked around. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1I.14.
 
 **M08 scope compliance:** the LEARNING world was built. **CYBERSECURITY and CONTACT are NOT STARTED** — they remain M02 shells. No world was redesigned and no built world changed visually. Four changes fell outside LEARNING, each a consequence rather than scope: the verification scripts, whose existing guards turned out not to run at all (§1H.9); four lines in `github.astro` fixing the “0 repositories” fallback that the repaired guard immediately caught; one markdown heading renamed to clear a duplicate id on `/ai-lab`; and `worlds.ts`, for this world’s own summary and entrance. No dependency was added — one was proposed for the duplicate-id fix and rejected as disproportionate. V1 remains byte-identical, `main` is unmodified, nothing is merged. See §1H.14.
 
@@ -2817,6 +2820,423 @@ Working tree clean on `v2`. `main` untouched; V1 byte-identical.
 
 ---
 
+## 1I. M09 — Contact world
+
+**Status: M09 — CONTACT — COMPLETE.** Awaiting architectural review.
+**Scope:** one objective. Build the CONTACT world. CYBERSECURITY was not
+touched and remains on hold pending the §14 decision recorded in M08.
+
+Route `/contact`. World renamed **Transmission Room → Correspondence**, sheet
+**AR-07**, ground `tape`, entrance `transmit`. Five clauses. No client
+JavaScript beyond the shared world gate, and **no form**.
+
+### 1I.0 The problem this world had
+
+Seven worlds document. This is the one where the archive stops documenting and
+a person answers, and that change of mode is the whole design problem — the
+page has to read as the natural final action of an archive rather than as the
+thing bolted to the end of a portfolio.
+
+It also has the archive's only failure mode that is invisible from the inside:
+**a wrong address fails silently.** A visitor writes, gets nothing back, and
+concludes they were ignored. Nobody writes a second time to report the typo. So
+contact details were treated with the same discipline as credentials — read out
+of a source Ayush published himself, with the source named next to the value on
+the page.
+
+### 1I.1 Content verification
+
+Sources checked: `contact.html` on the live V1 site (branch `main`), and the
+GitHub REST profile for `ayushrijal83-ops`.
+
+**The GitHub profile carries nothing.** `email`, `blog`, `location`, `company`,
+`bio` and `twitter_username` are all null. Worth recording as a negative
+result: no value on this page could have been sourced from there, and the
+absence of `location` independently corroborates ABOUT's "Location — not yet
+recorded".
+
+V1 publishes **six** outbound channels. Three are carried forward:
+
+| Channel | Standing | Source |
+|---|---|---|
+| `ayushrijal83@gmail.com` | **Verified** | Published on V1 `contact.html` as a `mailto:` |
+| `github.com/ayushrijal83-ops` | **Verified** | The account this archive is compiled from; also on V1 |
+| `linkedin.com/in/ayush-rijal-429516410` | **Verified** | Published on V1 `contact.html` |
+
+Three are not, and **not because they failed verification** — they are real and
+public today:
+
+- **A WhatsApp link containing a personal mobile number.** Held back. It is a
+  standing privacy cost — spam, and a phone number is a social-engineering
+  primitive — with no matching benefit on a correspondence sheet. It is public
+  on V1, so listing it would disclose nothing new; but V2 is a deliberate
+  rebuild, and carrying a personal mobile forward should be an explicit
+  decision by its owner rather than a default inherited from the page being
+  replaced. `verify-output.mjs` now fails the build on any `wa.me` link or
+  `tel:` href, so reversing this requires deleting a check that says why.
+- **Two personal social accounts.** Held back on relevance. This world is a
+  channel for writing to a person about work; a social index is a different
+  page and this archive does not have one. Clause 05 says on the page that
+  social accounts exist and are deliberately not indexed, so the omission is
+  stated rather than silent.
+
+Reversing either decision is a three-line edit to `CHANNELS` in
+`lib/contact.ts`. **This is flagged for the architect** — see §14.
+
+Two further V1 items were checked and rejected:
+
+- **`/assets/resume.pdf`.** Not present in V2's `public/`, so a link would 404
+  after cutover. Its contents are also V1 copy, which §9.4 records as never
+  having been verified — M08 found two V1 claims that do not survive. Not
+  carried forward.
+- **The V1 identity line, "Cybersecurity Developer • AI Builder • Founder".**
+  Conflicts with the M03-A approved record; "Founder" was never supplied. The
+  page prints `PROFILE.identity` verbatim instead, as every other world does.
+
+**Facts this page does not assert**, named on it individually rather than
+omitted: availability, rates, location, employment status, response time. A
+contact page that simply leaves out rates reads as expensive; one that leaves
+out availability reads as unavailable. Neither is a thing this page knows.
+
+### 1I.2 Visual system — the letter
+
+| | |
+|---|---|
+| Stock | `#f4f1ec` — the lightest and warmest in the archive. Raised `#faf8f4`, recessed `#eae7e0`, edge `#ded9d0` |
+| Ink ramp on that stock | **15.41 / 7.80 / 5.96 / 5.05** — the highest contrast of any world |
+| Channel | `#63384c` cancellation plum, **8.47:1**, carries text as well as linework |
+| Ground | `tape`, unchanged — sprocket perforations down both margins |
+| Spot | **None.** The only world that spends no spot colour at all |
+
+The highest-contrast stock is deliberate: this is the one page a visitor has to
+read carefully enough to act on. The plum is the violet-black of a postal
+cancellation and of aniline copying ink — dark, low-chroma, red-leaning, and
+specifically not the bright violet the brief rules out. It was the last
+unclaimed hue after red, brown, drafting blue, green, graphite and indigo. On a
+letter there is one ink, so the world's accent is its only colour.
+
+**The `tape` ground was kept and re-read rather than redrawn.** Perforated
+continuous stationery *is* correspondence stock, and it was already the only
+ground in the archive that marks an edge condition instead of ruling a field.
+Swapping a ground that works and is already unique would have been churn
+dressed as design.
+
+**One inversion carries the world.** Every other sheet in the archive reads
+down the START edge — HOME centres, ABOUT hangs labels in a left margin,
+PROJECTS and GITHUB tabulate from the left, LEARNING rules a red margin down
+the left. This is **the only sheet with anything aligned to the END edge**: the
+reference block, top right, where a letter carries its references. Below 48rem
+it returns to reading order, because an end-aligned block in a 280px column is
+not a letterhead, it is a ragged left edge.
+
+Two supporting devices and no others: **fold marks** at the thirds of the body
+(the registration a sheet carries so it folds square into an envelope), and a
+**narrower measure** — a letter is set narrow because it is read once, closely,
+by one person.
+
+### 1I.3 Transition — `transmit`
+
+The seventh entrance, and the point at which the rectangle ran out. Six kinds
+already own the obvious `inset()` geometries and `leaf` owns rotation; anything
+else built from an axis-aligned rectangle is one of those mirrored, which the
+note in `gate.css` rules out by name.
+
+So it is distinguished on the two axes nobody had used:
+
+1. **The edge is not axis-aligned.** The archive's only `polygon()`: the plate
+   is withdrawn behind a slanted edge, top corner leading. It does not
+   translate — the sheet is not carried away, it is drawn *through* something.
+2. **The motion is indexed.** Every other entrance moves continuously. This one
+   advances in discrete clicks, and it is the **first and only use of
+   `--ease-step`** — a token that has sat in `tokens.css` since M02 waiting for
+   a world with a mechanical reason for it. A franking machine does not glide.
+
+The mark that makes it a mechanism rather than a wipe, as every kind has one:
+five parallel bars in the correspondence ink across the leading corner. They
+are on the plate, so they are drawn off with it, one click at a time.
+
+560 ms on `--ease-step`, 18% hold — inside the 400–800 ms guideline, over
+content the browser has already painted. Measured mid-sweep (paused at 300 ms)
+at 320 / 768 / 1920: the plate's right edge sits **exactly at the viewport** and
+document overflow is **zero** at all three. Leaving plays `gate-transmit-close`
+and the navigation completes.
+
+### 1I.4 The contact mechanism
+
+**No form. No third-party service. No new dependency.**
+
+The output is static HTML on GitHub Pages. A form would need a third party to
+receive it, routing a stranger's message and address through a company neither
+party chose, under a privacy policy neither party read — a real cost paid by
+the visitor to save one click. The alternative is worse and it is the one that
+gets built by accident: a form that validates, clears itself, prints *message
+sent* and transmits nothing. **That one passes every test a browser can run on
+it**, which is precisely why the assertion for it had to be written by hand.
+
+Clause 04 publishes that reasoning. An unexplained absence reads as an
+oversight; an explained one reads as a decision.
+
+The mechanism is a plain `mailto:` with a `subject=Correspondence` prefill, and
+the address is also the link text — so it works with no mail client registered,
+with no JavaScript, and by copy-paste. `rel="noopener noreferrer"` is applied
+to the two `http` links and deliberately not to the `mailto:`, where it has no
+meaning.
+
+### 1I.5 An architecture bug found and fixed at the smallest layer
+
+Renaming the world produced a genuine regression, and it reached HOME.
+
+`.t-display` had no break behaviour. "CORRESPONDENCE" is fourteen characters
+with nowhere to wrap and measures **340px** against a 305px viewport, so it
+overflowed its own `<h1>` by 36px — and the HOME contents index, which prints
+whatever each world calls itself, by 6px. Nothing had triggered it in eight
+milestones because every previous world name either fits or contains a space
+("Transmission Room" wraps freely).
+
+Fixed on `.t-display` in `global.css` rather than on the two selectors that
+happened to break, because the property being asserted is *display type never
+overflows* and it has to hold for the next world name nobody has written yet.
+`hyphens: auto` where the engine can hyphenate, `overflow-wrap: break-word` as
+the guarantee where it cannot; `break-word` acts only when a word genuinely
+does not fit, so nothing that fits today changes. `.contents__name` takes the
+same two lines because it does not use `.t-display` — its weight, size and
+tracking differ — and it is the one element in the archive that renders text it
+does not control.
+
+Verified afterwards across all eight worlds at all nine widths.
+
+A second, smaller instance was caught by the stress pass: `.correspondent__name`
+would overflow by 575px given a 53-character space-free name. Real names are
+not guaranteed to contain a space; `overflow-wrap: break-word` added.
+
+### 1I.6 Accessibility
+
+| | |
+|---|---|
+| Headings | 1 `<h1>`, 5 `<h2>`, no level skipped |
+| Landmarks | one `<main>`, one `<nav>`, skip link present, `aria-current="page"` |
+| Duplicate ids | 0 |
+| Broken fragment links | 0 |
+| `aria-labelledby` targets | all resolve |
+| Form controls | **0** — asserted site-wide |
+| External links | 3, all `rel="noopener noreferrer"`, all with a `↗` |
+| `mailto:` links | 1, no `rel` (correct — it has no meaning on a mail scheme) |
+| Tab stops | 15 |
+| Colour | The preferred channel is marked with the **word** "preferred", not only with colour or position. Struck-out omissions carry the strike, not a colour |
+| Narrow screens | The reference block returns to reading order below 48rem; the fold marks are removed where there is no margin to hold them |
+| Forced colours | Fold marks, the correspondent rule and all three accent-only distinctions resolve to `CanvasText` |
+
+**Not verified, and not claimed:** the live focus-visible pass could not run.
+`document.hasFocus()` was `false` throughout — the browser window had no OS
+focus, so `:focus-visible` never matches and a programmatic focus proves
+nothing. This is the fourth consecutive milestone with that limitation. What
+was done instead: a static audit confirming **no rule in any stylesheet sets
+`outline: none` or `outline: 0`**, so nothing suppresses the ring. That is
+weaker evidence and is recorded as weaker.
+
+No axe run, no Lighthouse run, no screen-reader pass. Unchanged since M05.
+
+### 1I.7 Reduced motion
+
+Every `animation:` declaration in `contact.css`, `gate.css` and `global.css` is
+inside `@media (prefers-reduced-motion: no-preference)` — checked by parsing
+the files, not by reading them. The clock is zeroed at the token source.
+
+The gate's fail-safe was verified empirically rather than assumed: cancelling
+the entrance animation outright — the "animation never ran" case — leaves the
+plate at `visibility: hidden`, `opacity: 0`, with all 3,652 characters of
+`<main>` present and laid out. Identical behaviour on `/`, `/learning` and
+`/contact`.
+
+The page's only movement is two hairlines a centimetre long.
+
+### 1I.8 No-JS
+
+`<main>` text is **byte-identical** with and without JavaScript — 3,652
+characters, 3 channels, 5 matters. One external script on the route (the shared
+world gate, 639 B); no inline script.
+
+Everything the page exists to do works with scripting off: the address is a
+link and also plain text, the two profile links are anchors, and no content is
+behind an interaction.
+
+### 1I.9 Security
+
+Credential scan clean. `npm audit`: 0 vulnerabilities. No token, header,
+secret, key, environment value or local path in `dist/`.
+
+**No third-party contact service was introduced, and none was evaluated into
+the build.** The CSP is unchanged, and the no-third-party-origin assertion was
+not weakened — the form decision in §1I.4 is what made that possible rather
+than something that had to be worked around.
+
+Two site-wide assertions added, both of which are security or privacy
+properties rather than style rules: no form or form control on any page, and no
+`wa.me` link or `tel:` href on any page.
+
+Publishing an email address in plain HTML exposes it to scrapers. Accepted:
+V1 already publishes the same address in the same way, so this is not a new
+disclosure, and the alternatives — JavaScript obfuscation or an image — break
+the no-JS guarantee or the copy-paste path, which is a worse trade for the one
+visitor who actually wants to write.
+
+**Unresolved and unchanged:** the exposed OpenWeatherMap credential in
+`Agriculture_simulator` still requires revocation and rotation. Outside this
+repository, outstanding since M05, and no page here describes that repository
+as security-clean. The value is not reproduced anywhere in this archive.
+
+### 1I.10 Responsive testing
+
+**Nine widths × eleven pages — 99 combinations, zero horizontal overflow.**
+320, 360, 375, 414, 768, 1024, 1280, 1440, 1920, across all eight worlds and
+the three project records.
+
+Worth stating precisely: the harness measures inside an iframe with a classic
+15px scrollbar, so the **effective** viewport is 15px narrower than the label —
+the 320 case is really tested at 305. That is stricter than the label claims,
+not looser.
+
+Stress pass at 320px, all six injected at once: an 80-character email address,
+an 87-character repository URL, a 55-character link label, a 53-character
+space-free name, a 39-character single-word title, and a 78-character subject
+line. **Zero overflow.** One of them — the name — found the bug in §1I.5 when
+run individually first.
+
+**A limitation, measured rather than glossed:** under a **text-only** resize to
+200% (`html { font-size: 32px }` at a 320px viewport), every world overflows —
+`/` by 214px, `/ai-lab` 148, `/github` 142, `/projects` 137, `/contact` 128,
+`/about` 110, `/learning` 97. Contact is mid-pack and this is a pre-existing
+site-wide property, not an M09 regression. Browser *zoom*, the common case,
+scales the viewport with the text and is covered by the sweep above; what fails
+is text-only enlargement (Firefox's text-only zoom, or a user stylesheet).
+Fixing it is a system-wide typography change across seven built worlds and is
+recommended for M10 rather than patched into one page — see §14.
+
+### 1I.11 Performance
+
+| | |
+|---|---|
+| `/contact` HTML | 17,437 B — the smallest world page in the archive |
+| `contact.css` | 6,083 B — the smallest world stylesheet |
+| `BaseLayout.css` | 24,021 B (from 22,366 — the `transmit` entrance) |
+| **JavaScript on `/contact`** | **639 B**, one script, the shared world gate |
+| `dist/` total | 491,056 B, 15 pages |
+| `astro check` | 0 errors, 0 warnings, 0 hints |
+| `npm audit` | 0 vulnerabilities |
+
+No dependency was added. No animation library, no form library, no third-party
+embed.
+
+### 1I.12 Browser testing
+
+Chrome 151 on Windows 11 only. **Firefox, Safari, Edge and real mobile devices
+were not tested, and nothing is claimed about them.** No new browser
+automation was installed to inflate the report.
+
+Two things make this gap slightly more expensive than last milestone: the
+`transmit` entrance is the archive's first animated `polygon()` clip-path, and
+`hyphens: auto` (added in §1I.5) has different dictionary support per engine —
+though `overflow-wrap: break-word` is the guarantee behind it precisely so the
+result does not depend on hyphenation being available.
+
+### 1I.13 Build, CI and verification
+
+`npm run verify` green · `npm run test:github` 18/18 · `astro check` 0/0/0 ·
+`npm audit` 0 · 15 pages · console clean across all 11 routes.
+
+**Four new assertions, all negative-tested:**
+
+*2j — CONTACT.* Every channel declared in `lib/contact.ts` reaches the page,
+counted against the source rather than against a copy of it. The declared
+address appears both as a `mailto:` and as readable text. Six overclaim
+patterns — *hire me*, *open to work*, *available for*, two shapes of response
+time, *freelance* — each matching a CLAIM and never a mention, since the page
+prints "Availability" in its struck list and has to stay able to.
+
+*2k — site-wide.* No `<form>` or form control on any page. No `wa.me` link or
+`tel:` href on any page. No delivery-confirmation copy.
+
+One planted paragraph, one form and two links produce **thirteen distinct
+failures**, plus a fourteenth from the existing `rel` guard. Per the M08
+incident, `verify-output.mjs` and every other file M09 touched were also
+scanned at **byte level** for control characters before any result was
+believed: zero across nine files.
+
+### 1I.14 Scope compliance
+
+**Built:** `/contact` only. **CYBERSECURITY was not built, not modified and not
+verified further** — it remains on hold pending the §14 decision recorded in
+M08.
+
+Touched outside the Contact world, and why each was necessary:
+
+- `src/styles/global.css` and `src/components/home/ArchiveContents.astro` — the
+  display-type overflow regression the rename caused (§1I.5). Not optional: it
+  put a horizontal scrollbar on HOME.
+- `src/lib/worlds.ts` — this world's name, gate copy, summary and entrance.
+- `scripts/verify-output.mjs` — the new assertions.
+
+No world was redesigned. No visual change was made to HOME, ABOUT, PROJECTS,
+AI LAB, GITHUB or LEARNING beyond the one-line typography guarantee, which
+changes nothing that already fits.
+
+### 1I.15 Known limitations
+
+1. **Focus pass not run.** `document.hasFocus()` false for the fourth
+   consecutive milestone; static audit only (§1I.6).
+2. **One browser.** Firefox, Safari, Edge and real mobile untested.
+3. **No axe, no Lighthouse, no screen reader.** Unchanged since M05.
+4. **Text-only 200% resize overflows on all seven built worlds** (§1I.10).
+   Measured, site-wide, pre-existing, and recommended for M10.
+5. **Three verified channels are held back** (§1I.1), including a phone number.
+   That is a judgement made on the owner's behalf and needs his confirmation.
+6. **The email address is near-identical to another in circulation.** The
+   published value on V1 is `ayushrijal83@gmail.com`; the account this work was
+   commissioned from uses a one-letter-different local part. Only the published
+   value is on the site, which is the correct source — but a one-character
+   difference between two live addresses is exactly the kind of thing worth
+   confirming once, out loud, before cutover.
+7. **`lib/contact.ts` is hand-maintained.** The completeness guard catches a
+   channel that stops rendering; it cannot catch one that is wrong.
+8. **The archive cannot test that mail arrives.** Nothing in CI proves the
+   address is live. Sending one message to it is a thirty-second check nobody
+   has performed.
+9. **OpenWeatherMap key still live.**
+10. **The scheduled `github-data.yml` run remains unobserved** since M05.
+
+### 1I.16 Commits
+
+| Hash | |
+|---|---|
+| `6199b9c` | `fix(type): let display type break rather than push the page wide` |
+| `2db7051` | `feat(world): print Contact on correspondence stock, in cancellation ink` |
+| `1e539d1` | `feat(contact): ratchet the sheet off` |
+| `41dbf05` | `feat(contact): build the correspondence sheet` |
+| `753bcbb` | `test(contact): assert a real address, and nothing pretending to send` |
+| _this_ | `docs: record M09 — the correspondence sheet` |
+
+Working tree clean on `v2`. `main` untouched; V1 byte-identical.
+
+### 1I.17 Final world state
+
+| Sheet | World | Status |
+|---|---|---|
+| AR-00 | The Living Archive | **Complete** |
+| AR-01 | Personal Archive | **Complete** |
+| AR-02 | Engineering Workshop | **Complete** |
+| AR-03 | Experimental Laboratory | **Complete** |
+| AR-04 | Security Research Archive | **On hold** — no content of its own (§1H.8) |
+| AR-05 | Field Notebook | **Complete** |
+| AR-06 | Public Code Archive | **Complete** |
+| AR-07 | Correspondence | **Complete** |
+
+**Seven of eight worlds are built.** Seven of eight gate entrances are
+implemented; only `seal` still inherits the base wipe. The remaining work
+before cutover is not a world — it is the CYBERSECURITY decision, the redirect
+map (R10), and the outstanding external items below.
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -3195,7 +3615,76 @@ npm audit
 
 ---
 
-## 14. Next milestone — M09 recommendation
+## 14. Next milestone — M10 recommendation
+
+**M10 — CUTOVER PREPARATION, not another world.** Seven of eight worlds are
+built. The eighth is blocked on a decision rather than on engineering, and the
+things now standing between this branch and production are all infrastructure.
+
+### Two decisions that are yours, not the implementation's
+
+**1. CYBERSECURITY.** Unchanged from §14 as written in M08, and now the only
+world left. §1H.8 found it has no content of its own: every verifiable security
+claim in the archive is already published in LEARNING, PROJECTS or GITHUB, and
+no certification, course, CTF placement, engagement, CVE or disclosure exists
+to populate the `labs` schema. Three ways forward — hold it back as a stub, give
+it new work (one real lab write-up), or fold it into the worlds that already
+carry the material. Recommended: hold it back now, and treat the write-up as a
+standing task for Ayush rather than a milestone.
+
+**2. THE THREE HELD-BACK CONTACT CHANNELS** (§1I.1). A WhatsApp link containing
+a personal mobile number, and two personal social accounts, are public on V1
+and were not carried forward. That was a judgement made on your behalf and it
+should be confirmed or reversed explicitly. Reversing it is three lines in
+`lib/contact.ts` plus deleting the guard that documents why.
+
+While you are there: **confirm the email address out loud once** (§1I.15.6).
+The published value and the account address differ by one letter, and the site
+is about to start pointing strangers at one of them.
+
+### Then, in order
+
+1. **Build the redirect map (R10).** Six V1 URLs — `/`, `/about`, `/work`,
+   `/journey`, `/blog`, `/contact` — need destinations before `v2` can merge.
+   `/work` → `/projects` and `/journey` → `/learning` are the two that need a
+   decision rather than a rewrite; `/blog` has no destination at all. This is
+   now the single largest piece of work between here and production, and it
+   has been deferred since M02.
+2. **Revoke the OpenWeatherMap key** in `Agriculture_simulator` (§1E.5, §1G.9,
+   §1H.13, §1I.9). The oldest open item in this document, outside this
+   repository, and not waiting on a milestone.
+3. **Observe a scheduled `github-data.yml` run.** Unobserved since M05. The
+   fallback path is still the only one that has ever been exercised, which
+   means the happy path has been tested exactly once, by hand, four milestones
+   ago.
+4. **Fix the text-only 200% resize** (§1I.10). All seven built worlds overflow
+   under `html { font-size: 32px }` at 320px, by 97–214px. It is a system-wide
+   typography change — the fluid `clamp()` scale, the fixed `rem` grid columns
+   and the `ch`-based measures interact — so it belongs in one deliberate pass
+   over `tokens.css` and the world stylesheets, not in whichever world happens
+   to be built next. Browser zoom is unaffected and already passes.
+5. **Add a second browser.** Firefox at minimum. Six milestones of visual work
+   have now been verified in Chrome alone, and the archive has since shipped a
+   3D transform (`leaf`) and an animated `polygon()` clip-path (`transmit`).
+6. **Send one email to the published address.** Nothing in CI can prove the
+   contact page works. Thirty seconds, and it is the only end-to-end test this
+   world has.
+7. **Answer §9.7.** YushaCyber is referenced from four worlds and none can
+   offer a destination beyond a repository.
+8. **Measure something on the AI Lab bench** (§1F.14.4). LEARNING §05 now
+   publishes the five unmeasured results as open questions, which raises the
+   cost of leaving them unmeasured — the page names them.
+9. **Then** tune the gate choreography across seven implemented entrances,
+   which is the first time the whole set can be judged against one another.
+
+**M10 exit criteria:** a written decision on CYBERSECURITY and on the held-back
+channels; the redirect map complete and reviewed; the OpenWeatherMap key
+revoked; a scheduled `github-data.yml` run observed; CI green including
+`npm run test:github`. V1 still live and unmodified throughout.
+
+---
+
+## 14A. M09 recommendation (M08 record, now complete)
 
 **M09 — CONTACT, and an architect decision about CYBERSECURITY.** Two worlds
 remain and the §9.4 verification run during M08 changed which of them is
@@ -3256,7 +3745,7 @@ and unmodified throughout.
 
 ---
 
-## 14A. M08 recommendation (M07 record, now complete)
+## 14B. M08 recommendation (M07 record, now complete)
 
 **M08 — LEARNING, and content verification for CYBERSECURITY started in
 parallel.** Three worlds remain and they are not equally ready. GITHUB was
@@ -3302,7 +3791,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14B. M07 recommendation (M06 record, now complete)
+## 14C. M07 recommendation (M06 record, now complete)
 
 **M07 — GITHUB, because it is the world the architecture has already built.**
 Four worlds remain and they are not equally ready. Pick by what can be
@@ -3343,7 +3832,7 @@ still unobserved since M05. V1 still live and unmodified throughout.
 
 ---
 
-## 14C. M06 recommendation (M05 record, now complete)
+## 14D. M06 recommendation (M05 record, now complete)
 
 **M06 — one more world, on the system that now has two worlds' worth of
 evidence behind it.** PROJECTS is the second content world built on the M04
@@ -3377,7 +3866,7 @@ still live and unmodified throughout.
 
 ---
 
-## 14D. M03 recommendation (M02 record, now complete)
+## 14E. M03 recommendation (M02 record, now complete)
 
 **M03 — Design review, then world build-out.** Do not start building the remaining worlds until §1A.9 is answered; the whole point of stopping here is that the direction is cheap to change now and expensive to change after seven more worlds exist.
 
@@ -3394,7 +3883,7 @@ Recommended order:
 
 ---
 
-## 14E. M02 recommendation (M01 record, now complete)
+## 14F. M02 recommendation (M01 record, now complete)
 
 **M02 — Architecture decision plus isolated Pretext prototype.** Do not start the redesign. Do not touch V1.
 
@@ -3418,4 +3907,4 @@ Proposed M02 scope, in order:
 
 ---
 
-*End of M08 — LEARNING COMPLETE. Six worlds built: HOME, ABOUT, PROJECTS, AI LAB, GITHUB, LEARNING. §9.4 content verification for CYBERSECURITY is complete and its conclusion is in §1H.8 — that world has no content of its own and needs an architect decision before anything is built. Awaiting architectural review. CYBERSECURITY and CONTACT are NOT STARTED, and no work on them should begin until this milestone is reviewed.*
+*End of M09 — CONTACT COMPLETE. Seven of eight worlds built: HOME, ABOUT, PROJECTS, AI LAB, LEARNING, GITHUB, CONTACT. CYBERSECURITY remains ON HOLD — §1H.8 found it has no content of its own, and the decision is the architect’s (§14). The work left before cutover is not a world: it is the redirect map (R10), the OpenWeatherMap revocation, and a text-resize pass. Awaiting architectural review. Do not begin CYBERSECURITY, and do not redesign a built world, until this milestone is reviewed.*
