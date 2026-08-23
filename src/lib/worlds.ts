@@ -49,11 +49,11 @@ export type Ground =
  * reusable half of the transition system: adding a world's entrance is a CSS
  * block keyed on its kind, not a new component and not a new script.
  *
- * As of M07, `register` (Home), `drawer` (About), `sheet` (Projects),
- * `traverse` (AI Lab) and `ruling` (GitHub) are implemented. The other three
- * are declared and fall through to the base gate behaviour, which is a
- * complete, fail-safe entrance in its own right, not a stub. Building them is
- * M08+.
+ * As of M08, `register` (Home), `drawer` (About), `sheet` (Projects),
+ * `traverse` (AI Lab), `ruling` (GitHub) and `leaf` (Learning) are
+ * implemented. The other two are declared and fall through to the base gate
+ * behaviour, which is a complete, fail-safe entrance in its own right, not a
+ * stub. Building them is M09+.
  *
  * A kind carries no duration here. Its timing lives in its CSS block, off the
  * shared clock in tokens.css — see the note in styles/gate.css.
@@ -69,7 +69,7 @@ export type Entrance =
   | 'traverse'
   /** CYBERSECURITY — a sealed folder broken open. Declared. */
   | 'seal'
-  /** LEARNING — a notebook leaf turned. Declared. */
+  /** LEARNING — a notebook leaf turned on its spine. Implemented. */
   | 'leaf'
   /** GITHUB — the plate ruled away column by column. Implemented. */
   | 'ruling'
@@ -102,7 +102,7 @@ export type World = {
 };
 
 /**
- * Gate copy is still placeholder-grade for the four unbuilt worlds: the brief
+ * Gate copy is still placeholder-grade for the two unbuilt worlds: the brief
  * supplied these as "conceptual examples, not final copy". HOME, ABOUT,
  * PROJECTS and AI LAB carry written copy, set when their world was built —
  * which is the right time to write it, because the words and the choreography
@@ -185,7 +185,8 @@ export const WORLDS: readonly World[] = [
     world: 'Field Notebook',
     gateTitle: 'FIELD NOTES',
     gateEnter: 'OPENING THE NOTEBOOK',
-    summary: 'Notes taken while learning, kept in the order they were written.',
+    summary:
+      'What is being learned and what the evidence for it is — a register of subjects with their standing, a dated field log, and the questions still open.',
     ground: 'graph',
     entrance: 'leaf',
     ref: 'AR-05',

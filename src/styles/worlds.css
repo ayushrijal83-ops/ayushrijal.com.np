@@ -323,13 +323,46 @@
 }
 
 /* --------------------------------------------------------------------------
-   LEARNING — laboratory graph paper. A fine grid with every fifth line
-   emphasised, exactly as squared notebook paper is printed.
+   LEARNING — the engineering computation pad.
+   --------------------------------------------------------------------------
+   Squared paper: a fine grid with every fifth line emphasised, printed the way
+   a computation pad or a field book is printed before anything is written on
+   it. Every other world's ground is drawn for a document that will be SET —
+   registered, ruled, tabulated. This one is drawn for a document that will be
+   WRITTEN ON, which is the difference between the notebook and the archive it
+   is filed in.
+
+   Material. A pale green pad stock — the only green paper in the archive, and
+   the reason a computation pad is recognisable from across a room. Measured
+   against the ink ramp at 14.78 / 7.48 / 5.72 / 4.85: every step above AA and
+   above the global paper, which is the constraint the MATERIAL slot carries
+   (see tokens.css). It sits opposite ABOUT's warm manila and next to nothing
+   else — AI LAB's bench white is warm and neutral, this is cool and green.
+
+   Channel. Writing-ink indigo, 8.57:1 on the stock above. Chosen because it is
+   the colour of the pen rather than of the print: PROJECTS is drafting blue,
+   GITHUB is graphite, AI LAB is chalkboard green, and this world is the one
+   whose marks were made by hand. Nothing in the archive is more literally
+   "ink on paper" than a notebook.
+
+   --notebook-module is the emphasised grid pitch. The margin rule in
+   learning.css and the binding perforation on the gate are both set from it,
+   so the furniture and the paper are the same stationery.
    -------------------------------------------------------------------------- */
 [data-world='learning'] {
-  --world-accent: #2f4858;
-  --world-accent-wash: rgba(47, 72, 88, 0.08);
-  --world-grid: rgba(47, 72, 88, 0.16);
+  /* Material. */
+  --paper: #e9eee9;
+  --paper-raised: #f1f5f0;
+  --paper-recessed: #dfe4df;
+  --paper-edge: #d2d9d2;
+
+  /* Channel. */
+  --world-accent: #33406b;
+  --world-accent-wash: rgba(51, 64, 107, 0.07);
+  --world-grid: rgba(51, 64, 107, 0.13);
+
+  /* The pad's module. Shared with the margin rule and the entrance. */
+  --notebook-module: 2.5rem;
 }
 
 [data-world='learning'] .ground {
@@ -340,11 +373,19 @@
     /* fine ruling */
       linear-gradient(
         to right,
-        var(--blueprint-wash) 0 1px,
+        var(--world-accent-wash) 0 1px,
         transparent 1px 100%
       ),
-    linear-gradient(to bottom, var(--blueprint-wash) 0 1px, transparent 1px 100%);
-  background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, 0.5rem 0.5rem, 0.5rem 0.5rem;
+    linear-gradient(
+      to bottom,
+      var(--world-accent-wash) 0 1px,
+      transparent 1px 100%
+    );
+  background-size:
+    var(--notebook-module) var(--notebook-module),
+    var(--notebook-module) var(--notebook-module),
+    calc(var(--notebook-module) / 5) calc(var(--notebook-module) / 5),
+    calc(var(--notebook-module) / 5) calc(var(--notebook-module) / 5);
 }
 
 /* --------------------------------------------------------------------------
