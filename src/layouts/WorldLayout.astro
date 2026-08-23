@@ -65,7 +65,19 @@ const world = getWorld(id);
     {surface && <RegistrationMarks />}
     <SiteHeader current={world.id} />
 
-    <main id="main">
+    {/* `tabindex="-1"` so the skip link can move FOCUS here, not just scroll.
+        Without it the fragment sets Chrome's sequential-focus starting point
+        and the next Tab happens to land inside the content — which is why four
+        milestones of static auditing called the skip link "present" and
+        correct. M10 pressed Enter on it with a real keyboard and found
+        `document.activeElement` still on `<body>`: the behaviour that works
+        here is a browser convenience, not the guarantee, and Safari has never
+        implemented it. A screen reader's cursor does not move either.
+
+        It draws no ring on a mouse click: the archive's focus style is
+        `:where(:focus-visible)`, which does not match a click on a
+        programmatically focusable container. */}
+    <main id="main" tabindex="-1">
       {
         masthead && (
           <div class="sheet world-head">
