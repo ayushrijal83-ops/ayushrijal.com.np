@@ -232,55 +232,57 @@ const cells: Cell[] = [
           bar chart back on the page with the numbers taken off.
         </p>
 
-        <table class="subjects">
-          <caption>
-            {subjectCount} subjects · standing and basis, no proficiency levels
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Subject</th>
-              <th scope="col">Standing</th>
-              <th scope="col">Basis</th>
-              <th scope="col">Evidence</th>
-            </tr>
-          </thead>
-          {
-            STRANDS.map((strand) => (
-              <tbody>
-                <tr>
-                  <th class="strand__name" colspan="4" scope="colgroup">
-                    {strand.name}
-                  </th>
-                </tr>
-                {strand.subjects.map((s) => (
-                  <tr class="subject__row">
-                    <th class="subject__name" scope="row">
-                      {s.name}
+        <div class="tablewrap" role="region" aria-label="Register of subjects" tabindex="0">
+          <table class="subjects">
+            <caption>
+              {subjectCount} subjects · standing and basis, no proficiency levels
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Subject</th>
+                <th scope="col">Standing</th>
+                <th scope="col">Basis</th>
+                <th scope="col">Evidence</th>
+              </tr>
+            </thead>
+            {
+              STRANDS.map((strand) => (
+                <tbody>
+                  <tr>
+                    <th class="strand__name" colspan="4" scope="colgroup">
+                      {strand.name}
                     </th>
-                    <td data-label="Standing">
-                      <span class="standing" data-standing={s.standing}>
-                        {STANDING_LABEL[s.standing]}
-                      </span>
-                    </td>
-                    <td data-label="Basis">
-                      <span class="basis" data-basis={s.basis}>
-                        {BASIS_LABEL[s.basis]}
-                      </span>
-                    </td>
-                    <td class="evidence" data-label="Evidence">
-                      {s.evidence}
-                      {s.href && (
-                        <a class="evidence__more" href={s.href}>
-                          Set out at length &rarr;
-                        </a>
-                      )}
-                    </td>
                   </tr>
-                ))}
-              </tbody>
-            ))
-          }
-        </table>
+                  {strand.subjects.map((s) => (
+                    <tr class="subject__row">
+                      <th class="subject__name" scope="row">
+                        {s.name}
+                      </th>
+                      <td data-label="Standing">
+                        <span class="standing" data-standing={s.standing}>
+                          {STANDING_LABEL[s.standing]}
+                        </span>
+                      </td>
+                      <td data-label="Basis">
+                        <span class="basis" data-basis={s.basis}>
+                          {BASIS_LABEL[s.basis]}
+                        </span>
+                      </td>
+                      <td class="evidence" data-label="Evidence">
+                        {s.evidence}
+                        {s.href && (
+                          <a class="evidence__more" href={s.href}>
+                            Set out at length &rarr;
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              ))
+            }
+          </table>
+        </div>
       </section>
 
       {/* ── 03 Re-implementation ───────────────────────────────────── */}
@@ -355,40 +357,42 @@ const cells: Cell[] = [
           with the other.
         </p>
 
-        <table class="log">
-          <caption>Bandit 0 to 13 · what each level turned on</caption>
-          <thead>
-            <tr>
-              <th scope="col">Filed</th>
-              <th scope="col">Level</th>
-              <th scope="col">What it turned on</th>
-              <th scope="col">Own note</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              FIELD_LOG.map((e) => (
-                <tr>
-                  <td class="log__date" data-label="Filed">
-                    {fmt(e.date)}
-                  </td>
-                  <th class="log__level" scope="row">
-                    {e.level}
-                  </th>
-                  <td class="log__learned" data-label="What it turned on">
-                    {e.learned}
-                  </td>
-                  <td
-                    class:list={['log__own', { 'log__own--none': !e.sideNote }]}
-                    data-label="Own note"
-                  >
-                    {e.sideNote ?? '—'}
-                  </td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
+        <div class="tablewrap" role="region" aria-label="Field log" tabindex="0">
+          <table class="log">
+            <caption>Bandit 0 to 13 · what each level turned on</caption>
+            <thead>
+              <tr>
+                <th scope="col">Filed</th>
+                <th scope="col">Level</th>
+                <th scope="col">What it turned on</th>
+                <th scope="col">Own note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                FIELD_LOG.map((e) => (
+                  <tr>
+                    <td class="log__date" data-label="Filed">
+                      {fmt(e.date)}
+                    </td>
+                    <th class="log__level" scope="row">
+                      {e.level}
+                    </th>
+                    <td class="log__learned" data-label="What it turned on">
+                      {e.learned}
+                    </td>
+                    <td
+                      class:list={['log__own', { 'log__own--none': !e.sideNote }]}
+                      data-label="Own note"
+                    >
+                      {e.sideNote ?? '—'}
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
 
         <p class="t-text leaf__note">
           The last column is the one worth reading. Six of the thirteen levels

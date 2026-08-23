@@ -97,47 +97,49 @@ const cells: Cell[] = [
     <TitleBlock cells={cells} label="Sheet details" />
 
     {/* ── The register — a parts list ─────────────────────────────── */}
-    <table class="register">
-      <caption class="t-label">
-        Register of holdings · featured work first, then most recently worked
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col" class="t-label">No.</th>
-          <th scope="col" class="t-label">Project</th>
-          <th scope="col" class="t-label">Class</th>
-          <th scope="col" class="t-label">State</th>
-          <th scope="col" class="t-label">Language</th>
-          <th scope="col" class="t-label">Last worked</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          records.map(({ entry, repo, no }) => (
-            <tr>
-              <td class="t-label register__no">{no}</td>
-              <th scope="row" class="register__name">
-                <a href={`/projects/${entry.id}`}>{entry.data.title}</a>
-              </th>
-              <td class="register__meta">{entry.data.kind ?? '—'}</td>
-              <td>
-                <span class="state" data-state={entry.data.status}>
-                  {entry.data.status}
-                </span>
-              </td>
-              <td class="register__meta">{repo?.language ?? '—'}</td>
-              <td class="register__meta">
-                {repo ? (
-                  <time datetime={iso(repo.pushedAt)}>{iso(repo.pushedAt)}</time>
-                ) : (
-                  '—'
-                )}
-              </td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
+    <div class="tablewrap" role="region" aria-label="Register of holdings" tabindex="0">
+      <table class="register">
+        <caption class="t-label">
+          Register of holdings · featured work first, then most recently worked
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="t-label">No.</th>
+            <th scope="col" class="t-label">Project</th>
+            <th scope="col" class="t-label">Class</th>
+            <th scope="col" class="t-label">State</th>
+            <th scope="col" class="t-label">Language</th>
+            <th scope="col" class="t-label">Last worked</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            records.map(({ entry, repo, no }) => (
+              <tr>
+                <td class="t-label register__no">{no}</td>
+                <th scope="row" class="register__name">
+                  <a href={`/projects/${entry.id}`}>{entry.data.title}</a>
+                </th>
+                <td class="register__meta">{entry.data.kind ?? '—'}</td>
+                <td>
+                  <span class="state" data-state={entry.data.status}>
+                    {entry.data.status}
+                  </span>
+                </td>
+                <td class="register__meta">{repo?.language ?? '—'}</td>
+                <td class="register__meta">
+                  {repo ? (
+                    <time datetime={iso(repo.pushedAt)}>{iso(repo.pushedAt)}</time>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
 
     {/* ── The records ─────────────────────────────────────────────── */}
     <ol class="workshop__records" role="list">

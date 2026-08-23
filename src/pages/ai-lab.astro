@@ -223,58 +223,60 @@ const cells: Cell[] = [
         behind it.
       </p>
 
-      <table class="systems">
-        <caption class="t-label">
-          Systems in use · verified against each repository&rsquo;s source
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col" class="t-label">No.</th>
-            <th scope="col" class="t-label">Area</th>
-            <th scope="col" class="t-label">Built with</th>
-            <th scope="col" class="t-label">Inference</th>
-            <th scope="col" class="t-label">Source</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            systems.map((s, i) => (
-              <tr>
-                <td class="t-label systems__no">{String(i + 1).padStart(2, '0')}</td>
-                <th scope="row" class="systems__name">
-                  {s.area}
-                </th>
-                <td class="systems__meta" data-label="Built with">
-                  {s.stack}
-                </td>
-                <td data-label="Inference">
-                  <span class="locus" data-locus={s.locus}>
-                    {s.locusLabel}
-                  </span>
-                </td>
-                <td class="systems__meta" data-label="Source">
-                  {s.source.length === 0 ? (
-                    '—'
-                  ) : (
-                    s.source.map((src, n) => (
-                      <>
-                        {n > 0 && ' · '}
-                        <a
-                          class="bench__source"
-                          href={src.href}
-                          rel={src.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                        >
-                          {src.label}
-                        </a>
-                      </>
-                    ))
-                  )}
-                </td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
+      <div class="tablewrap" role="region" aria-label="Systems in use" tabindex="0">
+        <table class="systems">
+          <caption class="t-label">
+            Systems in use · verified against each repository&rsquo;s source
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" class="t-label">No.</th>
+              <th scope="col" class="t-label">Area</th>
+              <th scope="col" class="t-label">Built with</th>
+              <th scope="col" class="t-label">Inference</th>
+              <th scope="col" class="t-label">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              systems.map((s, i) => (
+                <tr>
+                  <td class="t-label systems__no">{String(i + 1).padStart(2, '0')}</td>
+                  <th scope="row" class="systems__name">
+                    {s.area}
+                  </th>
+                  <td class="systems__meta" data-label="Built with">
+                    {s.stack}
+                  </td>
+                  <td data-label="Inference">
+                    <span class="locus" data-locus={s.locus}>
+                      {s.locusLabel}
+                    </span>
+                  </td>
+                  <td class="systems__meta" data-label="Source">
+                    {s.source.length === 0 ? (
+                      '—'
+                    ) : (
+                      s.source.map((src, n) => (
+                        <>
+                          {n > 0 && ' · '}
+                          <a
+                            class="bench__source"
+                            href={src.href}
+                            rel={src.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                          >
+                            {src.label}
+                          </a>
+                        </>
+                      ))
+                    )}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
     </section>
 
     {/* ── 02 · Local intelligence ─────────────────────────────────── */}
@@ -484,33 +486,35 @@ const cells: Cell[] = [
         learn, and it has not been started.
       </p>
 
-      <table class="provenance">
-        <caption class="t-label">
-          Every model in use · read from requirements files and call sites
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Model</th>
-            <th scope="col">Weights from</th>
-            <th scope="col">Used for</th>
-            <th scope="col">Trained here</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            provenance.map(([model, from, use, trained]) => (
-              <tr>
-                <th scope="row">{model}</th>
-                <td data-label="Weights from">{from}</td>
-                <td data-label="Used for">{use}</td>
-                <td class="provenance__none" data-label="Trained here">
-                  {trained}
-                </td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
+      <div class="tablewrap" role="region" aria-label="Model provenance" tabindex="0">
+        <table class="provenance">
+          <caption class="t-label">
+            Every model in use · read from requirements files and call sites
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">Weights from</th>
+              <th scope="col">Used for</th>
+              <th scope="col">Trained here</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              provenance.map(([model, from, use, trained]) => (
+                <tr>
+                  <th scope="row">{model}</th>
+                  <td data-label="Weights from">{from}</td>
+                  <td data-label="Used for">{use}</td>
+                  <td class="provenance__none" data-label="Trained here">
+                    {trained}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
     </section>
 
     {/* ── 08 · The notebook ───────────────────────────────────────── */}

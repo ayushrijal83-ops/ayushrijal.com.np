@@ -641,8 +641,12 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
   color: var(--ink-tertiary);
-  inline-size: 9rem;
-  flex: none;
+  /* A 9rem column that is allowed to give way. `flex: none` at a 32px root
+     made this label 288px wide in a 249px row and pushed the page sideways —
+     the same class of defect as `.correspondent__name` in M09. It still sizes
+     to 9rem wherever 9rem fits, which is every viewport at normal text size. */
+  flex: 0 1 9rem;
+  min-inline-size: 0;
 }
 
 .sources__link {

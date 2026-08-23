@@ -222,6 +222,48 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   THE TABLE SCROLL PORT
+   --------------------------------------------------------------------------
+   A `display: table` box cannot shrink below its min-content width, whatever
+   is set on it. Under a text-only resize to 200% that is 346px of table inside
+   a 209px column on LEARNING, and the same shape on PROJECTS and AI LAB — the
+   three pages M10 measured and could not fix with a property (§1J.3).
+
+   The sanctioned treatment for a data table that genuinely cannot reflow is to
+   give it its own scroll port, and the important part is what this does NOT
+   do: the wrapper is outside the `<table>`, so the table element, its
+   `<caption>`, its `<thead>` and every `scope` stay exactly as they were.
+   Nothing is hidden from assistive technology and no semantics change. It is
+   markup added around, never inside.
+
+   `role="region"` plus an `aria-label` so a screen reader announces what the
+   scrollable area contains, and `tabindex="0"` so it can be reached and
+   scrolled with the arrow keys — a scroll container that only a mouse can
+   move is a keyboard trap in the other direction.
+
+   It costs one tab stop per table at sizes where nothing scrolls. That is the
+   deliberate trade, and it is the recommended one: a container that becomes
+   scrollable only under enlargement must still be focusable when it does, and
+   there is no CSS that makes `tabindex` conditional on overflow.
+
+   At normal text size none of these ever scrolls, so nothing about the
+   composition changes. Verified: 12 pages x 10 widths, before and after,
+   identical.
+   -------------------------------------------------------------------------- */
+.tablewrap {
+  overflow-x: auto;
+  /* Paint the scrollbar in the world's own ink rather than the platform's. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.tablewrap > table {
+  /* Without this the table still reports its min-content to the flex/grid
+     parent above the wrapper and widens it from inside. */
+  min-inline-size: 100%;
+}
+
+/* --------------------------------------------------------------------------
    Utilities
    -------------------------------------------------------------------------- */
 .visually-hidden:not(:focus):not(:active) {

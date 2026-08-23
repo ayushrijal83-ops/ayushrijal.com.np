@@ -382,6 +382,12 @@
 .runs {
   list-style: none;
   display: grid;
+  /* `minmax(0, 1fr)`, not the implicit `auto`. An auto track is at least as
+     wide as its item's min-content, and a `.run` carries 96px of padding at a
+     32px root — so under a text-only resize the track grew past the page and
+     took the whole document with it. Capping the track at the container is the
+     canonical fix and changes nothing at any size where the content fits. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-l);
   margin-block-start: var(--space-l);
 }
@@ -421,7 +427,11 @@
   font-size: var(--step--2);
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
-  white-space: nowrap;
+  /* No `nowrap`. Every value this renders is a single word — succeeded,
+     failed, inconclusive, running — so nowrap protected nothing that could
+     wrap, and at a 32px root "INCONCLUSIVE" is 235px in a 225px box and was
+     the last thing on the site still pushing a page sideways under enlarged
+     text. Without it the word breaks only when it genuinely cannot fit. */
 }
 
 .outcome::before {
