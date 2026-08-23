@@ -93,6 +93,34 @@ body {
   -webkit-font-smoothing: antialiased;
   min-block-size: 100vh;
 
+  /* A word may never be the thing that puts a horizontal scrollbar on the
+     archive.
+     ------------------------------------------------------------------
+     `anywhere`, not `break-word`, and the difference is the entire point:
+     only `anywhere` is counted when an engine computes an element's
+     MIN-CONTENT size. `break-word` breaks a word that has already overflowed;
+     `anywhere` stops the word from setting a grid track's floor in the first
+     place, which is where the overflow was actually being created.
+
+     M10 measured the site under a text-only resize to 200% — `font-size: 32px`
+     on the root at a 320px viewport, the setting a low-vision reader uses when
+     they enlarge text without zooming the page. Every world overflowed:
+     HOME 214px, AI LAB 148, GITHUB 142, PROJECTS 137, CONTACT 128, ABOUT 110,
+     LEARNING 97. In each case the mechanism was the same — a grid or flex item
+     whose automatic minimum size is its min-content, holding a word like
+     "Cybersecurity" that is 250px wide at 32px, forcing its track wider than
+     the page.
+
+     This one declaration takes HOME, ABOUT, GITHUB and CONTACT to zero. The
+     remaining three fail through `display: table`, which cannot shrink below
+     its min-content whatever you set on it, and that needs a design decision
+     rather than a property — see PROJECT_PROGRESS §1J.3.
+
+     Measured to change NOTHING at normal text size: all seven worlds, nine
+     widths, before and after, identical. It only ever acts on a word that
+     genuinely cannot fit. */
+  overflow-wrap: anywhere;
+
   /* The paper substrate is painted by `.ground` (styles/worlds.css), a single
      fixed layer behind the content. Keeping it off `body` means the pattern
      does not scroll, does not repaint on every scroll frame, and can differ
