@@ -322,6 +322,68 @@ if (ghWorld) {
   }
 }
 
+// ── 2i. LEARNING — the register keeps both axes, and claims no level ───────
+// This world's failure mode is not a broken layout, it is a sentence. A skills
+// page degrades into a lie one edit at a time — a percentage here, a "years of
+// experience" there — and every one of those edits builds cleanly. So the
+// guards below are on the CONTENT, and each of them matches a CLAIM rather
+// than a mention: the page names certifications and proficiency levels in its
+// list of things it does not hold, and it has to stay able to.
+const learning = prose(read('learning/index.html') ?? '') || null;
+if (learning !== null) {
+  /** Fabrications a skills page reaches for. None has a legitimate use here. */
+  const FABRICATIONS = [
+    [/\d+\s*%/, 'a percentage — no subject on this page has a measurable level'],
+    [/\d+\+?\s*years?\b/i, 'a span of years of experience'],
+    [/\bcertifie\w*|\bcertificate\b/i, 'a certification claim'],
+    [/\bexpert(ise)?\b|\bmaster(y|ed)\b|\bfluent\b/i, 'a mastery claim'],
+  ];
+  for (const [pattern, what] of FABRICATIONS) {
+    if (pattern.test(learning)) {
+      fail(`Learning states ${what} (${pattern}). See lib/learning.ts.`);
+    }
+  }
+
+  // The OverTheWire level answers are in the source notes and must never be
+  // republished here. They are 32-character base62 strings; nothing else on
+  // this page is. Asset hashes are 8 characters, so this cannot fire on one.
+  const secret = learning.match(/\b[A-Za-z0-9]{32}\b/);
+  if (secret) {
+    fail(
+      `Learning contains a 32-character token at offset ${secret.index} — that is ` +
+        `the shape of a Bandit level password. Nothing is printed.`,
+    );
+  }
+
+  // Both axes, and the honest-absence path on each. `Stated` is the one that
+  // matters: it is what a subject with no evidence renders as, and losing it
+  // would silently promote three unverifiable subjects to verified ones.
+  for (const axis of ['Standing', 'Basis', 'Verified', 'Stated', 'Not attempted']) {
+    if (!learning.includes(axis)) {
+      fail(`Learning lost the "${axis}" register — see the M08 record §1H.2`);
+    }
+  }
+
+  // Completeness, cross-checked against the source rather than a copy of it:
+  // one rendered row per subject, one per log entry. A strand that stops
+  // rendering is otherwise invisible — the page still looks complete.
+  const learningTs = readFileSync('src/lib/learning.ts', 'utf8');
+  const counts = [
+    ['subject', /class="subject__row"/g, /^\s+standing: '/gm],
+    ['field-log', /class="log__level"/g, /^\s+level: '/gm],
+  ];
+  for (const [what, inHtml, inSource] of counts) {
+    const rendered = (learning.match(inHtml) ?? []).length;
+    const declared = (learningTs.match(inSource) ?? []).length;
+    if (rendered !== declared) {
+      fail(
+        `Learning renders ${rendered} ${what} rows but lib/learning.ts declares ` +
+          `${declared}. A strand or log entry is not reaching the page.`,
+      );
+    }
+  }
+}
+
 // ── 2e. GitHub data is build-time only ─────────────────────────────────────
 // The single most important property of the GitHub integration: V1 called the
 // API from the visitor's browser. If that ever returns, it returns silently —
