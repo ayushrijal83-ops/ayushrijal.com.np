@@ -173,7 +173,31 @@ export const WORLDS: readonly World[] = [
     world: 'Security Research Archive',
     gateTitle: 'SECURITY RESEARCH',
     gateEnter: 'ENTERING THE SECURITY ARCHIVE',
-    summary: 'Defensive security research, lab write-ups and findings.',
+    /**
+     * Corrected in M11. It read "Defensive security research, lab write-ups
+     * and findings." — a description of holdings this archive does not have.
+     *
+     * The page itself was always honest: it prints "0 entries" and says
+     * nothing has been filed. The summary was not, and the summary is the
+     * string that travels: it is the HOME contents gloss, the `<meta
+     * name="description">` for the route, and the masthead line directly above
+     * that empty state. A reader of the index was told the archive holds
+     * research it does not hold, and a search engine was told the same.
+     *
+     * The replacement claims nothing and points at what does exist. M08 §1H.8
+     * established the full extent of it: every verifiable security claim in
+     * this archive is already published in LEARNING (the Bandit log, the
+     * simulated tooling) and PROJECTS (YushaCyber). No certification, course,
+     * CTF placement, engagement, CVE or disclosure exists anywhere to fill the
+     * `labs` schema.
+     *
+     * The world's NAME is kept. "Security Research Archive" labels what the
+     * drawer is for, not what is in it, and it is only ever read on the page
+     * that immediately declares itself empty. `verify-output.mjs` fails the
+     * build if the old sentence returns.
+     */
+    summary:
+      'Nothing is filed here yet — the security work this archive can show is in the field notebook and the workshop.',
     ground: 'dossier',
     entrance: 'seal',
     ref: 'AR-04',
