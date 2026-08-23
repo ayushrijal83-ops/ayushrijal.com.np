@@ -891,6 +891,74 @@ if (cyber && !/No security work has been filed yet/.test(cyber)) {
   fail('The Cybersecurity world stopped declaring itself empty');
 }
 
+// ── 8b. Head pose is not gaze ──────────────────────────────────────────────
+// M06 established this from source: the estimate is the nose's position
+// relative to the eye line, and experiment 002 says in as many words that it
+// "is not gaze; it is head pose, and someone can look at a screen with their
+// head down". Two tables went on calling it gaze anyway — the Jarvis record's
+// stack table and, on the very page carrying that experiment, the AI Lab
+// provenance table. Corrected in M12.
+//
+// The pattern is a negative LOOKBEHIND, not a page-level exception. A check
+// written as "unless the page also says it is not gaze" would be inert the
+// moment that sentence shipped, which is the M08 failure mode. This fires on
+// the word used as a claim and never on the word used to deny one, in the same
+// paragraph, on the same page.
+for (const page of pages) {
+  const hit = prose(readFileSync(page, 'utf8')).match(/(?<!not )\bgaze\b/i);
+  if (hit) {
+    fail(
+      `${page} calls the head-pose estimate "gaze" (offset ${hit.index}). It is ` +
+        `the nose-below-eye-line proxy — see experiment 002, which says so.`,
+    );
+  }
+}
+
+// ── 9. Indexability is deliberate on every page ────────────────────────────
+// Three classes, three answers, and getting any of them backwards is silent:
+// a `noindex` on a world removes it from search with no visible symptom, and a
+// missing one on the 404 lets a crawler collect the same page under every
+// unresolvable URL it tries.
+//
+//   worlds + project records  indexable
+//   /lab/*                    noindex — measurement harnesses, also disallowed
+//   404.html                  noindex — served for every unresolved path
+//   legacy stubs              indexable ON PURPOSE, so a crawler follows the
+//                             canonical and transfers the old URL to the new
+const noindexOf = (html) =>
+  /<meta[^>]+name="robots"[^>]*content="[^"]*noindex/i.test(html);
+
+for (const [file, id] of WORLDS) {
+  const html = read(file);
+  if (html && noindexOf(html)) {
+    fail(`World "${id}" is marked noindex — it would vanish from search silently`);
+  }
+}
+for (const slug of PROJECT_SLUGS) {
+  const html = read(`projects/${slug}/index.html`);
+  if (html && noindexOf(html)) fail(`/projects/${slug} is marked noindex`);
+}
+if (notFound !== null && !noindexOf(notFound)) {
+  fail(
+    'dist/404.html is not marked noindex. It is served for every unresolvable ' +
+      'path, so a crawler can index it under any number of URLs.',
+  );
+}
+for (const lab of globSync(`${DIST}/lab/**/*.html`)) {
+  if (!noindexOf(readFileSync(lab, 'utf8'))) {
+    fail(`${lab} is not marked noindex — /lab/* is a measurement harness`);
+  }
+}
+for (const [, from] of legacyPairs) {
+  const stub = read(from);
+  if (stub && noindexOf(stub)) {
+    fail(
+      `/${from} is marked noindex. A redirect stub must stay indexable so the ` +
+        `canonical transfers the old URL to the new one.`,
+    );
+  }
+}
+
 // ── Report ─────────────────────────────────────────────────────────────────
 if (failures.length > 0) {
   console.error('\nBuild output verification FAILED:\n');
