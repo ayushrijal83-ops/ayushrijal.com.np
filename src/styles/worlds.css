@@ -437,13 +437,47 @@
 }
 
 /* --------------------------------------------------------------------------
-   CONTACT — teletype stock. Sprocket perforations down both margins and
-   nothing in between, because the channel is the message.
+   CONTACT — correspondence stock.
+   --------------------------------------------------------------------------
+   Sprocket perforations down both margins and nothing in between. Continuous
+   stationery: the stock a message is printed on and then torn off and sent.
+   It is the only ground in the archive with a physical EDGE condition rather
+   than a field — every other world rules its middle, this one only marks where
+   the sheet was held and where it will be separated.
+
+   Kept from M02 unchanged in M09. The world was renamed (Transmission Room →
+   Correspondence) and the ground was re-read rather than redrawn: perforated
+   continuous stationery is correspondence stock, and swapping a ground that
+   already works and is already unique would have been churn dressed as design.
+
+   Material. The LIGHTEST and warmest stock in the archive — correspondence
+   paper, thinner and whiter than the drawing, card and pad stocks around it.
+   Measured against the ink ramp at 15.41 / 7.80 / 5.96 / 5.05: the highest
+   contrast of any world, which is right for the one page a visitor has to read
+   carefully enough to act on. Above AA and above the global paper at every
+   step, which is the constraint the MATERIAL slot carries (see tokens.css).
+
+   Channel. Cancellation plum, 8.47:1 on the stock above. The violet-black of a
+   postal cancellation and of the aniline copying ink correspondence was once
+   written in — dark, low-chroma, red-leaning, and specifically NOT the bright
+   violet the brief rules out. It is the last unclaimed hue in the archive:
+   HOME red, ABOUT brown, PROJECTS drafting blue, AI LAB green, GITHUB
+   graphite, LEARNING indigo.
+
+   This world spends NO spot colour at all — the only one that does not. On a
+   letter there is one ink, and the correspondence ink is already the accent.
    -------------------------------------------------------------------------- */
 [data-world='contact'] {
-  --world-accent: var(--spot);
-  --world-accent-wash: var(--spot-wash);
-  --world-grid: rgba(28, 26, 23, 0.14);
+  /* Material. */
+  --paper: #f4f1ec;
+  --paper-raised: #faf8f4;
+  --paper-recessed: #eae7e0;
+  --paper-edge: #ded9d0;
+
+  /* Channel. */
+  --world-accent: #63384c;
+  --world-accent-wash: rgba(99, 56, 76, 0.07);
+  --world-grid: rgba(99, 56, 76, 0.16);
 }
 
 [data-world='contact'] .ground {

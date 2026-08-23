@@ -49,11 +49,11 @@ export type Ground =
  * reusable half of the transition system: adding a world's entrance is a CSS
  * block keyed on its kind, not a new component and not a new script.
  *
- * As of M08, `register` (Home), `drawer` (About), `sheet` (Projects),
- * `traverse` (AI Lab), `ruling` (GitHub) and `leaf` (Learning) are
- * implemented. The other two are declared and fall through to the base gate
- * behaviour, which is a complete, fail-safe entrance in its own right, not a
- * stub. Building them is M09+.
+ * As of M09, seven of the eight are implemented: `register` (Home), `drawer`
+ * (About), `sheet` (Projects), `traverse` (AI Lab), `ruling` (GitHub), `leaf`
+ * (Learning) and `transmit` (Contact). Only `seal` (Cybersecurity) still falls
+ * through to the base gate behaviour, which is a complete, fail-safe entrance
+ * in its own right, not a stub.
  *
  * A kind carries no duration here. Its timing lives in its CSS block, off the
  * shared clock in tokens.css — see the note in styles/gate.css.
@@ -73,7 +73,7 @@ export type Entrance =
   | 'leaf'
   /** GITHUB — the plate ruled away column by column. Implemented. */
   | 'ruling'
-  /** CONTACT — a line opened. Declared. */
+  /** CONTACT — the sheet ratcheted off behind a slanted edge. Implemented. */
   | 'transmit';
 
 export type World = {
@@ -102,7 +102,7 @@ export type World = {
 };
 
 /**
- * Gate copy is still placeholder-grade for the two unbuilt worlds: the brief
+ * Gate copy is still placeholder-grade for the one unbuilt world: the brief
  * supplied these as "conceptual examples, not final copy". HOME, ABOUT,
  * PROJECTS and AI LAB carry written copy, set when their world was built —
  * which is the right time to write it, because the words and the choreography
@@ -208,10 +208,18 @@ export const WORLDS: readonly World[] = [
     id: 'contact',
     href: '/contact',
     nav: 'Contact',
-    world: 'Transmission Room',
-    gateTitle: 'OPEN CHANNEL',
-    gateEnter: 'ENTERING THE TRANSMISSION ROOM',
-    summary: 'How to make contact.',
+    /**
+     * Renamed in M09. It was "Transmission Room", which is a machine hall —
+     * the wrong building for what this page is. The archive spends seven
+     * worlds documenting; this is the one where it stops documenting and a
+     * person answers. A correspondence is between two people, and a
+     * transmission is not.
+     */
+    world: 'Correspondence',
+    gateTitle: 'CORRESPONDENCE',
+    gateEnter: 'OPENING A CORRESPONDENCE',
+    summary:
+      'The point where the archive stops documenting and a channel opens — three verified ways to write, and no form pretending to send one.',
     ground: 'tape',
     entrance: 'transmit',
     ref: 'AR-07',
