@@ -1,0 +1,117 @@
+name: Deploy
+
+# The deployment half of the automation. `ci.yml` verifies and never
+# publishes; this one publishes, and it re-runs every gate `ci.yml` runs so
+# that nothing can reach production without having passed all of them.
+#
+# ── Why it also runs on `v2` ───────────────────────────────────────────────
+# M13 found that a deploy workflow which only triggers on `main` cannot be
+# tested before the cutover: the first time it ever executes is the moment it
+# is publishing to the live site. So the build job runs on `v2` too, proving
+# the install, the data refresh, every gate and the artifact upload on the
+# real runner — and the `deploy` job is gated to `main`, so a push to `v2`
+# provably cannot publish. `deploy-pages` itself is inherently first exercised
+# on `main`; there is no way to rehearse a deployment without deploying.
+on:
+  push:
+    branches: [main, v2]
+  workflow_dispatch:
+
+# Read-only by default. The write grants Pages needs are attached to the
+# `deploy` job alone, so the job that runs `npm ci` — and with it every
+# dependency's lifecycle scripts — never holds a token that can publish.
+permissions:
+  contents: read
+
+# One deployment at a time, and never cancel one in flight: a cancelled deploy
+# can leave Pages serving a half-uploaded artifact.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Kept in step with `engines.node` in package.json, same as ci.yml.
+          node-version: '24'
+          cache: npm
+
+      # `npm ci`, not `npm install`: strictly from the committed lockfile, with
+      # every integrity hash checked, so the runner cannot resolve a different
+      # tree than a developer did.
+      - name: Install
+        run: npm ci
+
+      # Same contract as ci.yml: a GitHub outage, a rate limit or a network
+      # blip must never fail the build. When this step produces no
+      # `github.generated.json`, the build reads the committed snapshot and the
+      # site is complete, just with slightly older repository figures.
+      #
+      # GITHUB_TOKEN is the runner's own automatic token. It never leaves the
+      # runner, and only the allow-listed fields in fetch-github.mjs are
+      # written to disk, so no credential can reach the output.
+      - name: Refresh GitHub repository data
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run github:fetch
+
+      # ── Gate order differs from ci.yml ON PURPOSE, and it matters here ────
+      # `test:github` works by breaking things: it hides both data files and
+      # rebuilds, then writes a `ghp_…` canary into `dist/` to prove the
+      # credential scanner fires. It restores and rebuilds afterwards, but that
+      # final rebuild is a bare `astro build` — `verify-output.mjs` never runs
+      # against it, and the canary is removed only by a `finally`.
+      #
+      # ci.yml can run it last because ci.yml publishes nothing. This workflow
+      # uploads `dist/`, so running it last would publish an artifact that no
+      # assertion had ever inspected, one interrupted process away from
+      # shipping a token-shaped string. Running it FIRST means `verify` below
+      # re-emits `dist/` from scratch and scans the exact bytes that get
+      # uploaded.
+      - name: Test the GitHub fallback and secret isolation
+        run: npm run test:github
+
+      # `npm run verify` = astro check + astro build + verify-output.mjs, the
+      # same command a developer runs locally. It is the last thing to touch
+      # `dist/`, so the artifact uploaded below is the one it asserted against:
+      # the eight-world IA intact, the no-JS fallback present, no inline script
+      # the CSP would kill, no third-party origin, no credential.
+      - name: Build and verify
+        run: npm run verify
+
+      # A known-high advisory blocks the deploy. These dependencies are
+      # build-time only and none of them ships in the static artifact, so this
+      # is stricter than it strictly needs to be — deliberately, because the
+      # alternative is a deploy path that is quieter about security than CI is.
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      # `dist/` exactly as `verify` left it. No post-processing step, because
+      # anything that edited the tree here would be editing output nothing had
+      # verified.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    # THE CUTOVER GUARD. Without this, a push to `v2` would publish V2 to the
+    # live site — `deploy-pages` targets the one Pages site regardless of ref.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
