@@ -5537,7 +5537,7 @@ improvement.
 ## 1Q. M15 — CYBERSECURITY
 
 **Built. Not deployed, not merged, not pushed.** On branch `m15-cybersecurity`,
-commit `PENDING-COMMIT`. `main` is untouched and production still serves the
+commit `492e100`. `main` is untouched and production still serves the
 M14 artifact.
 
 The world that was on hold since M08 is now a real page. **Nothing was
