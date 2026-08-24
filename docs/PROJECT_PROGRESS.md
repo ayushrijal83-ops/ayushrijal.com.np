@@ -9,10 +9,10 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M04 — World System + About world** |
-| **M04 status** | Complete — awaiting architectural review. See §1D. |
-| **Last updated** | 2026-08-22 |
-| **Working branch** | `v2` (all V2 work). `main` still serves V1 to production, unmodified. |
+| **Current milestone** | **M13 — Production verification + deployment recovery** |
+| **M13 status** | **CUTOVER BLOCKED — awaiting owner.** Deploy workflow written, pushed and **observed passing on `v2`** (run `32706958024`). Production still serves V1. Blocked on the Pages source setting, which no credential here can read. See §1M, §1N. |
+| **Last updated** | 2026-08-24 |
+| **Working branch** | `v2` (all V2 work). `main` still serves V1 to production, unmodified — verified against the live site on 2026-08-24. |
 
 ---
 
@@ -33,6 +33,8 @@
 | M10 | Final integration | **Complete** | §1J below. Awaiting review. Deployment artefacts added; first real keyboard audit. |
 | M11 | Cutover preparation | **Complete** | §1K below. Awaiting review. **READY FOR FINAL CUTOVER.** Text-resize limitation closed. |
 | M12 | Final cutover | **Complete** | §1L below. **FINAL CUTOVER READY.** v2 pushed; CI observed passing remotely. |
+| M13 | Production verification | **Complete — result is BLOCKED** | §1M below. Production observed serving V1. Cutover did not reach GitHub. One blocking defect fixed: `deploy.yml`. |
+| M13-B | Deployment recovery | **Complete — cutover still BLOCKED** | §1N below. `deploy.yml` audited, corrected, pushed, and **observed passing on `v2` in 27 s** with the deploy job correctly skipped. Blocked on the Pages source, owner-only. |
 | Cutover | V1 → V2 | **Blocked on 4 owner actions** | §14. Pages source, deploy workflow, merge, key revocation. Production still serves V1. |
 
 **M12 scope compliance:** no new world, no redesign, no framework, no CMS, no backend, no third-party contact service, **no dependency added**. **CYBERSECURITY was not built and not modified.** Three changes, each a defect found by this milestone’s own audits: the archive called the head-pose estimate “gaze” in two tables while its own experiment says it is not (§1L.2); the 404 page was indexable; and five assertions were added to hold both. No existing assertion was weakened and no exception was added to make one inert. `v2` was pushed — no force, no history rewritten, nothing merged — and `origin/main` is unchanged at `41d4dc1`. V1 remains byte-identical against both local `main` and `origin/main`. Production still serves V1. See §1L.
@@ -4500,6 +4502,450 @@ push, nothing merged.
 
 ---
 
+## 1M. M13 — Production verification
+
+**Observation only. No architecture was changed, nothing was redesigned, no
+feature was added, `main` was not touched, and CYBERSECURITY was not built.**
+
+**Result: the cutover has not reached production. The live site is V1.**
+
+Every line below is something that was actually requested over the network or
+read out of git on **2026-08-24**. Where a thing could not be observed, it is
+recorded as not observed rather than assumed.
+
+### 1M.1 What the remote actually contains — OBSERVED
+
+`git ls-remote origin`:
+
+```
+41d4dc13d755687e72d7c8c13481ffb835ee3676  refs/heads/main
+e394fe2e69c15daf08f4539dca7981b46611ebb4  refs/heads/v2
+```
+
+`41d4dc1` is *Fix broken reveal animation and cut 3D rendering cost* — V1's
+last commit, dated 2026-08-08. It is the same commit `main` has pointed at
+since before M01. **The merge of `v2` into `main` is not on GitHub.**
+
+Confirmed three independent ways rather than inferred from the hash:
+
+| Check | Result |
+|---|---|
+| `git merge-base --is-ancestor origin/v2 origin/main` | **NO** |
+| `git ls-tree origin/main` | V1 tree only — no `.github/`, no `src/`, no `astro.config.mjs`, no `package.json` |
+| local `main` (`f42314e`) | also V1 tree plus `docs/`; carries no merge commit either |
+
+So the merge is absent from the remote **and** from this clone. It was either
+not completed or completed somewhere this environment cannot see.
+
+### 1M.2 GitHub Actions — OBSERVED, and it is the second blocker
+
+Read from the public Actions API (`/actions/runs`). Nine runs total.
+
+| Run | Branch | Created | Conclusion |
+|---|---|---|---|
+| CI | `v2` | 2026-08-23T15:07:20Z | success |
+| CI | `v2` | 2026-08-23T15:01:55Z | success |
+| pages build and deployment | `main` | **2026-08-08T13:53:01Z** | success |
+| pages build and deployment | `main` | 2026-08-08T13:15:52Z | success |
+| … four older `pages build and deployment` runs on `main`, all 2026-08-08 | | | |
+
+Filtered to `main`: seven runs, **the newest 2026-08-08T13:53:01Z**. There has
+been **no workflow run on `main` since 2026-08-08** — no deploy, no Pages
+build, nothing. Consistent with §1M.1: nothing was pushed, so nothing ran.
+
+**And nothing would have run even if it had been.** `git log --all` over
+`.github/workflows/*` returns no deploy or Pages workflow in any branch's
+history. The repository contained exactly two workflows, `ci.yml` and
+`github-data.yml`, and `ci.yml` triggers only on `v2` pushes and PRs and states
+in its own header that it never publishes. §14 step 2 predicted precisely this.
+
+With the Pages source switched to **GitHub Actions**, the legacy
+*pages build and deployment* builder stops running and no workflow replaces it.
+Merging `v2` into `main` in that state would have deployed **nothing** — the
+site would simply have frozen on the 2026-08-08 V1 build indefinitely, with no
+error anywhere to indicate why.
+
+**Pages source setting: NOT OBSERVED.** `GET /repos/…/pages` returns
+`404 Not Found` unauthenticated. That endpoint requires a credential even for a
+public repository, so the 404 distinguishes nothing and no claim is made about
+the setting either way.
+
+### 1M.3 What production is serving — OBSERVED: V1
+
+```
+HTTP/1.1 200 OK
+Server: GitHub.com
+Last-Modified: Sat, 08 Aug 2026 13:53:15 GMT
+Content-Length: 13150
+```
+
+`Last-Modified` matches the 2026-08-08T13:53:01Z Pages build to within
+fourteen seconds. **Production is literally that artifact.** The served
+`<title>` is `Ayush Rijal — Cybersecurity Developer & AI Builder`, V1's title,
+with V1's description and V1's canonical tag.
+
+### 1M.4 The eight V2 routes — OBSERVED, four are 404
+
+| Route | Status | Bytes | What is actually being served |
+|---|---|---|---|
+| `/` | 200 | 13150 | **V1 home**, not the V2 Home world |
+| `/about` | 200 | 10802 | **V1 `about.html`** via Pages extension-stripping |
+| `/projects` | **404** | 9379 | GitHub's default 404 |
+| `/ai-lab` | **404** | 9379 | GitHub's default 404 |
+| `/github` | **404** | 9379 | GitHub's default 404 |
+| `/learning` | **404** | 9379 | GitHub's default 404 |
+| `/contact` | 200 | 11929 | **V1 `contact.html`** via extension-stripping |
+| `/404` | **404** | 9379 | GitHub's default 404 |
+
+None of the eight worlds exists in production. The two that return 200 are V1
+pages reached through GitHub Pages' automatic `.html` fallback, not V2 routes —
+proved in §1M.5, not assumed from the byte counts.
+
+### 1M.5 Legacy routes — OBSERVED, all still V1 originals
+
+| Route | Status | Bytes | Note |
+|---|---|---|---|
+| `/work.html` | 200 | 10890 | The **V1 Work page itself**. Not the 1,640-byte V2 redirect stub, and it does not redirect to `/projects`. |
+| `/about.html` | 200 | 10802 | V1 About |
+| `/contact.html` | 200 | 11929 | V1 Contact |
+| `/journey.html` | 200 | 10070 | V1 Journey — still live; the V2 plan retires it to the 404 |
+| `/blog.html` | 200 | 9057 | V1 Blog — still live; the V2 plan retires it to the 404 |
+| `/assets/resume.pdf` | 200 | 94116 | Still published; V2 deliberately does not carry it forward |
+
+`/work.html` at 10,890 bytes is the decisive one. V2's generated stub is 1,640
+bytes and carries a zero-delay meta refresh. What production serves is neither.
+
+### 1M.6 The `/about.html` ↔ `/about` collision — the M11 question, answered for V1 only
+
+Requested both URLs and compared body hashes:
+
+```
+/about       969f2be0248eacdd168b4a1a8fa7a212
+/about.html  969f2be0248eacdd168b4a1a8fa7a212   IDENTICAL
+```
+
+Same for `/contact` and `/contact.html`. So on the **live host**, GitHub Pages
+resolves the extensionless `/about` to the file `about.html`.
+
+This is a genuine observation of GitHub Pages' resolution behaviour, and it is
+the first time it has been measured on the real host rather than in the local
+preview. **But it does not answer §14 step 4.** There is no `about/index.html`
+in production to compete with `about.html`, so what was observed is a fallback
+with nothing to fall back *from* — not the precedence contest that matters.
+
+**§14 step 4 remains BLOCKED and unanswerable until V2 is actually deployed.**
+The conservative reading stands: M11 measured the file winning locally, the
+live host resolves to the file here, and nothing observed today gives any
+reason to enable the two withdrawn stubs. `LEGACY_ROUTES` is unchanged and
+still contains only `work.html` — the one stub with no live route to shadow.
+
+### 1M.7 Domain, TLS, sitemap, robots, 404 — OBSERVED
+
+| Item | Observed |
+|---|---|
+| `CNAME` | serves `ayushrijal.com.np` — correct |
+| HTTPS | valid chain; every request in this milestone completed over TLS with no warning |
+| Apex resolution | reaching GitHub Pages (`Server: GitHub.com`, `x-github-edge-region: centralindia`) |
+| `robots.txt` | 200, **V1's** — `Allow: /` plus the sitemap line, 71 bytes. Not V2's 404-byte file. |
+| `sitemap.xml` | 200, **V1's** — six `<loc>` entries, all `.html`: `/`, `/about.html`, `/work.html`, `/journey.html`, `/blog.html`, `/contact.html`. No V2 world appears. |
+| 404 behaviour | **GitHub's default page** — `<title>Page not found · GitHub Pages</title>`. V1 has no `404.html`; V2's 8,986-byte custom 404 is not deployed. |
+
+DNS and TLS are the only part of the cutover that is genuinely correct and
+needs no action, which matches what M12 recorded.
+
+### 1M.8 Production smoke test — run against V1, because that is what is live
+
+Item 10 was executed against production as it stands. **Every result below
+describes V1 and says nothing about V2**, which is not in production and was
+therefore not smoke-tested.
+
+- Assets referenced by the live home page: `/css/style.css`, `/js/bg-3d.js`,
+  `/js/hero-3d.js`, `/js/main.js` — all V1 paths. **No `/_astro/` bundle is
+  referenced or served**, so `.nojekyll` was not exercised and §14 step 5's
+  underscore-directory question is untested.
+- Browser-level checks — rendering, console errors, horizontal overflow at
+  320 px — were **NOT RUN**. Running them would have measured V1, which is
+  outside this milestone's scope and would prove nothing about V2. Recorded as
+  not tested rather than quietly skipped.
+
+### 1M.9 Item 11 — production content scan — OBSERVED, and V1 fails it
+
+Fetched every script the live page loads and scanned each.
+
+| Asset | Finding |
+|---|---|
+| `/js/bg-3d.js` | clean |
+| `/js/hero-3d.js` | clean |
+| `/js/main.js` | **contains `api.github.com`** |
+
+Source maps: no `sourceMappingURL` in any served asset. Credentials: no
+`ghp_`, `github_pat_` or `Bearer` token in any served asset.
+
+External origins referenced by the live home page:
+
+```
+api.github.com      cdn.jsdelivr.net    fonts.googleapis.com
+fonts.gstatic.com   github.com          schema.org
+wa.me               www.facebook.com    www.instagram.com
+www.linkedin.com
+```
+
+This is **V1's** runtime GitHub calling and V1's third-party font and CDN
+loading — exactly the behaviour V2 was built to eliminate by moving GitHub
+retrieval to build time and self-hosting fonts. `verify-output.mjs` fails the
+build on any third-party origin, so V2's output cannot contain these. **The
+finding is against production, and production is V1.** It is not a V2 defect
+and it resolves itself the moment the cutover actually happens.
+
+### 1M.10 The one change made — `.github/workflows/deploy.yml`
+
+Under item 13, one production-blocking defect was fixed: **the repository had
+no deploy workflow at all**, so with the Pages source on GitHub Actions nothing
+could ever publish. This is §14 step 2, already planned and already specified;
+it is not new architecture and adds no feature.
+
+Seventy lines on `v2`, untracked, using the canonical Pages actions:
+
+- triggers on `push` to `main` and on `workflow_dispatch`
+- `permissions: contents: read, pages: write, id-token: write`
+- `concurrency: group: pages, cancel-in-progress: false` — a cancelled deploy
+  can leave Pages serving a half-uploaded artifact
+- `npm ci` from the committed lockfile; Node 24, matching `ci.yml`
+- `npm run github:fetch` with `continue-on-error: true` — same contract as
+  `ci.yml`: a GitHub outage falls back to the committed snapshot
+- `npm run verify`, **not** `npm run build` — the output assertions run against
+  the very artifact about to be published
+- `upload-pages-artifact` from `dist`, then `deploy-pages`
+
+**NOT OBSERVED: this workflow has never run.** It is uncommitted, unpushed, and
+cannot execute until it is on a branch GitHub can trigger. No claim is made
+that it works. §14 step 2's instruction to prove it on `v2` before merging
+still stands and is now the next action.
+
+Nothing else was changed. `git status` shows one untracked file and no
+modifications to any source file.
+
+### 1M.11 M13 verification summary
+
+| Item requested | Result |
+|---|---|
+| Remote `main` commit | **OBSERVED** — `41d4dc1`, V1, unchanged since 2026-08-08 |
+| Merge of `v2` into `main` | **NOT PRESENT** on the remote or in this clone |
+| Actions deployment run | **NONE EXISTS** — no run on `main` since 2026-08-08 |
+| Pages deployment succeeded | **NO** — last Pages build 2026-08-08, and it built V1 |
+| Pages source setting | **NOT OBSERVED** — endpoint needs a credential |
+| Production serving V2 | **NO** — production serves V1 |
+| Eight V2 routes | **4 × 404**, 4 × V1 pages. None is a V2 world. |
+| Legacy routes | All six serve **V1 originals**; `/work.html` does not redirect |
+| `/about.html` collision | Live host resolves `/about` → `about.html`; **§14 step 4 still unanswerable** without V2 deployed |
+| CNAME / HTTPS / DNS | **VERIFIED** — correct, no action needed |
+| `sitemap.xml` / `robots.txt` | **V1's**, serving correctly |
+| 404 behaviour | **GitHub default** — V2's custom 404 not deployed |
+| Smoke test | Run against **V1**. Browser checks **NOT RUN** — would measure V1. |
+| `api.github.com` / secrets / source maps | `api.github.com` **PRESENT** in V1's `main.js`. No secrets, no source maps. A V1 property. |
+| Deploy workflow | **Was missing.** Added on `v2`. **Never executed.** |
+
+**Two blockers, in order:**
+
+1. **The merge never reached GitHub.** `origin/main` is still V1.
+2. **No deploy workflow existed.** Now written, never run.
+
+Both must be resolved before any production verification of V2 is possible.
+The next action is §14 step 2 — get `deploy.yml` onto a branch and prove it
+runs — followed by §14 step 1 confirmed and §14 step 3 pushed.
+
+---
+
+## 1N. M13-B — Deployment recovery
+
+**Blocker 2 of §1M is closed. Blocker 1 is not, and a third has been isolated.**
+
+The deployment mechanism now exists and has been **observed executing
+successfully on a real GitHub runner**. Production has not changed and must not
+be described as having changed: no merge has happened, and the Pages source
+setting still cannot be read from this environment.
+
+Nothing was redesigned, no world was touched, CYBERSECURITY was not started,
+no verification assertion was weakened, and `main` was not modified.
+
+### 1N.1 The audit of `deploy.yml` — four defects found in the M13 draft
+
+The workflow written at the end of §1M was reviewed line by line before being
+pushed, and **it was wrong in four ways**. It is recorded here because three of
+the four would have caused real damage.
+
+**1 — It could never run on `v2`.** Trigger was `push: branches: [main]`. The
+first execution of the workflow would therefore have been the one publishing to
+the live site, which is precisely the untested-deployment failure §1M was
+written about. Fixed: `branches: [main, v2]`.
+
+**2 — Adding `v2` to the trigger would have cut over production early.**
+`actions/deploy-pages` publishes to the single Pages site **regardless of ref**,
+so a naïve fix to defect 1 would have deployed V2 the moment `v2` was pushed —
+an unauthorised cutover, out of order with every remaining phase. Fixed by
+splitting the workflow: the `build` job runs on both branches, and the `deploy`
+job carries `if: github.ref == 'refs/heads/main'`. **This guard was then proven
+on the runner — see §1N.3.**
+
+**3 — It bypassed two gates.** The draft ran `npm run verify` but neither
+`npm run test:github` nor `npm audit --audit-level=high`. And `ci.yml` does not
+trigger on `main` pushes at all — only `v2` and pull requests — so at the
+cutover merge those two gates would have run **nowhere**, and the artifact
+would have been published having never faced the dependency audit or the
+fallback/secret-isolation test. Fixed: the deploy path re-runs every gate
+`ci.yml` runs rather than assuming CI covered it.
+
+**4 — Gate ORDER was unsafe for a workflow that publishes.** The draft copied
+`ci.yml`'s order, `verify` → `test:github`. But `test:github` works by breaking
+things: it hides both data files and rebuilds, then writes a `ghp_…`-shaped
+canary into `dist/` to prove the credential scanner fires. It restores and
+rebuilds afterwards — but that final rebuild is a bare `astro build` that
+`verify-output.mjs` never inspects, and the canary is removed only by a
+`finally`. `ci.yml` may run it last because `ci.yml` publishes nothing; a
+workflow that uploads `dist/` may not.
+
+Measured rather than assumed: `dist/` was inspected in the gap between the two
+gates. The canary **was** absent and `verify-output.mjs` **did** pass against
+that tree, so on the happy path the draft would have shipped a valid artifact.
+The defect is therefore conditional, not certain — but it is real in two ways:
+the uploaded tree would have been one no assertion had run against *at upload
+time*, and one interrupted process between plant and `finally` would have
+published a token-shaped string. Fixed by running `test:github` **first**, so
+`verify` re-emits `dist/` from scratch and scans the exact bytes uploaded.
+
+Also tightened: workflow-level permissions are `contents: read`, with
+`pages: write` and `id-token: write` attached to the `deploy` job alone, so the
+job that runs `npm ci` — and with it every dependency's lifecycle scripts —
+never holds a token that can publish. `actions/configure-pages` was dropped:
+`astro.config.mjs` already pins `site: 'https://ayushrijal.com.np'` with no
+`base`, so it would contribute nothing while adding a failure mode.
+
+No third-party deployment action. No new dependency. No token written to disk.
+
+### 1N.2 Local validation before push — ALL PASSED
+
+Node **v24.19.0**, npm **11.17.0**, run in the deploy workflow's own gate order.
+
+| Command | Result |
+|---|---|
+| `npm ci` | 272 packages, **0 vulnerabilities** |
+| `npm run test:github` | **18/18 assertions** |
+| `npm run verify` | **17 pages**, 8 worlds, all output assertions |
+| `npm run build` | 16 pages, standalone build clean |
+| `npm audit --audit-level=high` | **0 vulnerabilities**, exit 0 |
+| `git diff --check` | clean |
+
+Artifact inspected directly (`dist/`), not inferred:
+
+| Property | Observed |
+|---|---|
+| V2 routes | `/about`, `/projects`, `/ai-lab`, `/github`, `/learning`, `/contact`, `/cybersecurity`, 3 project records, 4 `/lab/*` |
+| Top-level `.html` | `index.html`, `404.html`, `work.html` — **`work.html` is the only legacy stub**, as the collision rule requires |
+| `CNAME` | `ayushrijal.com.np`, present in `public/` and `dist/` |
+| `.nojekyll` | present in `public/` and `dist/` |
+| `sitemap.xml` | 11 `<loc>`, **all extensionless V2 routes**, no `.html` world URL |
+| `robots.txt` | V2's — `Allow: /`, `Disallow: /lab/`, sitemap line |
+| `404.html` | `<title>Not in this archive</title>` + `<meta name="robots" content="noindex">` |
+| `api.github.com` | **none** |
+| Source maps | **none** — no `.map` file, no `sourceMappingURL` |
+| Credential shapes | **none** |
+| Third-party origins | **none** — no jsdelivr, no Google Fonts; fonts self-hosted in `dist/fonts` |
+| AI Lab terminology | corrected — the only occurrence of "gaze" is the denial *"is not gaze; it is head pose"*; the table reads **"Face and head pose"** |
+| AR-04 wording | corrected text present in `dist/cybersecurity` and `dist/index.html`; the old *"Defensive security research, lab write-ups…"* appears in **zero** built files; `/cybersecurity` still prints `0 entries` |
+
+One external origin in `dist/` needs naming so it is not mistaken for a leak:
+`http://localhost:11434` appears as **body text**, inside
+`<span class="pipeline__detail">`, describing the Ollama port the Jarvis
+assistant talks to on-device. It is prose about the project, not a resource the
+page fetches. The other origins are `ayushrijal.com.np`, `github.com`,
+`overthewire.org`, `linkedin.com` (outbound links) and the sitemap XML
+namespace.
+
+### 1N.3 The `v2` run — OBSERVED, and the cutover guard held
+
+Commit **`63bb423`** *deploy: add GitHub Pages deployment workflow*, one file,
+117 insertions. Pushed `e394fe2..63bb423`. Remote `v2` confirmed at
+`63bb4237f423c66dc1ec85bc393c9bd3ccc11e8a` and confirmed to contain
+`.github/workflows/deploy.yml`.
+
+| | Deploy | CI |
+|---|---|---|
+| Run ID | **32706958024** | **32706957981** |
+| Workflow | Deploy | CI |
+| Event | `push` | `push` |
+| Branch | `v2` | `v2` |
+| Commit | `63bb423` | `63bb423` |
+| Started | 2026-08-24T08:34:00Z | 2026-08-24T08:34:00Z |
+| Ended | 2026-08-24T08:34:27Z | 2026-08-24T08:34:31Z |
+| Duration | **27 s** | **31 s** |
+| Conclusion | **success** | **success** |
+
+`Deploy` job results:
+
+| Job | Conclusion |
+|---|---|
+| `build` | **success** — every step: checkout, setup-node, Install, Refresh GitHub repository data, Test the GitHub fallback and secret isolation, Build and verify, Audit dependencies, upload-pages-artifact |
+| `deploy` | **skipped** |
+
+**`deploy` was skipped, and that is the result this phase existed to produce.**
+The `main`-only guard was exercised on the real runner: pushing V2 to `v2`
+built it, gated it, packaged it, and provably did **not** publish it.
+
+Artifact produced: `github-pages`, **183,453 bytes**, created
+2026-08-24T08:34:23Z, not expired.
+
+CI remains green on `v2` and its `verify` job passed every step, so the new
+workflow did not disturb the existing one.
+
+**Production re-checked immediately after the push** — still
+`Last-Modified: Sat, 08 Aug 2026 13:53:15 GMT`, still
+`<title>Ayush Rijal — Cybersecurity Developer & AI Builder</title>`. V1,
+untouched, exactly as intended.
+
+**Not observed: `actions/deploy-pages` itself has never executed.** It cannot
+be rehearsed — there is no way to test a deployment without deploying. Its
+first execution will be the cutover, on `main`.
+
+### 1N.4 Pages source — STILL NOT OBSERVABLE, and this is the blocker
+
+`GET /repos/ayushrijal83-ops/ayushrijal.com.np/pages` → **HTTP 404**
+unauthenticated. That endpoint requires a credential even on a public
+repository, so the 404 distinguishes "not configured" from "configured but
+unreadable" and **no claim is made either way**.
+
+This is now the single thing standing between the repository and the cutover,
+and it is owner-only. See §14 step 1.
+
+### 1N.5 M13-B state
+
+| Phase | State |
+|---|---|
+| 0 Baseline | **OBSERVED** |
+| 1 Audit `deploy.yml` | **COMPLETE** — four defects found and fixed |
+| 2 Local validation | **ALL PASSED** |
+| 3 Commit | **DONE** — `63bb423`, deploy workflow only |
+| 4 Push `v2` | **DONE** — `origin/v2` = `63bb423` |
+| 5 Observe Actions | **OBSERVED** — Deploy `32706958024` success 27 s, CI `32706957981` success 31 s, `deploy` job skipped |
+| 6 Pages source | **BLOCKED — OWNER ONLY.** Not observable here. |
+| 7 Prepare merge | **NOT DONE** — gated on phase 6 |
+| 8 Merge `v2` → `main` | **NOT DONE** |
+| 9 `main` CI + deploy | **NOT DONE** |
+| 10 Production smoke test | **NOT DONE** — production is still V1 |
+| 11 Legacy route observation | **NOT DONE** — §14 step 4 still unanswerable |
+| 12 `github-data.yml` | **NOT OBSERVED** — still dormant; needs `main` as default branch |
+| 13 Post-cutover security | **NOT DONE** against a deployed artifact |
+| 14 A11y / responsive regression | Build-time suite green locally; browser checks **NOT RUN** |
+| 15 Email test | **NOT DONE — owner action** |
+| 16 Do-not-touch list | **RESPECTED** — nothing on it was touched |
+| 17 PROJECT_PROGRESS | this section |
+
+`origin/main` remains **`41d4dc1`**. CYBERSECURITY remains ON HOLD, not built.
+The OpenWeatherMap credential in `Agriculture_simulator` remains **outside this
+repository, active, and unresolved** — the project is not security-clean while
+it stands.
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -4885,22 +5331,37 @@ future engineering. There is none left. V2 is built, verified, pushed, and CI
 has passed on a real runner. What remains is six actions, four of which only
 the repository owner can perform, and they must happen roughly in this order.
 
-### 1. Switch the Pages source — BLOCKED on you
+### 1. Switch the Pages source — BLOCKED on you, and now the ONLY blocker
 
 > GitHub → **Settings** → **Pages** → **Build and deployment** → **Source** →
 > change from *Deploy from a branch* to **GitHub Actions**.
 
-Nothing deploys until this happens. The Pages API is unreadable without a
-credential, so this could not be done or verified from the build environment
-and no attempt was made to guess at it.
+Nothing deploys until this happens. Re-checked in M13-B:
+`GET /repos/…/pages` returns **HTTP 404** unauthenticated, and that endpoint
+needs a credential even on a public repository — so the 404 cannot distinguish
+"not configured" from "configured but unreadable". No claim is made either way.
 
-### 2. Add a deploy workflow, and verify it on `v2` before merging
+**Confirm it reads `GitHub Actions` before the merge.** If it still reads
+*Deploy from a branch*, do not merge: the branch builder would try to serve
+Astro source as a Jekyll site. If it reads *GitHub Actions* and the merge has
+not happened, the site simply keeps serving the 2026-08-08 V1 build — which is
+the state observed throughout M13.
 
-There is deliberately no deploy workflow in the repository — `ci.yml` says so
-in its own header, and that is what has kept V1 safe for eleven milestones. One
-is now needed: build `main`, upload `dist/`, deploy to Pages. Verify it runs on
-`v2` first; a broken deploy discovered after the merge is a broken production
-site.
+### 2. Add a deploy workflow, and verify it on `v2` before merging — **DONE**
+
+**Closed in M13-B (§1N).** `.github/workflows/deploy.yml`, commit `63bb423`,
+pushed to `v2`. Observed passing on a real runner in **27 seconds**
+(run `32706958024`): the `build` job succeeded on every step and produced a
+183,453-byte `github-pages` artifact, and the `deploy` job was **skipped** by
+its `if: github.ref == 'refs/heads/main'` guard — so the rehearsal provably did
+not publish. CI stayed green alongside it (run `32706957981`, 31 s).
+
+The draft written at the end of M13 was audited before pushing and was wrong in
+four ways, one of which would have cut production over early. §1N.1 records all
+four.
+
+Still unrehearsed, unavoidably: `actions/deploy-pages` itself. There is no way
+to test a deployment without deploying, so its first execution is the cutover.
 
 ### 3. Merge `v2` into `main`
 
