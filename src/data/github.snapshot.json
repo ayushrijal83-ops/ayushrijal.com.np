@@ -1,8 +1,34 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-22T04:06:05.734Z",
+  "generatedAt": "2026-08-24T18:51:22.079Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-08-24T14:59:00Z",
+      "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "QuickJunction",
+      "description": "complete hotel management software",
+      "url": "https://github.com/ayushrijal83-ops/QuickJunction",
+      "language": "Python",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-08-23T13:19:30Z",
+      "createdAt": "2026-08-20T16:12:09Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "x-man",
       "description": "X-MAN Team - HackForge Hackathon Project",
@@ -10,7 +36,7 @@
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-08-21T10:27:11Z",
+      "pushedAt": "2026-08-23T08:16:47Z",
       "createdAt": "2026-08-21T04:14:54Z",
       "topics": [],
       "archived": false,
@@ -74,19 +100,6 @@
       "forks": 0,
       "pushedAt": "2026-08-09T07:34:18Z",
       "createdAt": "2026-08-09T07:22:35Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "HTML",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-08-08T13:53:00Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
