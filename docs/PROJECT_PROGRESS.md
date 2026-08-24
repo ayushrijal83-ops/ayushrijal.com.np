@@ -9,10 +9,10 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M13 — Production verification + deployment recovery** |
-| **M13 status** | **CUTOVER BLOCKED — awaiting owner.** Deploy workflow written, pushed and **observed passing on `v2`** (run `32706958024`). Production still serves V1. Blocked on the Pages source setting, which no credential here can read. See §1M, §1N. |
+| **Current milestone** | **M13 — CUTOVER COMPLETE. Production serves V2.** |
+| **M13 status** | **COMPLETE — verified over HTTP.** Merge `927477a`, Deploy run `32731636983` succeeded in 50 s with the deploy job executing, production serving V2 since 2026-08-24T13:16:17Z. Two owner actions remain: **Enforce HTTPS is off**, and `github-data.yml` still targets `v2`. See §1O. |
 | **Last updated** | 2026-08-24 |
-| **Working branch** | `v2` (all V2 work). `main` still serves V1 to production, unmodified — verified against the live site on 2026-08-24. |
+| **Working branch** | `main` — **now V2, and deploying**. `v2` is merged (`--no-ff`, `927477a`) and retained as history. Rollback is `git revert -m 1 927477a`. |
 
 ---
 
@@ -35,7 +35,8 @@
 | M12 | Final cutover | **Complete** | §1L below. **FINAL CUTOVER READY.** v2 pushed; CI observed passing remotely. |
 | M13 | Production verification | **Complete — result is BLOCKED** | §1M below. Production observed serving V1. Cutover did not reach GitHub. One blocking defect fixed: `deploy.yml`. |
 | M13-B | Deployment recovery | **Complete — cutover still BLOCKED** | §1N below. `deploy.yml` audited, corrected, pushed, and **observed passing on `v2` in 27 s** with the deploy job correctly skipped. Blocked on the Pages source, owner-only. |
-| Cutover | V1 → V2 | **Blocked on 4 owner actions** | §14. Pages source, deploy workflow, merge, key revocation. Production still serves V1. |
+| M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
+| Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
 
 **M12 scope compliance:** no new world, no redesign, no framework, no CMS, no backend, no third-party contact service, **no dependency added**. **CYBERSECURITY was not built and not modified.** Three changes, each a defect found by this milestone’s own audits: the archive called the head-pose estimate “gaze” in two tables while its own experiment says it is not (§1L.2); the 404 page was indexable; and five assertions were added to hold both. No existing assertion was weakened and no exception was added to make one inert. `v2` was pushed — no force, no history rewritten, nothing merged — and `origin/main` is unchanged at `41d4dc1`. V1 remains byte-identical against both local `main` and `origin/main`. Production still serves V1. See §1L.
 
@@ -4944,6 +4945,271 @@ The OpenWeatherMap credential in `Agriculture_simulator` remains **outside this
 repository, active, and unresolved** — the project is not security-clean while
 it stands.
 
+*(§1N.5 above is the state as of the M13-B stop. §1O supersedes it.)*
+
+---
+
+## 1O. M13-C — THE CUTOVER. Production serves V2.
+
+**Observed over HTTP on 2026-08-24. This is no longer a plan or a rehearsal.**
+
+`https://ayushrijal.com.np/` returns **19,214 bytes**, byte-for-byte the size of
+`dist/index.html`, titled *"Ayush Rijal — Software · AI · Cybersecurity"*, with
+`Last-Modified: Mon, 24 Aug 2026 13:16:17 GMT`. The 2026-08-08 V1 build that
+this document tracked for thirteen milestones is no longer being served.
+
+Two things remain open and are recorded as open: **Enforce HTTPS is off**, and
+**`github-data.yml` still targets `v2`**. Neither blocks the archive; both need
+an owner. §1O.8 and §1O.9.
+
+### 1O.1 The merge — `927477a`
+
+Pre-merge checks, all observed before anything was written: working tree clean;
+`origin/main` at `41d4dc1`; `origin/v2` at `b9a3328` carrying `deploy.yml`;
+local `main`'s one extra commit (`f42314e`) already contained in `v2`, so
+nothing of it was at risk.
+
+Staged with `--no-commit` and inspected before committing: **93 files, 27,111
+insertions, zero deletions.** The only modified file is this one. No `.env`, no
+credential, no unexpected file type. Every V1 file — `index.html`,
+`about.html`, `work.html`, `journey.html`, `blog.html`, `contact.html`, `css/`,
+`js/`, `CNAME`, `.nojekyll` — **unchanged and still present in the repository**.
+They are inert now rather than deleted: Pages serves the uploaded `dist/`
+artifact, not the repository root.
+
+Merged **`--no-ff`** although a fast-forward was available. The reason is
+rollback: force-push is forbidden, so production must be revertable by a normal
+forward commit. `git revert -m 1 927477a` is now the rollback, and every
+milestone commit is preserved — nothing squashed.
+
+`origin/main`: `41d4dc1` → **`927477a`**.
+
+### 1O.2 The `main` deployment — OBSERVED, and the deploy job RAN
+
+| | |
+|---|---|
+| Workflow | **Deploy** |
+| Run ID | **32731636983** |
+| Event / branch | `push` / `main` |
+| Commit | `927477a0a9c0626fc865aa91ed723c9ecec06af4` |
+| Started | 2026-08-24T13:15:36Z |
+| Ended | 2026-08-24T13:16:26Z |
+| Duration | **50 s** |
+| Conclusion | **success** |
+
+| Job | Conclusion |
+|---|---|
+| `build` | **success** — checkout, setup-node, Install, Refresh GitHub repository data, Test the GitHub fallback and secret isolation, Build and verify, Audit dependencies, upload-pages-artifact |
+| `deploy` | **success** — `actions/deploy-pages@v4` **executed** |
+
+**The `deploy` job ran rather than being skipped.** On `v2` the same workflow
+skipped it (§1N.3); on `main` the `refs/heads/main` guard opened. Both halves
+of that guard are now observed behaving correctly on a real runner.
+
+Deployment landed at **13:16:17Z**, nine seconds before the run closed —
+`Last-Modified` on the live site matches.
+
+**Honest note on "CI on `main`":** only **one** workflow ran. `ci.yml` triggers
+on `push: [v2]` and pull requests, so a push to `main` does not start it, and
+there is no separate CI run for `927477a` to point at. This is not a gap in
+coverage — `deploy.yml`'s `build` job re-runs `verify`, `test:github` and
+`npm audit --audit-level=high`, the same three gates, which is exactly why it
+was written that way (§1N.1, defect 3). But the phrase "CI passed on main" would
+be false and is not used.
+
+### 1O.3 The eight worlds — OBSERVED LIVE
+
+`build.format: 'directory'` emits `about/index.html`, so GitHub Pages issues a
+**301 to the trailing-slash form**, then serves the world. Both hops recorded.
+
+| Route | First hop | Final | Bytes | Title |
+|---|---|---|---|---|
+| `/` | **200** | — | 19,214 | Ayush Rijal — Software · AI · Cybersecurity |
+| `/about` | 301 | `/about/` **200** | 13,999 | About — Ayush Rijal |
+| `/projects` | 301 | `/projects/` **200** | 20,178 | Projects — Ayush Rijal |
+| `/ai-lab` | 301 | `/ai-lab/` **200** | 59,644 | AI Lab — Ayush Rijal |
+| `/github` | 301 | `/github/` **200** | 36,650 | GitHub — Ayush Rijal |
+| `/learning` | 301 | `/learning/` **200** | 36,951 | Learning — Ayush Rijal |
+| `/contact` | 301 | `/contact/` **200** | 17,440 | Contact — Ayush Rijal |
+| `/cybersecurity` | 301 | `/cybersecurity/` **200** | 9,896 | Security Research Archive — Ayush Rijal |
+| `/404` → `/404.html` | **200** | — | 8,986 | Not in this archive — Ayush Rijal |
+| `/projects/yushacyber` | 301 | `…/` **200** | 18,128 | YushaCyber — Ayush Rijal |
+
+Every size matches the local `dist/` file exactly. The 301 is a correct
+permanent redirect that crawlers follow; the sitemap lists the extensionless
+form, which resolves in one hop.
+
+### 1O.4 Legacy routes — the M11 collision question, ANSWERED ON THE REAL HOST
+
+| Route | Status | Serves | Verdict |
+|---|---|---|---|
+| `/work.html` | **200** | 1,640 B stub, `refresh 0; url=/projects` | **V2 stub — redirect works** |
+| `/about.html` | **404** | V2 custom 404 | V2 404 |
+| `/contact.html` | **404** | V2 custom 404 | V2 404 |
+| `/journey.html` | **404** | V2 custom 404 | V2 404 — ARCHITECT DECISION |
+| `/blog.html` | **404** | V2 custom 404 | V2 404 — ARCHITECT DECISION |
+| `/assets/resume.pdf` | **404** | V2 custom 404 | V2 404 — not carried forward |
+| `/ai` | **404** | V2 custom 404 | never published; nothing to preserve |
+| `/index.html` | **200** | 19,214 B | V2 home |
+
+Every 404 above serves **V2's own 8,986-byte "Not in this archive"** page, not
+GitHub's default. The custom 404 is live.
+
+**On enabling the two withdrawn stubs — the answer is still no, and now for a
+measured reason.** With no `about.html` present, `/about` **301s to `/about/`**
+and the world loads. Adding an `about.html` stub would put a file and a
+directory in contention at the same URL, which is the exact configuration M11
+measured resolving to the *file* — and since that stub redirects to `/about`,
+that is an infinite loop on two worlds reached from the site's own navigation.
+Production has now shown the safe half of that behaviour; it has **not** shown
+the contested half, because the contested configuration is not deployed and
+cannot be tested without deploying it. No proven Pages-safe mechanism exists,
+so `LEGACY_ROUTES` is unchanged: `work.html` only, the one stub with no live
+route to shadow. **§14 step 4 is CLOSED as "leave them 404", on evidence.**
+
+### 1O.5 V1 machinery — GONE from production
+
+Scanned the live home page, not `dist/`:
+
+| V1 artefact | Live |
+|---|---|
+| three.js / import map | **ABSENT** (the one "three" hit is prose: *"three verified ways to write"*) |
+| `cdn.jsdelivr.net` | **ABSENT** |
+| `fonts.googleapis.com` / `fonts.gstatic.com` | **ABSENT** |
+| `api.github.com` runtime call | **ABSENT** |
+| `js/bg-3d.js`, `js/hero-3d.js` | **ABSENT** |
+
+External origins on the live home page: **`ayushrijal.com.np`** and
+**`github.com`** (an outbound link). That is all.
+
+Assets served, all **200** with correct content types — this is the `.nojekyll`
+test that §14 step 5 called out, and it passes:
+
+`/_astro/BaseLayout.C8FStwLh.css` 24,177 B · `/_astro/index.Con1ITvG.css`
+5,840 B · `/_astro/WorldLayout…js` 639 B · `/fonts/plex-mono-400.woff2`
+14,708 B (self-hosted).
+
+### 1O.6 Live sitemap, robots, domain
+
+- **`sitemap.xml`** — V2's, 11 `<loc>`, all extensionless V2 routes. Zero
+  `.html` world URLs. The V1 six-URL sitemap is gone.
+- **`robots.txt`** — V2's: `Allow: /`, `Disallow: /lab/`, sitemap line.
+- **`CNAME`** — 200, custom domain bound and serving.
+- **`www.ayushrijal.com.np`** → **301** → `https://ayushrijal.com.np/`.
+
+### 1O.7 Post-cutover security — CLEAN against the deployed artifact
+
+Scanned live, over HTTP:
+
+| Check | Result |
+|---|---|
+| Credentials in any served asset | **none** |
+| `sourceMappingURL` | **none** |
+| `.map` files fetchable | **404** |
+| `api.github.com` | **none** |
+| Third-party origins / CDN | **none** |
+| Analytics / tracking | **none** |
+| Client-side network calls | **none** |
+| `/package.json`, `/astro.config.mjs`, `/.env`, `/.env.example`, `/src/lib/site.ts`, `/node_modules/…`, `/.github/workflows/deploy.yml` | all **404** — no source or config leakage |
+| `npm audit --audit-level=high` on `main` | **0 vulnerabilities** |
+
+### 1O.8 Enforce HTTPS is OFF — OWNER ACTION
+
+`http://ayushrijal.com.np/` returns **200 in the clear**, serving the page over
+plain HTTP with **no redirect to HTTPS**. Verified explicitly:
+`scheme_used=http code=200 redirect=<empty>`.
+
+HTTPS itself works and the certificate is valid — every other check in this
+section ran over TLS. What is missing is the redirect.
+
+> GitHub → **Settings** → **Pages** → tick **Enforce HTTPS**.
+
+Whether the Pages source switch cleared this, or it was already off under V1,
+**was not established** — the http→https redirect was never tested before
+today, so no cause is claimed. GitHub also disables the checkbox for a while
+after a Pages configuration change while it re-provisions the certificate; if
+it is greyed out, wait and re-tick it.
+
+### 1O.9 `github-data.yml` — REGISTERED, and now pointed at the wrong branch
+
+**Registered.** The workflow list now shows `GitHub data` as **`state=active`**.
+GitHub only honours `schedule` and `workflow_dispatch` from the default branch,
+so this was impossible before the merge — the item open since M05 is closed on
+the registration question.
+
+**Not executed, and not faked.** Its cadence is `0 */6 * * *`; the merge landed
+at ~13:16Z, so the next scheduled run is 18:00Z, after this milestone. It was
+**not** manually dispatched — see the defect below for why that would have been
+the wrong thing to do.
+
+**The defect the cutover introduced.** As merged onto `main`, the workflow still
+does `checkout` with **`ref: v2`** and pushes there. It will therefore refresh
+the fallback snapshot on `v2`, a branch that no longer deploys, while `main`'s
+committed snapshot — the one every production build falls back to — quietly
+goes stale. That is precisely the failure the workflow's own header says it
+exists to prevent: *"a fallback last written months ago is a fallback that
+lies."*
+
+Not fixed here, deliberately: it is not a deployment failure, production is
+correct without it, and the brief for this milestone was not to change source
+beyond what deployment required. **The fix is one line** — `ref: v2` → `ref: main`
+at `.github/workflows/github-data.yml:37` — and it needs an owner decision, not
+an assumption. Harmless in the meantime: a push to `v2` triggers `deploy.yml`'s
+build job, whose deploy job skips, so it cannot publish anything.
+
+### 1O.10 Verification suite and accessibility — run against LIVE production
+
+`npm run verify` on the merged `main`: **pass** — 8 worlds, no-JS fallbacks
+intact, About record verbatim, 3 project records with sources, no credentials,
+AI Lab claims no training and no metrics, GitHub archive complete, 7 world
+stocks clear WCAG AA, no inline scripts, no third-party origins, no Pretext,
+deployable, 1 legacy redirect intact, 17 pages.
+
+**The suite does not assert most of the accessibility list**, so those were
+checked directly against the live site rather than claimed:
+
+| Property | Method | Result |
+|---|---|---|
+| Exactly one `<h1>` per page | live HTML, 10 pages | **pass** |
+| No duplicate `id` | live HTML, 10 pages | **pass** |
+| No broken `aria-labelledby` | live HTML, 10 pages | **pass** |
+| No positive `tabindex` | live HTML, 10 pages | **pass** |
+| Skip link present, → `#main` | live HTML, 10 pages | **pass** |
+| `#main` focusable (`tabindex="-1"`) | Chrome | **pass** |
+| Skip link actually moves focus | Chrome | **pass** — `activeElement` becomes it |
+| Focus ring visible | Chrome, 10 focusables | **pass** — `2px solid rgb(156,48,22)`, 0 without a ring |
+| No broken internal links | live HEAD, 11 links | **pass** |
+| `target="_blank"` without `rel="noopener"` | live HTML | **none** |
+| Horizontal overflow @ 320/375/768/1280 | Chrome, 9 pages | **none** |
+| Text-only 200% @ 320 px | Chrome, 9 pages | **none** |
+| Console errors / CSP violations | Chrome, 10 pages | **zero** |
+| No-JS output | raw HTML has full content pre-JS | **pass** |
+
+**Reduced motion — PARTIAL, stated as such.** 12 `prefers-reduced-motion` media
+blocks are present in the served CSS. The machine running this check reports
+`prefers-reduced-motion: reduce` as **false**, so the reduced-motion *behaviour*
+was **not** exercised — only the presence of the rules. Not claimed as verified.
+
+**Browser coverage: Chrome only.** Safari and Firefox were **NOT** tested; no
+such infrastructure was available and no claim is made about them.
+
+### 1O.11 Still outstanding
+
+| Item | State |
+|---|---|
+| **Enforce HTTPS** | **OFF — owner action**, §1O.8 |
+| **`github-data.yml` targets `v2`** | **owner decision**, one line, §1O.9 |
+| **Send one real email** | **NOT DONE — owner action.** `/contact/` is live and the `mailto:` is correct, but delivery cannot be proven from a static page or a link check, and was not claimed in M12 either. |
+| **OpenWeatherMap credential** | **EXTERNAL, ACTIVE, UNRESOLVED.** In `Agriculture_simulator`, outside this repository, value never reproduced here. Open since M05. **The project is not security-clean while it stands**, regardless of this archive being clean. |
+| **CYBERSECURITY** | **ON HOLD, not built.** `/cybersecurity/` is live and correctly declares itself empty — `0 entries`, plus the corrected AR-04 summary. Not started, not touched. |
+| Safari / Firefox | **NOT TESTED** |
+| Reduced-motion behaviour | **NOT EXERCISED** (rules present) |
+
+Nothing on the M13 do-not-touch list was touched: no favicon, no `og:image`, no
+redesign, no CMS, no analytics, no contact backend, no new dependency, no
+withheld channel exposed, no `resume.pdf` republished, `/journey.html` and
+`/blog.html` not resurrected, V1 not modified, `main` never force-pushed.
+
 ---
 
 ## 2. Exact current project state
@@ -5326,10 +5592,12 @@ npm audit
 
 ## 14. Where the project actually stands, and the six steps left
 
-**FINAL CUTOVER READY — MANUAL ACTIONS REMAIN.** This is no longer a plan for
-future engineering. There is none left. V2 is built, verified, pushed, and CI
-has passed on a real runner. What remains is six actions, four of which only
-the repository owner can perform, and they must happen roughly in this order.
+**THE CUTOVER IS DONE.** Production served its first V2 response at
+2026-08-24T13:16:17Z and every route has been verified over HTTP (§1O).
+
+Of the six steps this section has tracked since M11, **four are closed**.
+Two remain, plus one that arrived with the cutover itself. All three are
+owner actions; none of them blocks the archive from working.
 
 ### 1. Switch the Pages source — BLOCKED on you, and now the ONLY blocker
 
@@ -5363,39 +5631,70 @@ four.
 Still unrehearsed, unavoidably: `actions/deploy-pages` itself. There is no way
 to test a deployment without deploying, so its first execution is the cutover.
 
-### 3. Merge `v2` into `main`
+### 3. Merge `v2` into `main` — **DONE**
 
-This is the cutover. It is also what makes `github-data.yml` register: GitHub
-only honours `schedule` and `workflow_dispatch` from the **default branch**, so
-the six-hourly snapshot refresh has never been able to run and cannot be
-observed until the merge (§1L.11). Watch its first run afterwards and confirm
-it commits only when a repository fact has actually moved.
+**Merged `927477a`** on 2026-08-24, `--no-ff`, 93 files, 27,111 insertions,
+**zero deletions**. `origin/main`: `41d4dc1` → `927477a`. Rollback is
+`git revert -m 1 927477a` — a forward commit, no force-push needed.
 
-Note when you merge: local `main` carries one unpushed docs-only commit
-(`f42314e`). It touches no V1 file, but it will go up with the merge.
+`f42314e` went up with it as expected, and touched no V1 file.
 
-### 4. Observe Pages resolution order, then decide two redirects
+`github-data.yml` **did** register: it now reads `state=active`. But it also
+carried a defect across the merge — it still targets `ref: v2`. See step 7.
 
-Once V2 is served, request `/about`. If it returns the About world, the
-`/about.html` and `/contact.html` stubs can be enabled unchanged — the map and
-the generator are already in place, it is two lines in `src/lib/legacy.ts`. If
-it returns a file instead, they stay off. M11 measured the local preview
-choosing the file, which is why they were withdrawn; the real answer needs the
-real host.
+### 4. Observe Pages resolution order, then decide two redirects — **DONE: they stay off**
 
-### 5. Verify production, then send one email
+Observed on the real host (§1O.4): with no `about.html` deployed, `/about`
+**301s to `/about/`** and the About world loads. `/about.html` and
+`/contact.html` currently return V2's own 404.
 
-After deployment: the custom domain, the eight world routes, the three project
-records, `/work.html` redirecting to `/projects`, the orphans reaching the 404,
-`sitemap.xml` and `robots.txt` serving, and — the one that `.nojekyll` exists
-for — `/_astro/` assets actually loading. Then open `/contact`, click the email
-channel, and send a real message to confirm the mailbox receives it. CI cannot
-prove delivery and never claimed to.
+That settles the safe half, not the contested half. Deploying the two stubs
+would put a file and a directory in contention at the same URL — the exact
+configuration M11 measured resolving to the *file*, which would loop `/about`
+and `/contact` against their own redirects. Testing it requires deploying it,
+so no proven Pages-safe mechanism exists.
 
-DNS needs no change: the apex already points at the four GitHub Pages
-addresses and `www` at `ayushrijal83-ops.github.io`, with a valid certificate.
+**Decision: `LEGACY_ROUTES` stays as it is** — `work.html` only, the one stub
+with no live route to shadow. Closed on evidence, not assumption.
 
-### 6. Revoke the OpenWeatherMap key — EXTERNAL
+### 5. Verify production — **DONE**, except the email, which is still yours
+
+All verified live (§1O.3–§1O.7): custom domain, eight world routes, three
+project records, `/work.html` → `/projects`, the orphans reaching V2's 404,
+`sitemap.xml` and `robots.txt`, and — the one `.nojekyll` exists for —
+**`/_astro/` assets loading with correct content types**. No V1 machinery, no
+CDN, no Google Fonts, no `api.github.com`, no source maps, no credentials.
+`www` 301s to the apex.
+
+**Still yours: send one real email.** Open `/contact/`, use the published
+address, and confirm the mailbox receives it. A static page and a link check
+cannot prove delivery, and this document has never claimed otherwise.
+
+### 6a. Turn on Enforce HTTPS — **NEW, OWNER ACTION**
+
+`http://ayushrijal.com.np/` returns **200 in the clear** with no redirect to
+HTTPS. TLS itself works; the redirect is missing.
+
+> GitHub → **Settings** → **Pages** → tick **Enforce HTTPS**.
+
+Whether the source switch cleared it or it was already off is **not
+established** — the redirect was never tested before the cutover. If the box is
+greyed out, GitHub is re-provisioning the certificate; wait and re-tick it.
+
+### 6b. Point `github-data.yml` at `main` — **NEW, OWNER DECISION**
+
+The scheduled snapshot refresh registered, but as merged it still does
+`checkout` with **`ref: v2`** and pushes there — a branch that no longer
+deploys. `main`'s committed fallback, which every production build falls back
+to, would quietly go stale: the exact failure the workflow's own header says it
+exists to prevent.
+
+**One line:** `.github/workflows/github-data.yml:37`, `ref: v2` → `ref: main`.
+Left alone deliberately — it is not a deployment failure and was outside the
+cutover brief. Harmless meanwhile: a push to `v2` runs `deploy.yml`'s build job,
+whose deploy job skips, so it cannot publish.
+
+### 7. Revoke the OpenWeatherMap key — EXTERNAL
 
 `Agriculture_simulator` still contains an exposed credential committed as a
 string literal. Outside this repository, untouched, value never reproduced
