@@ -9,11 +9,12 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M15 — Cybersecurity world** |
-| **M15 status** | **Built, awaiting architect review. NOT deployed, NOT merged, NOT pushed.** Branch `m15-cybersecurity`. Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d) and negative-tested 35/35. See §1Q. |
+| **Current milestone** | **M16 — Cybersecurity in production, verified** |
+| **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
+| **M15 status** | **Complete — merged in M16.** Branch `m15-cybersecurity` (`2aac8e7`). Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d), negative-tested 35/35. See §1Q. |
 | **M14 status** | **COMPLETE.** HTTPS enforcement **verified** (301 → HTTPS site-wide, valid cert). `github-data.yml` retargeted to `main` (`7ce6e11`), deployed via run `32735886304`, production republished 14:00:30Z and byte-compared against `dist`. `github-data` has **still never executed** — next scheduled 18:00Z. See §1P. |
 | **Last updated** | 2026-08-24 |
-| **Working branch** | `m15-cybersecurity` (M15, unmerged). `main` is production and deploys on push — untouched by M15. Cutover rollback is `git revert -m 1 927477a`. |
+| **Working branch** | `main` — production, deploys on push. `m15-cybersecurity` merged (`--no-ff`, `4caff65`) and retained. Rollback of the Cybersecurity world is `git revert -m 1 4caff65`; of the V2 cutover, `git revert -m 1 927477a`. |
 
 ---
 
@@ -37,7 +38,8 @@
 | M13 | Production verification | **Complete — result is BLOCKED** | §1M below. Production observed serving V1. Cutover did not reach GitHub. One blocking defect fixed: `deploy.yml`. |
 | M13-B | Deployment recovery | **Complete — cutover still BLOCKED** | §1N below. `deploy.yml` audited, corrected, pushed, and **observed passing on `v2` in 27 s** with the deploy job correctly skipped. Blocked on the Pages source, owner-only. |
 | M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
-| M15 | Cybersecurity world | **Built — awaiting review** | §1Q below. Evidence-based, zero fabrication, 0 findings filed and correctly so. Not deployed. |
+| M15 | Cybersecurity world | **Complete** | §1Q below. Evidence-based, zero fabrication, 0 findings filed and correctly so. Merged in M16. |
+| M16 | Production integration & verification | **Complete — VERIFIED LIVE** | §1R below. Merge `4caff65`, Deploy `32741152755`; `/cybersecurity/` verified over HTTPS byte-identical; §8c/§8d re-run against production. |
 | M14 | Production hardening & closeout | **Complete** | §1P below. HTTPS enforced and verified; `github-data.yml` → `ref: main`; production re-verified and byte-compared. `github-data` execution **NOT OBSERVED**. |
 | Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
 
@@ -5811,6 +5813,286 @@ nothing here claims it has.
 **Built, and still holds zero findings.** That is the correct state, not an
 incomplete one. The register fills when work exists that can satisfy the `labs`
 schema — a discipline, an environment, and an authorisation — and not before.
+
+---
+
+## 1R. M16 — Production integration, deployment & Cybersecurity verification
+
+**The Cybersecurity world is live and verified over HTTPS.** `/cybersecurity/`
+returns **200, 20,059 bytes, byte-identical to the local artifact**, and both
+new audit sections were re-run against the deployed HTML rather than inferred
+from the build.
+
+M15 was reviewed, not merely trusted: every gate was re-run, the audit
+semantics were proved rather than read, and one of M16's own preconditions
+could not be met and is recorded as unmet.
+
+### 1R.1 Starting state — OBSERVED
+
+Branch `m15-cybersecurity` at `2aac8e7`, tree clean. `origin/main` at `ee95c44`
+(M14). `m15-cybersecurity` absent from the remote. Matched the M15 report
+exactly; no correction to §1Q was required.
+
+*(The M16 brief's instruction not to modify "the dragon/interaction work" has no
+referent — `grep -ri dragon` over `src`, `scripts`, `docs` and `.github`
+returns nothing. Recorded as not applicable rather than silently ignored.)*
+
+### 1R.2 M15 review — VERIFIED
+
+**Scope.** 9 files, **+1378 / −7**, **zero deletions**, no dependency change,
+`package-lock.json` untouched, `git diff --check` clean. `package.json` gained
+one line, an npm script. Nothing unrelated.
+
+**Content boundary — VERIFIED against the built page.** Every dangerous role or
+credential noun checked individually in context:
+
+| Term | On the page |
+|---|---|
+| penetration tester · ethical hacker · security researcher · security engineer · red team · certified · OSCP · CEH · years of experience · expert · proficient | **absent** |
+| certification | **1×**, inside *"No certification, and no completed course"* |
+| CVE | **1×**, inside *"No CVE, disclosure, advisory or report"* |
+| client | **1×**, *"It is a client, not a model"* — a software client describing the AI mentor |
+
+All **nine** denials present.
+
+**Audit semantics — PROVED, not read.** The ten §8c patterns were extracted and
+executed directly:
+
+| Test | Result |
+|---|---|
+| 21 bare nouns (`certification`, `OSCP`, `CVE`, `vulnerability`, `penetration testing`, `expert`, …) | **0 fire** → grammar-based, not noun bans |
+| The 7 denial sentences | **0 fire** → honest prose survives |
+| 10 fabricated claim shapes | **all 10 caught** |
+| Page-level exclusions anywhere in the audit | **none** |
+| CVE identifier guard | **intact** (`verify-output.mjs:1013`) |
+
+An earlier heuristic of mine flagged two patterns as possible noun bans; that
+was a defect in the *checking script*, which missed `\s+is\s+` and `\bmy\s+`.
+The direct execution above is the evidence; the heuristic result was discarded.
+
+### 1R.3 Local gate — VERIFIED, re-run not assumed
+
+Node **v24.19.0**, npm **11.17.0**.
+
+| Command | Result |
+|---|---|
+| `npm ci` | 272 packages, **0 vulnerabilities** |
+| `astro check` | **0 errors / 0 warnings / 0 hints** |
+| `npm run test:github` | **18/18** |
+| `npm run test:security` | **35/35** |
+| `npm run verify` | **pass**, 17 pages, 8 worlds |
+| `npm audit --audit-level=high` | **0 vulnerabilities** |
+| `git diff --check` | clean |
+
+All match §1Q's figures exactly.
+
+### 1R.4 Static security review — VERIFIED
+
+Credentials **none** · source maps **none** · `api.github.com` **none** ·
+`.env` references **none** · machine paths **none** · inline `<script>` across
+`dist` **0** · network-capable constructs in shipped JS **none** ·
+third-party resource origins **none** (only `ayushrijal.com.np`) ·
+`package-lock.json` **unchanged**.
+
+`localhost:11434` appears only inside `<span class="pipeline__detail">` and
+`<code>` on AI LAB and LEARNING — explanatory prose. **0 occurrences** on the
+Cybersecurity page.
+
+### 1R.5 Branch workflow — **NOT OBSERVED**, and why
+
+**The branch push exercised no workflow at all. Zero runs exist for
+`2aac8e7`.** `ci.yml` triggers on `push: [v2]` and pull requests; `deploy.yml`
+on `push: [main, v2]`. Neither matches `m15-cybersecurity`.
+
+**What this does confirm:** a branch push provably cannot publish — more
+strongly than the deploy job's `refs/heads/main` guard, because the workflow
+never starts.
+
+**What it does not confirm, and is not claimed:** that the gates pass on a
+runner for this work. Triggering them needed a pull request, which needs API
+credentials this environment does not have (`POST …/dispatches` → **401**, no
+`gh`, no token). **No artificial trigger was added** to manufacture a run.
+
+The protection that did apply is real and was then observed: `deploy.yml`'s
+build job runs all four gates on `main` **before** the deploy job publishes, so
+a gate failure would have left production on M14. §1R.7 records that they ran
+and passed.
+
+### 1R.6 Merge — `4caff65`
+
+`git checkout main` → `git pull --ff-only` (already up to date) →
+`git merge --no-ff m15-cybersecurity`, staged with `--no-commit` and inspected
+first: **zero deletions, zero conflicts**, and `index.html`, `about.html`,
+`work.html`, `CNAME`, `.nojekyll`, `src/pages/index.astro`,
+`src/pages/learning.astro`, `src/lib/worlds.ts`, `src/lib/legacy.ts` and
+`deploy.yml` all still present.
+
+`--no-ff` again, so the world is one revertable commit:
+**`git revert -m 1 4caff65`** returns production to M14 without touching
+history. No reset, no rebase, no force-push.
+
+`origin/main`: `ee95c44` → **`4caff65`**.
+
+### 1R.7 Main deployment — OBSERVED
+
+| | |
+|---|---|
+| Workflow / run ID | Deploy / **32741152755** |
+| Event / branch | `push` / `main` |
+| Commit | `4caff651b434b6551cd81790cb4895784c076a81` |
+| Started → ended | 2026-08-24T14:50:10Z → 14:51:10Z (**60 s**) |
+| Conclusion | **success** |
+
+| Job | Result |
+|---|---|
+| `build` (14:50:12 → 14:50:41Z) | **success** — Install · Refresh GitHub repository data · **Test the GitHub fallback and secret isolation** · **Test the security content audit** · **Build and verify** · **Audit dependencies** · upload-pages-artifact, every step success |
+| `deploy` (14:50:45 → 14:51:09Z) | **success** — `actions/deploy-pages@v4` executed |
+
+**`Test the security content audit` ran on a real runner for the first time and
+passed.** That closes the one thing M15 structurally could not verify.
+
+Production republished **14:51:04Z**; root `Last-Modified` advanced
+`14:11:08Z → 14:51:04Z`, ETag `6a8c50fc-4b0e` → `6a8c5a58-4b0e`.
+
+### 1R.8 Production HTTPS verification — VERIFIED
+
+| Route | Code | Bytes | `<h1>` | Title |
+|---|---|---|---|---|
+| `/` | 200 | 19,214 | 1 | Ayush Rijal — Software · AI · Cybersecurity |
+| `/about/` | 200 | 13,999 | 1 | About — Ayush Rijal |
+| `/projects/` | 200 | 20,178 | 1 | Projects — Ayush Rijal |
+| `/ai-lab/` | 200 | 59,644 | 1 | AI Lab — Ayush Rijal |
+| `/learning/` | 200 | 36,951 | 1 | Learning — Ayush Rijal |
+| `/github/` | 200 | 36,924 | 1 | GitHub — Ayush Rijal |
+| `/contact/` | 200 | 17,440 | 1 | Contact — Ayush Rijal |
+| **`/cybersecurity/`** | **200** | **20,059** | **1** | **Security — Ayush Rijal** |
+| `/404.html` | 200 | 8,986 | 1 | Not in this archive — Ayush Rijal |
+
+Extensionless routes **301** to the trailing-slash form, unchanged from M13-C.
+
+### 1R.9 Byte comparison — and the one honest difference
+
+Compared with `cmp` against the local artifact, not by size:
+
+**IDENTICAL** — `/cybersecurity/`, `/`, `/about/`, `/404.html`, `/work.html`,
+`/sitemap.xml`, `/robots.txt`.
+
+**`/github/` DIFFERS** — production 36,924 B, local 35,421 B. **This is
+build-time data, and it was checked rather than assumed.** Diffing the rendered
+text:
+
+- production says **"11 repositories"**, dated **24 Aug 2026**, and lists
+  **QuickJunction** ("complete hotel management software", pushed 2026-08-23);
+- local says **"10 repositories"**, dated 22 Aug 2026.
+
+The runner's `Refresh GitHub repository data` step fetched fresher data than
+the local `github.generated.json` (dated 22 Aug). **The integration working as
+designed, not a mismatch.** `/cybersecurity/` carries **zero** build-time data
+markers, which is why it matches byte-for-byte.
+
+### 1R.10 The audit, verified against the DEPLOYED artifact — VERIFIED
+
+Both sections were executed against the production HTML, not the build:
+
+- **§8d** — all **nine** required denials **PRESENT** in the live page.
+- **§8c** — the ten fabrication patterns run against production prose:
+  **0 fire**. No CVE identifier in production prose.
+
+### 1R.11 Production security — VERIFIED
+
+Every live asset of `/cybersecurity/` fetched and scanned:
+`BaseLayout.C8FStwLh.css`, `cybersecurity.CBNCQIOq.css`,
+`WorldLayout…CstVKYIA.js` — **all clean** (no `sourceMappingURL`,
+`api.github.com`, credential shape, `fetch(`, `XMLHttpRequest`, `WebSocket`,
+`EventSource` or `sendBeacon`).
+
+Source and config exposure, all **404**: `/package.json`,
+`/src/lib/security.ts`, `/scripts/test-security-audit.mjs`, `/.env`,
+`/astro.config.mjs`, and the `.css.map`.
+
+Live page: **0** inline scripts, **0** `localhost` occurrences, external
+resource origins **none**.
+
+### 1R.12 Legacy routes — VERIFIED, no regression
+
+| Route | Code | Bytes | Serves |
+|---|---|---|---|
+| `/work.html` | **200** | 1,640 | V2 stub, `content="0; url=/projects"` |
+| `/about.html` · `/contact.html` · `/journey.html` · `/blog.html` · `/assets/resume.pdf` · `/ai` | **404** | 8,986 | V2 custom 404 |
+
+`src/lib/legacy.ts` **unchanged since M14**. `LEGACY_ROUTES` still contains only
+`work.html`. Checked programmatically: **no stub collides with a live world
+route.**
+
+### 1R.13 Production accessibility — VERIFIED (structural)
+
+10 live pages: exactly one `<h1>` each · no duplicate `id` · no broken
+`aria-labelledby` · no positive `tabindex` · skip link → `#main` · `#main`
+`tabindex="-1"` · tables captioned with per-row `scope` (**9** on the new page)
+· scroll port `tabindex="0"` + `aria-label="Register of evidenced security
+claims"` · **11 internal links resolve** · focus ring resolves to
+**`2px solid rgb(156,48,22)`** · navigation intact with `aria-current` on
+Security · **zero console errors, rejections or CSP violations**.
+
+### 1R.14 Production responsive — VERIFIED
+
+Zero horizontal overflow at **320, 375, 768, 1280 and 1920 px** across 9 live
+pages, and zero at **text-only 200% at 320 px**.
+
+### 1R.15 Reduced motion — PARTIAL
+
+12 `prefers-reduced-motion` blocks on the live page; the Cybersecurity
+`dossier-bar` animation **is** inside a `no-preference` guard; **0 unguarded
+infinite animations**. The browser reported
+`prefers-reduced-motion: reduce` as **false** and the query could not be
+emulated, so the **behaviour was NOT TESTED**. Guard presence verified only.
+
+### 1R.16 Browser coverage
+
+| | |
+|---|---|
+| Chrome | **TESTED** (local preview and production) |
+| Firefox | **NOT TESTED** |
+| Safari / WebKit | **NOT TESTED** |
+| axe | **NOT RUN** |
+| Lighthouse | **NOT RUN** |
+| Screen reader | **NOT RUN** |
+
+**No WCAG compliance is claimed.**
+
+### 1R.17 Owner actions — configuration verified, none performed
+
+| Item | State |
+|---|---|
+| `github-data.yml` | Config **VERIFIED**: `ref: main`, `cron: 0 */6 * * *`, `workflow_dispatch` present, `contents: write`. **Execution NOT OBSERVED — 0 runs ever** as of 2026-08-24T14:56Z. No artificial trigger added. **OWNER ACTION** to dispatch, or await the schedule |
+| Real email delivery | **OWNER ACTION — NOT TESTED.** No email sent |
+| OpenWeatherMap | **OWNER ACTION — EXTERNAL, unresolved.** `Agriculture_simulator` **not touched** (0 files in this milestone's diff). Only a documentation mention survives in the project record; no key-shaped literal anywhere in `dist` |
+
+**The project is not security-clean while the OpenWeatherMap credential
+stands.**
+
+### 1R.18 Current architecture and known risks
+
+Production is V2 on `main`, deployed by `deploy.yml` through GitHub Actions,
+HTTPS enforced, eight worlds plus three project records and four `/lab/*`
+harnesses. Gates before any publish: `test:github` (18), `test:security` (35),
+`verify`, `npm audit`.
+
+| Risk | State |
+|---|---|
+| Branch pushes run no CI at all | **OPEN** — `ci.yml` triggers only on `v2` and PRs. Work on a feature branch is unverified by a runner until it reaches `main`. The deploy gates make this fail-safe for production, but it is a gap |
+| `github-data.yml` never executed | **OPEN — NOT OBSERVED** |
+| Reduced-motion behaviour | **NOT TESTED** |
+| Firefox / Safari | **NOT TESTED** |
+| OpenWeatherMap credential | **OPEN — EXTERNAL** |
+
+### 1R.19 Next milestone
+
+**M17 — CI coverage for feature branches.** The one defect this milestone
+surfaced: `m15-cybersecurity` was merged without a single runner having
+executed its gates, because no workflow triggers on an arbitrary branch. The
+fix is a trigger change, not new machinery — and it should be made deliberately
+rather than folded into a content milestone.
 
 ---
 
