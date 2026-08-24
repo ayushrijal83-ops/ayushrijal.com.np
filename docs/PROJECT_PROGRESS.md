@@ -9,8 +9,8 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M13 — CUTOVER COMPLETE. Production serves V2.** |
-| **M13 status** | **COMPLETE — verified over HTTP.** Merge `927477a`, Deploy run `32731636983` succeeded in 50 s with the deploy job executing, production serving V2 since 2026-08-24T13:16:17Z. Two owner actions remain: **Enforce HTTPS is off**, and `github-data.yml` still targets `v2`. See §1O. |
+| **Current milestone** | **M14 — Production hardening & closeout** |
+| **M14 status** | **COMPLETE.** HTTPS enforcement **verified** (301 → HTTPS site-wide, valid cert). `github-data.yml` retargeted to `main` (`7ce6e11`), deployed via run `32735886304`, production republished 14:00:30Z and byte-compared against `dist`. `github-data` has **still never executed** — next scheduled 18:00Z. See §1P. |
 | **Last updated** | 2026-08-24 |
 | **Working branch** | `main` — **now V2, and deploying**. `v2` is merged (`--no-ff`, `927477a`) and retained as history. Rollback is `git revert -m 1 927477a`. |
 
@@ -36,6 +36,7 @@
 | M13 | Production verification | **Complete — result is BLOCKED** | §1M below. Production observed serving V1. Cutover did not reach GitHub. One blocking defect fixed: `deploy.yml`. |
 | M13-B | Deployment recovery | **Complete — cutover still BLOCKED** | §1N below. `deploy.yml` audited, corrected, pushed, and **observed passing on `v2` in 27 s** with the deploy job correctly skipped. Blocked on the Pages source, owner-only. |
 | M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
+| M14 | Production hardening & closeout | **Complete** | §1P below. HTTPS enforced and verified; `github-data.yml` → `ref: main`; production re-verified and byte-compared. `github-data` execution **NOT OBSERVED**. |
 | Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
 
 **M12 scope compliance:** no new world, no redesign, no framework, no CMS, no backend, no third-party contact service, **no dependency added**. **CYBERSECURITY was not built and not modified.** Three changes, each a defect found by this milestone’s own audits: the archive called the head-pose estimate “gaze” in two tables while its own experiment says it is not (§1L.2); the 404 page was indexable; and five assertions were added to hold both. No existing assertion was weakened and no exception was added to make one inert. `v2` was pushed — no force, no history rewritten, nothing merged — and `origin/main` is unchanged at `41d4dc1`. V1 remains byte-identical against both local `main` and `origin/main`. Production still serves V1. See §1L.
@@ -5212,6 +5213,325 @@ withheld channel exposed, no `resume.pdf` republished, `/journey.html` and
 
 ---
 
+## 1P. M14 — Production hardening & closeout
+
+**A hardening milestone, not a design one.** One functional line of source
+changed. Nothing was redesigned, no page was added, CYBERSECURITY was not
+started, no dependency was added, and no verification assertion was weakened.
+
+Two of the three items M13 left open are now closed. One is not, and it is
+recorded as not closed rather than assumed.
+
+### 1P.1 Starting state — OBSERVED
+
+Branch `main`, working tree clean. `origin/main` `5856572`, `origin/v2`
+`b9a3328`. Workflows: `ci.yml` (`push: [v2]`, PRs), `deploy.yml`
+(`push: [main, v2]`, deploy job guarded to `refs/heads/main`),
+`github-data.yml` (`cron: 0 */6 * * *` + `workflow_dispatch`,
+`contents: write`, **`ref: v2`**). `astro@7.2.4`, three devDependencies,
+`site: 'https://ayushrijal.com.np'`, `output: 'static'`,
+`build.format: 'directory'`, `trailingSlash: 'never'`.
+
+### 1P.2 Enforce HTTPS — **VERIFIED** (was the M13 blocker)
+
+Enabled by the owner between M13-C and M14. Confirmed by request, not by
+reading a setting — the Pages API still returns HTTP 404 without a credential
+and no claim is made from it.
+
+| Check | Observed |
+|---|---|
+| `http://ayushrijal.com.np/` | **301 Moved Permanently** |
+| `Location` | `https://ayushrijal.com.np/` |
+| Final | **200**, scheme `https`, 1 redirect, 19,214 B, V2 title |
+| `ssl_verify_result` | **0** (chain verified) |
+| Certificate | `CN=ayushrijal.com.np`, Let's Encrypt, **notBefore** 2026-08-08, **notAfter** 2026-11-06 |
+| `http://…/about/` | **301** → `https://…/about/` — enforcement is site-wide, not root-only |
+| `http://www…` | **301** → `https://ayushrijal.com.np/` |
+| `https://www…` | **301** → `https://ayushrijal.com.np/` |
+| Mixed content | **none** — zero `http://` resources loaded on any of 9 worlds |
+
+DNS unchanged. `CNAME` unchanged.
+
+### 1P.3 `github-data.yml` retargeted to `main` — **VERIFIED (change), NOT OBSERVED (execution)**
+
+The defect M13-C recorded: the workflow checked out `ref: v2` and pushed there,
+so it would have refreshed the fallback snapshot on a branch that no longer
+deploys while `main`'s copy — the one `deploy.yml` reads when a live fetch
+fails — went stale. Exactly the failure its own header says it prevents.
+
+Changed: **`ref: v2` → `ref: main`**, one functional line. Two comments
+corrected alongside, because after the ref change they asserted the opposite of
+what the workflow does — the header credited `ci.yml` with refreshing on every
+push to `v2` (`ci.yml` does not run on `main` at all; `deploy.yml` does the
+per-deploy refresh now), and the permissions note said the snapshot is committed
+back to `v2`.
+
+Parsed and asserted after editing, not eyeballed:
+
+| Property | After |
+|---|---|
+| `checkout.ref` | **`main`** |
+| `schedule` | `0 */6 * * *` — unchanged |
+| `workflow_dispatch` | present — unchanged |
+| `permissions` | `contents: write` — unchanged |
+| `concurrency` | `group: github-data` — unchanged |
+| Steps | six, same order, same names — unchanged |
+| Data model / dependencies | untouched |
+| Tabs in YAML | none |
+| `git diff --check` | clean |
+| Occurrences of `v2` remaining | **zero** |
+
+`npm run verify` passes (17 pages, 8 worlds); `npm audit --audit-level=high`
+reports 0 vulnerabilities.
+
+### 1P.4 `github-data.yml` execution — **NOT OBSERVED**
+
+`workflow_dispatch` exists, but **it could not be dispatched from here**:
+`POST /actions/workflows/github-data.yml/dispatches` returns **HTTP 401
+Requires authentication**. No `gh` CLI is installed, `GITHUB_TOKEN` and
+`GH_TOKEN` are unset, and the only credential present is the git credential
+helper, which is not an API token and was not touched.
+
+**Total runs of this workflow, ever: 0.** It is `state=active` and correctly
+targeted, and it has never executed. As of 2026-08-24T14:07Z the next scheduled
+firing is **2026-08-24T18:00:00Z**.
+
+Recorded as **NOT OBSERVED**. Nothing here claims it ran, that authentication
+works, or that the refresh works end to end. The owner can dispatch it from the
+Actions tab if they want it proven sooner; a scheduled run is otherwise the
+first evidence.
+
+### 1P.5 Deployment — **OBSERVED**
+
+| | |
+|---|---|
+| Commit | **`7ce6e11`** *fix(ci): point the snapshot refresh at main* |
+| Workflow / run | Deploy / **32735886304** |
+| Event / branch | `push` / `main` |
+| Started → ended | 2026-08-24T13:58:59Z → 14:00:38Z (**99 s**) |
+| Conclusion | **success** |
+| `build` job | **success** — all 12 steps, including `test:github`, `Build and verify`, `Audit dependencies` |
+| `deploy` job | **success** — `actions/deploy-pages@v4` executed |
+| Published | **14:00:30Z** |
+
+Production timestamp advanced **13:28:04Z → 14:00:30Z**; ETag changed
+`6a8c46e4-4b0e` → `6a8c4e7e-4b0e`. Newer than the previous deployment, verified
+by header, not inferred from the workflow result.
+
+### 1P.6 Production smoke test — **VERIFIED**, and byte-compared
+
+All served over HTTPS. Exactly one `<h1>` on every page.
+
+| Route | Code | Bytes | `<h1>` | Title |
+|---|---|---|---|---|
+| `/` | 200 | 19,214 | 1 | Ayush Rijal — Software · AI · Cybersecurity |
+| `/about/` | 200 | 13,999 | 1 | About — Ayush Rijal |
+| `/projects/` | 200 | 20,178 | 1 | Projects — Ayush Rijal |
+| `/ai-lab/` | 200 | 59,644 | 1 | AI Lab — Ayush Rijal |
+| `/learning/` | 200 | 36,951 | 1 | Learning — Ayush Rijal |
+| `/github/` | 200 | 36,924 | 1 | GitHub — Ayush Rijal |
+| `/contact/` | 200 | 17,440 | 1 | Contact — Ayush Rijal |
+| `/cybersecurity/` | 200 | 9,896 | 1 | Security Research Archive — Ayush Rijal |
+| `/404.html` | 200 | 8,986 | 1 | Not in this archive — Ayush Rijal |
+
+**Byte-identical to `dist/`, actually compared with `cmp`, not inferred:**
+`/`, `/about/`, `/contact/`, `/404.html`, `/work.html`, `/sitemap.xml`,
+`/robots.txt` — **all IDENTICAL**.
+
+`/github/` is 36,924 B here against 36,650 B in M13-C. That is expected and
+correct: the world embeds repository figures refreshed at build time, so its
+bytes move when the facts move. It was therefore **not** included in the
+byte-comparison set.
+
+### 1P.7 Legacy routes — **VERIFIED, unchanged from M13-C**
+
+| Route | Code | Bytes | Serves |
+|---|---|---|---|
+| `/work.html` | **200** | 1,640 | V2 stub, `content="0; url=/projects"` |
+| `/about.html` | **404** | 8,986 | V2 custom 404 |
+| `/contact.html` | **404** | 8,986 | V2 custom 404 |
+| `/journey.html` | **404** | 8,986 | V2 custom 404 |
+| `/blog.html` | **404** | 8,986 | V2 custom 404 |
+| `/assets/resume.pdf` | **404** | 8,986 | V2 custom 404 |
+| `/ai` | **404** | 8,986 | V2 custom 404 |
+| `/404` | **200** | 8,986 | V2 custom 404 |
+
+`LEGACY_ROUTES` unchanged — `work.html` only. The M11 collision decision stands
+as closed in §1O.4.
+
+*Method note:* curl does not follow `<meta http-equiv="refresh">`, so
+`/work.html` resolves to itself under `-L`. The redirect target is asserted from
+the served markup and by `verify-output.mjs`, not from a followed hop.
+
+### 1P.8 Security — **VERIFIED for this repository and artifact**
+
+| Check | Result |
+|---|---|
+| `npm audit --audit-level=high` | **0 vulnerabilities** |
+| Credentials in source (`src`, `scripts`, `public`, `.github`, configs) | **none** |
+| Credentials in `dist/` | **none** |
+| Source maps | **none** — no `.map`, no `sourceMappingURL` |
+| `api.github.com` in `dist/` | **none** |
+| `.env` references in `dist/` | **none** |
+| Inline `<script>` in `dist/` HTML | **none** (CSP is `script-src 'self'`) |
+| `git diff --check` | clean |
+
+**Client-side network constructs in the six shipped JS files: zero.** Scanned
+for `fetch(`, `XMLHttpRequest`, `new WebSocket`, `EventSource`, `sendBeacon`,
+`navigator.send*` and dynamic `import(`. None present.
+
+`localhost:11434` appears in `dist/ai-lab/index.html` and
+`dist/learning/index.html` **inside `<span class="pipeline__detail">` and
+`<code>` elements** — prose describing the Ollama endpoint that Jarvis and
+NepalSathi talk to on-device. It is not called by any code and is **not** a
+network call. Correctly not flagged.
+
+### 1P.9 Production resource audit — **VERIFIED**
+
+Across all nine live pages: **zero** third-party loaded resources, **zero**
+iframes. No Google Fonts, no jsDelivr, no analytics, no tracking pixel, no
+third-party stylesheet or script. The only absolute URLs in resource positions
+are `ayushrijal.com.np`'s own (canonical / `og:url`).
+
+Outbound **anchors**, which are links and not dependencies:
+`github.com` ×37, `linkedin.com` ×1, `overthewire.org` ×1.
+
+### 1P.10 Accessibility regression — **VERIFIED**, one correction to M13-C's method
+
+Against live production, 10 pages: exactly one `<h1>` each · **no duplicate
+`id`** · **no broken `aria-labelledby`** · **no positive `tabindex`** · skip
+link present and → `#main` · `#main` carries `tabindex="-1"` · skip link
+actually moves focus · **11 internal links resolve** · no `target="_blank"`
+without `rel="noopener"`.
+
+Table semantics intact on the data-heavy worlds:
+
+| World | `<table>` | `<th>` | `scope=` | `<caption>` |
+|---|---|---|---|---|
+| `/projects/` | 1 | 10 | 9 | 1 |
+| `/github/` | 1 | 18 | 17 | 1 |
+| `/learning/` | 1 | 45 | 43 | 2 |
+| `/ai-lab/` | 1 | 27 | 25 | 2 |
+
+**A measurement correction, recorded because it nearly became a false defect.**
+An initial pass reported "16 of 16 focusables without a visible focus ring",
+which would have been a serious regression. It was an artifact of the test, not
+the site: the archive styles focus with `:where(:focus-visible) { outline:
+var(--focus-ring); … }`, and a scripted `element.focus()` does not match
+`:focus-visible` in a pointer-primary session — `matches(':focus-visible')`
+returned `false`. There is exactly **one** focus rule and it is the
+`:focus-visible` one; there are **zero** plain `:focus` outline rules. The token
+resolves to **`2px solid rgb(156, 48, 22)`** with a `3px` offset, identical to
+what M13-C measured. **Focus styling is intact; the first reading was wrong.**
+
+### 1P.11 Responsive — **VERIFIED**
+
+Chrome, live production, 9 pages:
+
+- **No horizontal overflow at 320, 375, 768 or 1280 px** — 36 page/width
+  combinations, zero.
+- **No horizontal overflow at text-only 200% at 320 px** — 9 pages, zero.
+- **Zero console errors, zero unhandled rejections, zero CSP violations** across
+  8 iframe loads plus direct navigations.
+- **Zero mixed content.**
+
+### 1P.12 Reduced motion — **PARTIAL, and not claimed as verified**
+
+The guard is present and substantial: **21 `prefers-reduced-motion` media
+blocks, 469 declarations**, neutralising `animation-*` (40 declarations each of
+name, duration, delay, timing, iteration, direction, fill-mode, play-state,
+timeline, range), `transition-*`, `scroll-behavior`, `translate`, `clip-path`,
+and the motion tokens `--motion-scale`, `--dur-*`, `--enter-*`.
+
+**The behaviour was NOT exercised.** The machine reports
+`prefers-reduced-motion: reduce` as `false`, and the media query could not be
+emulated with the tooling available. Structural presence is verified; rendered
+behaviour under the query is **NOT TESTED**.
+
+### 1P.13 Contact — **VERIFIED (mechanism), OWNER ACTION (delivery)**
+
+`/contact/` **200**, *Contact — Ayush Rijal*. Target:
+`mailto:ayushrijal83@gmail.com?subject=Correspondence` — correct address,
+correct subject prefill. The address is also the link text, so the copy-paste
+path is intact. **Zero `<form>` elements.** No third-party contact service, no
+iframe, no relay. Withheld channels confirmed **absent**: `wa.me`, `tel:`,
+WhatsApp, Facebook, Instagram.
+
+**Real delivery remains an owner action.** No email was sent; no mail tool or
+authorised account was available, and none was used. Delivery is **NOT TESTED**.
+
+*One thing for the owner to confirm while testing:* the published address is
+`ayushrijal83@gmail.com`, consistent with the GitHub handle `ayushrijal83-ops`.
+The address associated with this working session is spelled differently
+(`ayushruchal83@…`). That is very likely two different addresses rather than a
+defect, and nothing was changed — but the email test is the moment to be sure
+the published one is the mailbox actually read.
+
+### 1P.14 OpenWeatherMap — **repository clean; rotation remains OWNER ACTION**
+
+Searched this repository for the credential and for references to it. Every hit
+is **documentation prose describing the vulnerability**, never a value:
+
+- `src/content/projects/agrovision-nepal.md` — the project record stating the
+  key is a string literal in `app.py` in a public repository.
+- `scripts/verify-output.mjs` — a comment.
+
+**No API-key-shaped literal exists anywhere in source.** No 32-hex literal
+appears in the published project record or anywhere else in `dist/`. The
+archive documents the finding without reproducing the secret.
+
+**Repository clean; external credential rotation remains owner action.** The
+credential lives in `Agriculture_simulator`, outside this repository, and is
+still active. **The project is not security-clean while it stands** — this
+milestone does not change that, and no history was rewritten.
+
+### 1P.15 Browser coverage
+
+**Chrome only.** Firefox **NOT TESTED**. Safari / WebKit **NOT TESTED** — no
+such environment was available. No axe, Lighthouse, Playwright, Selenium or
+screen-reader audit has ever been run on this project; none was installed for
+this milestone. **No WCAG compliance is claimed.**
+
+### 1P.16 Known limitations, carried forward honestly
+
+| Item | State |
+|---|---|
+| `github-data.yml` executed against `main` | **NOT OBSERVED** — 0 runs ever; next scheduled 2026-08-24T18:00Z; cannot dispatch without credentials |
+| Real email delivery | **NOT TESTED — OWNER ACTION** |
+| OpenWeatherMap rotation | **OWNER ACTION — EXTERNAL, unresolved** |
+| Safari / WebKit | **NOT TESTED** |
+| Firefox | **NOT TESTED** |
+| Reduced-motion behaviour | **PARTIAL** — 21 blocks / 469 declarations present, behaviour not exercised |
+| axe / Lighthouse / screen reader | **NEVER PERFORMED** |
+| WCAG compliance | **NOT CLAIMED** |
+| CYBERSECURITY | **ON HOLD — deliberately unbuilt** |
+
+### 1P.17 Git state
+
+| | |
+|---|---|
+| Branch | `main`, working tree clean |
+| M14 commit | **`7ce6e11`** — `fix(ci): point the snapshot refresh at main` |
+| Files changed by M14 | `.github/workflows/github-data.yml` (+12 −7), then `docs/PROJECT_PROGRESS.md` |
+| `origin/main` | `7ce6e11` → this record |
+| `origin/v2` | `b9a3328` — retained, untouched |
+| Rollback of the cutover | `git revert -m 1 927477a` |
+
+No force-push, no reset, no history rewrite, no branch deleted.
+
+### 1P.18 CYBERSECURITY
+
+**ON HOLD. Not started. Not touched.** `/cybersecurity/` is live, returns 200,
+and correctly declares itself empty — `0 entries` plus the corrected AR-04
+summary. That is the designed state, not an omission.
+
+Nothing on the M14 do-not-touch list was touched: no new page, no favicon, no
+`og:image`, no world redesign, no contact-channel change, no DNS or `CNAME`
+change, no new dependency, no unrelated CSS or code refactor, no speculative
+improvement.
+
+---
+
 ## 2. Exact current project state
 
 The live site is a **hand-written static multi-page site with no build step**. It works. It has no toolchain of any kind.
@@ -5670,29 +5990,28 @@ CDN, no Google Fonts, no `api.github.com`, no source maps, no credentials.
 address, and confirm the mailbox receives it. A static page and a link check
 cannot prove delivery, and this document has never claimed otherwise.
 
-### 6a. Turn on Enforce HTTPS — **NEW, OWNER ACTION**
+### 6a. Turn on Enforce HTTPS — **DONE, VERIFIED (M14)**
 
-`http://ayushrijal.com.np/` returns **200 in the clear** with no redirect to
-HTTPS. TLS itself works; the redirect is missing.
+Enabled by the owner and confirmed by request rather than by reading a setting:
+`http://ayushrijal.com.np/` → **301** → `https://ayushrijal.com.np/` → **200**,
+`ssl_verify=0`, certificate `CN=ayushrijal.com.np` (Let's Encrypt, valid to
+2026-11-06). Enforcement is site-wide — `http://…/about/` redirects too — and
+`www` folds to the apex over both schemes. Zero mixed content on any world.
 
-> GitHub → **Settings** → **Pages** → tick **Enforce HTTPS**.
+### 6b. Point `github-data.yml` at `main` — **DONE (M14), execution still UNOBSERVED**
 
-Whether the source switch cleared it or it was already off is **not
-established** — the redirect was never tested before the cutover. If the box is
-greyed out, GitHub is re-provisioning the certificate; wait and re-tick it.
+Changed in `7ce6e11`: `ref: v2` → `ref: main`, plus the two comments that would
+otherwise have described the opposite behaviour. Schedule, `workflow_dispatch`,
+permissions, concurrency, steps and data model all unchanged and asserted so
+after editing.
 
-### 6b. Point `github-data.yml` at `main` — **NEW, OWNER DECISION**
+**It has still never run — 0 executions, ever.** It could not be dispatched from
+the build environment (`POST …/dispatches` → **401**, no `gh`, no token). Next
+scheduled firing **2026-08-24T18:00:00Z**.
 
-The scheduled snapshot refresh registered, but as merged it still does
-`checkout` with **`ref: v2`** and pushes there — a branch that no longer
-deploys. `main`'s committed fallback, which every production build falls back
-to, would quietly go stale: the exact failure the workflow's own header says it
-exists to prevent.
-
-**One line:** `.github/workflows/github-data.yml:37`, `ref: v2` → `ref: main`.
-Left alone deliberately — it is not a deployment failure and was outside the
-cutover brief. Harmless meanwhile: a push to `v2` runs `deploy.yml`'s build job,
-whose deploy job skips, so it cannot publish.
+> Optional, if you want it proven sooner: GitHub → **Actions** → **GitHub
+> data** → **Run workflow** on `main`. Then confirm it commits only when a
+> repository fact actually moved, and that the resulting Pages deploy is green.
 
 ### 7. Revoke the OpenWeatherMap key — EXTERNAL
 
