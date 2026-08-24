@@ -1,0 +1,384 @@
+/* ==========================================================================
+   CYBERSECURITY — AR-04, the Security Research Archive
+   ==========================================================================
+   The world is filed on DOSSIER stock: bare paper with heavy register bars,
+   drawn in `worlds.css` off `[data-world="cybersecurity"]`. This file adds only
+   what the sheet itself needs.
+
+   The visual argument, and it is the same one the page makes in words: a
+   classified folder that turns out to be honest about being empty. So the
+   register bar is heavy and the content under it is plain — no seals, no
+   redaction marks, no monospace-green security theatre. A page whose subject
+   is not overstating things cannot itself be dressed up.
+
+   Structure is deliberately the LEARNING grammar one world over — a marked
+   sheet, numbered sections, a four-column register that recomposes into
+   labelled blocks below 48rem. Reusing it is the point: a reader arriving from
+   the field notebook should recognise how to read this immediately, and the
+   two worlds are separated by their ground and their accent, not by a second
+   set of layout ideas.
+
+   No new colour, no new type, no new spacing. Every value here is a token.
+   ========================================================================== */
+
+.dossier {
+  /* Same margin logic as LEARNING's pad: nothing below 48rem, because a 320px
+     measure cannot spend 40px on a margin and still carry the evidence
+     column. */
+  --dossier-writing: var(--space-2xs);
+
+  padding-block-start: var(--space-l);
+}
+
+@media (min-width: 48rem) {
+  .dossier {
+    --dossier-writing: calc(var(--space-xl) + var(--space-m));
+  }
+}
+
+.dossier__mark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-s);
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.dossier__title {
+  font-size: var(--step-4);
+  margin-block-start: var(--space-m);
+}
+
+.dossier__intro {
+  margin-block-start: var(--space-s);
+  max-inline-size: 58ch;
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   THE WRITING AREA
+   -------------------------------------------------------------------------- */
+.dossier__body {
+  position: relative;
+  margin-block-start: var(--space-xl);
+  padding-inline-start: var(--dossier-writing);
+}
+
+.dossier__body::before {
+  /* The register bar down the filing edge — this world's one spot mark.
+     Decoration, so it is a pseudo-element and carries no text. Heavier than
+     LEARNING's margin rule because dossier stock is barred, not ruled. */
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 2px;
+  background: var(--spot);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dossier__body::before {
+    /* The bar is stamped down the filing edge once, on entry. One pass, no
+       iteration — there is no infinite animation anywhere in this world. */
+    animation: dossier-bar var(--dur-plate) var(--ease-plot) backwards;
+  }
+}
+
+@keyframes dossier-bar {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   FOLD — one numbered section of the dossier
+   -------------------------------------------------------------------------- */
+.fold {
+  padding-block: var(--space-xl);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.fold:last-of-type {
+  border-block-end: 0;
+}
+
+.fold__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+  margin: 0;
+}
+
+.fold__no {
+  color: var(--world-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.fold__title {
+  color: var(--ink);
+}
+
+.fold__note {
+  margin-block-start: var(--space-s);
+  max-inline-size: 62ch;
+  color: var(--ink-secondary);
+}
+
+.thesis {
+  margin-block-start: var(--space-m);
+  font-family: var(--font-text);
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  max-inline-size: 42ch;
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   THE EVIDENCE LEDGER
+   -------------------------------------------------------------------------- */
+.ledger {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-start: var(--space-m);
+  text-align: start;
+}
+
+.ledger caption {
+  text-align: start;
+  padding-block-end: var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+}
+
+.ledger th,
+.ledger td {
+  /* `text-align` is set explicitly rather than left to inherit from `.ledger`:
+     the UA stylesheet centres `th`, and a UA declaration on the element beats
+     an inherited one. Without this both the column heads and the row heads
+     centre themselves and the register stops reading as a column. */
+  text-align: start;
+  vertical-align: top;
+  padding: var(--space-xs) var(--space-s) var(--space-xs) 0;
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.ledger thead th {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-faint);
+  border-block-end: var(--world-rule-weight) solid var(--rule);
+}
+
+.ledger__claim {
+  font-weight: 500;
+  color: var(--ink);
+  min-inline-size: 14ch;
+}
+
+.ledger__evidence {
+  color: var(--ink-secondary);
+  max-inline-size: 46ch;
+}
+
+.basis {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink);
+}
+
+.basis[data-basis='partly-verified'] {
+  /* An annotation, not a demotion — the same treatment LEARNING gives a
+     `stated` basis. It marks where the first-hand part stops. */
+  color: var(--ink-tertiary);
+}
+
+/* --------------------------------------------------------------------------
+   BOUNDS — what was exercised, and what was not
+   --------------------------------------------------------------------------
+   A description list rather than a table: each row is one subject with a pair
+   of statements, and the denial is the half that must not be skimmable past.
+   It is given the accent bar so the eye lands on it, not on the affirmative.
+   -------------------------------------------------------------------------- */
+.bounds {
+  margin: var(--space-m) 0 0;
+}
+
+.bounds__row {
+  padding-block: var(--space-m);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.bounds__row:last-child {
+  border-block-end: 0;
+}
+
+.bounds__subject {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--world-accent);
+}
+
+.bounds__body {
+  margin: var(--space-xs) 0 0;
+}
+
+.bounds__done {
+  max-inline-size: 62ch;
+  color: var(--ink-secondary);
+}
+
+.bounds__not {
+  margin-block-start: var(--space-xs);
+  padding-inline-start: var(--space-s);
+  border-inline-start: 2px solid var(--world-accent);
+  max-inline-size: 58ch;
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------------------
+   DENIALS — the negative register
+   --------------------------------------------------------------------------
+   Set in the body face at full ink, not greyed and not struck through. These
+   are statements of fact with the same standing as anything else on the sheet;
+   rendering them as absences would invite them to be read as modesty.
+   -------------------------------------------------------------------------- */
+.denials {
+  margin: var(--space-m) 0 0;
+  padding: 0;
+  list-style: none;
+  max-inline-size: 62ch;
+}
+
+.denials__item {
+  position: relative;
+  padding-block: var(--space-2xs);
+  padding-inline-start: var(--space-m);
+  color: var(--ink);
+}
+
+.denials__item::before {
+  /* A filing dash, not a bullet and not a cross. Decorative: the sentence
+     already begins with "No", so the mark adds emphasis rather than meaning,
+     and a screen reader is not made to announce it. */
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: calc(0.7em + var(--space-2xs));
+  inline-size: var(--space-xs);
+  border-block-start: 2px solid var(--world-accent);
+}
+
+/* --------------------------------------------------------------------------
+   STANDARD — the schema constraints, numbered
+   -------------------------------------------------------------------------- */
+.standard {
+  margin: var(--space-m) 0 0;
+  padding-inline-start: var(--space-m);
+  max-inline-size: 62ch;
+  color: var(--ink-secondary);
+}
+
+.standard__item {
+  padding-block: var(--space-2xs);
+}
+
+.standard__item::marker {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--world-accent);
+}
+
+/* --------------------------------------------------------------------------
+   NARROW SCREENS — the ledger recomposes into labelled blocks
+   --------------------------------------------------------------------------
+   Not a horizontal scroll: the evidence column is prose and is the content, so
+   four columns of it do not survive one. Same device as LEARNING and GITHUB.
+   The scroll-port wrapper stays in the markup for the range between this
+   breakpoint and the table's natural width.
+   -------------------------------------------------------------------------- */
+@media (max-width: 47.999rem) {
+  .ledger thead {
+    /* Clipped, not `display: none`: the headings are what the `data-label`
+       values quote, and they belong in the accessibility tree. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ledger tbody tr {
+    display: block;
+    padding-block: var(--space-s);
+    border-block-end: var(--world-rule-weight) solid var(--rule);
+  }
+
+  .ledger tbody td,
+  .ledger tbody th {
+    display: block;
+    padding: var(--space-3xs) 0;
+    border-block-end: 0;
+    max-inline-size: none;
+  }
+
+  .ledger td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-faint);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Forced colours: the register bar, the denial rule and the boundary rule are
+   the three marks that would otherwise vanish against a forced background.
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .dossier__body::before {
+    background: CanvasText;
+  }
+
+  .bounds__not {
+    border-color: CanvasText;
+  }
+
+  .denials__item::before {
+    border-color: CanvasText;
+  }
+}
+
+@media print {
+  .fold,
+  .bounds__row {
+    break-inside: avoid;
+  }
+
+  .dossier__body {
+    padding-inline-start: 0;
+  }
+
+  .dossier__body::before {
+    display: none;
+  }
+}

@@ -77,6 +77,18 @@ jobs:
       - name: Test the GitHub fallback and secret isolation
         run: npm run test:github
 
+      # M15. Same reasoning as the step above, and the same reason it sits here
+      # rather than after `verify`: it PLANTS sentences into the built page to
+      # prove the security audit fires, then restores it. The restore is in a
+      # `finally` and is asserted, but an interrupted process would still leave
+      # a fabricated claim in `dist/` — and this workflow uploads `dist/`.
+      # Running it before `verify` means the artifact that ships is the one
+      # `verify` re-emitted and scanned, not one a test last wrote to.
+      #
+      # It reads the `dist/` that `test:github` leaves rebuilt with real data.
+      - name: Test the security content audit
+        run: npm run test:security
+
       # `npm run verify` = astro check + astro build + verify-output.mjs, the
       # same command a developer runs locally. It is the last thing to touch
       # `dist/`, so the artifact uploaded below is the one it asserted against:
