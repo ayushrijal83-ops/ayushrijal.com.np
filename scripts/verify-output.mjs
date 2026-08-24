@@ -914,6 +914,145 @@ for (const page of pages) {
   }
 }
 
+// ── 8c. The CYBERSECURITY world cannot become a security CV ────────────────
+// Added in M15, when the world was finally built. §1H.8 checked every
+// repository and found no certification, course, CTF placement, engagement,
+// CVE, disclosure, report or client. The page therefore publishes a boundary
+// rather than a portfolio, and this section is what stops that inverting.
+//
+// The difficulty, and why these patterns are shaped the way they are: the page
+// legitimately contains every dangerous noun — "certification", "penetration",
+// "CVE", "vulnerability" — because its negative register names each one in
+// order to deny it. A pattern matching the NOUN would fail on the honest
+// sentence and would have to be silenced with a page-level exclusion, which is
+// how an audit becomes inert.
+//
+// So these match the GRAMMAR OF A CLAIM instead: a first-person identity, a
+// possessive, a completed action, an awarded credential. "No CVE, disclosure,
+// advisory or report." does not parse as any of those. "I hold the OSCP" does.
+// Applied to every page, with no exclusions anywhere.
+const FABRICATED_SECURITY = [
+  // Identity asserted, in any of the forms a bio actually takes.
+  [
+    /\b(?:I|we)\s+(?:a|A)m\s+(?:an?\s+)?(?:certified|penetration\s+tester|pen\s?tester|ethical\s+hacker|security\s+(?:researcher|engineer|analyst|consultant)|red\s+team(?:er)?|bug\s+bounty\s+hunter)\b/i,
+    'asserts a security role or credential in the first person',
+  ],
+  [
+    /\b(?:Ayush(?:\s+Rijal)?|He|She|They)\s+is\s+(?:an?\s+)?(?:certified|penetration\s+tester|ethical\s+hacker|security\s+(?:researcher|engineer|analyst|consultant)|red\s+team(?:er)?)\b/i,
+    'asserts a security role in the third person',
+  ],
+  // A named certification, claimed rather than named as absent.
+  [
+    /\b(?:hold(?:s|ing)?|earned|achieved|obtained|completed|passed|certified\s+in)\s+(?:the\s+|an?\s+|my\s+)?(?:OSCP|OSCE|OSWE|CEH|CISSP|CISM|GSEC|GPEN|GCIH|Security\s?\+|Pentest\s?\+|eJPT|CRTP|CRTO)\b/i,
+    'claims a named security certification',
+  ],
+  [
+    /\bmy\s+(?:OSCP|CEH|CISSP|Security\s?\+|certification|certificate)\b/i,
+    'claims a security certification as a possession',
+  ],
+  // An engagement performed. The verb is what makes it a claim.
+  [
+    /\b(?:performed|conducted|carried\s+out|ran|delivered|led)\s+(?:an?\s+|\d+\s+)?(?:penetration\s+tests?|pen\s?tests?|security\s+(?:assessments?|audits?|reviews?)|red\s+team\s+(?:engagements?|operations?)|vulnerability\s+assessments?)\b/i,
+    'claims to have performed a security engagement',
+  ],
+  [
+    /\b(?:secured|hardened|protected|defended)\s+(?:\d+\s+)?(?:clients?|companies|organi[sz]ations?|customers?|businesses)\b/i,
+    'claims security work done for third parties',
+  ],
+  // A finding in someone else's software.
+  //
+  // The quantifier is enumerated rather than left as `\w+`: a generic gap here
+  // also matches "found nothing wrong with vulnerabilities in ...". Spelled
+  // numbers are in the list because the first version of this pattern only
+  // accepted digits, and `test-security-audit.mjs` caught "Discovered two
+  // vulnerabilities in Apache" walking straight through it.
+  //
+  // Note the word order this deliberately does NOT match: the page's own
+  // denial reads "No vulnerability found in software belonging to someone
+  // else" — noun before verb — so it passes without needing an exclusion.
+  [
+    /\b(?:discovered|found|reported|disclosed|identified)\s+(?:(?:\d+|an?|one|two|three|four|five|six|seven|eight|nine|ten|several|multiple|many|numerous|some)\s+)?(?:0-?days?|zero-?days?|CVEs?|vulnerabilit(?:y|ies))\s+in\b/i,
+    'claims to have found a vulnerability in third-party software',
+  ],
+  // A competition result.
+  [
+    /\b(?:placed|ranked|finished|came)\s+(?:\d+(?:st|nd|rd|th)|first|second|third|top\s+\d+)\b/i,
+    'claims a competition placement',
+  ],
+  // Experience quantified, and self-rating.
+  [
+    /\b\d+\+?\s*(?:\+\s*)?years?\s+(?:of\s+)?(?:experience\s+)?(?:in\s+)?(?:cyber\s?security|security|infosec|penetration\s+testing)\b/i,
+    'quantifies years of security experience',
+  ],
+  [
+    /\b(?:expert|advanced|proficient|professional)\s+(?:in|at|level)\s+(?:cyber\s?security|penetration\s+testing|ethical\s+hacking|exploit\s+development)\b/i,
+    'self-rates a security proficiency level',
+  ],
+];
+
+for (const page of pages) {
+  const text = prose(readFileSync(page, 'utf8'));
+  for (const [pattern, what] of FABRICATED_SECURITY) {
+    const hit = text.match(pattern);
+    if (hit) {
+      fail(
+        `${page} ${what} ("${hit[0].trim()}"). §1H.8 checked every repository: ` +
+          `no certification, course, CTF placement, engagement, CVE, disclosure ` +
+          `or client exists. If one now does, file it in the labs collection ` +
+          `with its authorisation — do not write it into prose.`,
+      );
+    }
+  }
+}
+
+// A real CVE identifier in prose is only legitimate once an entry carries one.
+// The `labs` schema accepts `cve` in exactly this form; until something is
+// filed there, an identifier on a page has nothing behind it.
+const labsFiled = globSync(`${DIST}/cybersecurity/**/*.html`).length > 1;
+for (const page of pages) {
+  const hit = prose(readFileSync(page, 'utf8')).match(/\bCVE-\d{4}-\d{4,}\b/);
+  if (hit && !labsFiled) {
+    fail(
+      `${page} prints a CVE identifier (${hit[0]}) but no lab entry is filed. ` +
+        `The identifier must come from an entry's \`cve\` field, never prose.`,
+    );
+  }
+}
+
+// ── 8d. The simulated/real boundary must survive an edit ───────────────────
+// The affirmative half of each pair above ("the flags were exercised", "a
+// packet lab") is what a reader remembers; the denial is what makes it true.
+// Delete a denial and every sentence left standing is still literally accurate
+// while the page as a whole becomes a lie — which is precisely the failure
+// mode §1H.8 warned about. These are inverse assertions: the build fails if a
+// denial goes missing, not if one appears.
+const cyberProse = prose(read('cybersecurity/index.html') ?? '');
+if (cyberProse) {
+  const REQUIRED_DENIALS = [
+    [/No scan of a real network is recorded/i, 'port scanning is simulated'],
+    [/No capture of my own is published/i, 'packet analysis is simulated'],
+    [
+      /arena built, not a competition entered/i,
+      'the CTF arena is built, not competed in',
+    ],
+    [/No certification, and no completed course/i, 'no certification is held'],
+    [
+      /No engagement, client, or authorised test/i,
+      'no third-party engagement exists',
+    ],
+    [/No CVE, disclosure, advisory or report/i, 'no disclosure exists'],
+  ];
+  for (const [pattern, what] of REQUIRED_DENIALS) {
+    if (!pattern.test(cyberProse)) {
+      fail(
+        `The Cybersecurity world no longer states that ${what}. The denial is ` +
+          `load-bearing: without it the surrounding sentences read as real ` +
+          `security work. Restore it or remove the claim it qualifies.`,
+      );
+    }
+  }
+}
+
 // ── 9. Indexability is deliberate on every page ────────────────────────────
 // Three classes, three answers, and getting any of them backwards is silent:
 // a `noindex` on a world removes it from search with no visible symptom, and a

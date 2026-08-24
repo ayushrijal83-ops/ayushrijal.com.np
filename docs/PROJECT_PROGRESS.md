@@ -9,10 +9,11 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M14 — Production hardening & closeout** |
+| **Current milestone** | **M15 — Cybersecurity world** |
+| **M15 status** | **Built, awaiting architect review. NOT deployed, NOT merged, NOT pushed.** Branch `m15-cybersecurity`. Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d) and negative-tested 35/35. See §1Q. |
 | **M14 status** | **COMPLETE.** HTTPS enforcement **verified** (301 → HTTPS site-wide, valid cert). `github-data.yml` retargeted to `main` (`7ce6e11`), deployed via run `32735886304`, production republished 14:00:30Z and byte-compared against `dist`. `github-data` has **still never executed** — next scheduled 18:00Z. See §1P. |
 | **Last updated** | 2026-08-24 |
-| **Working branch** | `main` — **now V2, and deploying**. `v2` is merged (`--no-ff`, `927477a`) and retained as history. Rollback is `git revert -m 1 927477a`. |
+| **Working branch** | `m15-cybersecurity` (M15, unmerged). `main` is production and deploys on push — untouched by M15. Cutover rollback is `git revert -m 1 927477a`. |
 
 ---
 
@@ -36,6 +37,7 @@
 | M13 | Production verification | **Complete — result is BLOCKED** | §1M below. Production observed serving V1. Cutover did not reach GitHub. One blocking defect fixed: `deploy.yml`. |
 | M13-B | Deployment recovery | **Complete — cutover still BLOCKED** | §1N below. `deploy.yml` audited, corrected, pushed, and **observed passing on `v2` in 27 s** with the deploy job correctly skipped. Blocked on the Pages source, owner-only. |
 | M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
+| M15 | Cybersecurity world | **Built — awaiting review** | §1Q below. Evidence-based, zero fabrication, 0 findings filed and correctly so. Not deployed. |
 | M14 | Production hardening & closeout | **Complete** | §1P below. HTTPS enforced and verified; `github-data.yml` → `ref: main`; production re-verified and byte-compared. `github-data` execution **NOT OBSERVED**. |
 | Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
 
@@ -5529,6 +5531,286 @@ Nothing on the M14 do-not-touch list was touched: no new page, no favicon, no
 `og:image`, no world redesign, no contact-channel change, no DNS or `CNAME`
 change, no new dependency, no unrelated CSS or code refactor, no speculative
 improvement.
+
+---
+
+## 1Q. M15 — CYBERSECURITY
+
+**Built. Not deployed, not merged, not pushed.** On branch `m15-cybersecurity`,
+commit `492e100`. `main` is untouched and production still serves the
+M14 artifact.
+
+The world that was on hold since M08 is now a real page. **Nothing was
+fabricated**, and the reason the page is the shape it is deserves stating
+plainly: the audit found no unpublished security evidence, exactly as M08 said
+it would.
+
+### 1Q.1 Evidence inventory — the audit, re-run rather than inherited
+
+§1H.8's finding was checked again from source rather than taken on trust, and
+it holds. One thing M08 could not have seen was also checked: the `x-man`
+repository, created 2026-08-21, after that audit. It is **NepalSathi**, a Flask
+civic-information platform already filed in AI LAB and the experiments
+collection. **Not security work.** Correctly excluded.
+
+**A. VERIFIED PROJECT EVIDENCE**
+
+| Item | Source |
+|---|---|
+| YushaCyber — Flask platform, 14 registered blueprints, 48 test files, ~3.4 MB Python. Runs locally and in Docker; **not deployed, no users** | `src/content/projects/yushacyber.md`, `verified: true` |
+| Global CSRF via Flask-WTF, applied at registration rather than per form | same |
+| Rendered markdown sanitised with `bleach` against a tag-and-attribute allow-list, because lesson and CTF content is markdown | same |
+| CTF arena with a real schema — categories, challenges, per-user solves, staged hints | same |
+| Lab content: SQL injection, XSS, CSRF, file-upload, Wireshark, nmap, network reconnaissance, forensics, SOC workflow | same |
+
+**B. VERIFIED LEARNING ACTIVITY**
+
+| Item | Source |
+|---|---|
+| OverTheWire Bandit levels 0→13 — **13 log entries, 19 commits, 6 distinct days, 2026-08-13 → 2026-08-20**, each level with its own written note | `src/lib/learning.ts` `FIELD_LOG`, counted programmatically |
+| Side notes beyond the levels' needs: SSH, `/dev/null`, `sort`, `uniq`, `strings`, Base64 | same |
+| Five networking lab modules — fundamentals, reconnaissance, troubleshooting, topology, HTTP deep dive | `learning.ts`, Cybersecurity strand |
+
+**C. VERIFIED LAB / CTF ACTIVITY**
+
+Bandit, a public wargame, worked in the open. **That is the whole of it.** The
+CTF arena in YushaCyber is a thing *built*, not a competition *entered*.
+
+**D. DOCUMENTATION ONLY**
+
+The `labs` collection schema — `discipline`, `environment`, `authorisation`,
+`cve`, `severity` — written in M02 so this world could prove its claims. It has
+nothing to populate it. `cyber-security`'s repository description ("I will
+going to upload daily basis for 6 months") is a stated intention and is not
+published as a commitment.
+
+**E. UNSUPPORTED — NOT PUBLISHED**
+
+No certification. No completed course. No CTF placement, ranking or team
+result. No engagement, client or authorised test of a third party. No CVE, no
+disclosure, no advisory, no report. No vulnerability found in anyone else's
+software. No professional security employment. No years-of-experience figure.
+No proficiency level or self-rating. No real-network scan. No packet capture of
+my own. **Every one of these was checked, and every one is absent.**
+
+### 1Q.2 The architectural decision, and why it differs from M08's
+
+M08 concluded the world had "no content of its own" because everything
+verifiable was already filed in LEARNING and PROJECTS. **That was right about
+the findings and wrong about the world.**
+
+A security archive holding no findings still has one thing to publish that no
+other world can: **the boundary itself** — what is evidenced, what is
+simulated, and what is explicitly not claimed. That is original content, it is
+checkable, and on a security page it is the most load-bearing thing there is.
+
+So the page **indexes** the evidence and **states** the boundary. It does not
+restate the Bandit log or the project record; it links to them. The alternative
+M08 correctly feared — restating three worlds or fabricating — is avoided by
+publishing neither the work nor an invention, but the perimeter around them.
+
+### 1Q.3 Published content — six sections, one `h1`
+
+| § | Section | What it holds |
+|---|---|---|
+| 01 | Standing | One thesis sentence, every noun in it appearing in the register below |
+| 02 | What the evidence supports | **5 claims**, each with basis, the artifact, and a link to where it is checkable |
+| 03 | Simulated, not real | **4 boundaries**, each an affirmative paired with its denial |
+| 04 | Not claimed | **7 denials**, the negative register |
+| 05 | The filing standard | **5 schema constraints** that explain the empty register structurally |
+| 06 | Filed findings | The existing `ArchiveIndex`, **0 entries**, empty note unchanged |
+
+Meta description rewritten truthfully: it says what the page contains and ends
+with "No findings are filed." The world summary in `worlds.ts` was **not**
+touched — it was corrected in M11 and is still accurate.
+
+### 1Q.4 Deliberately NOT published
+
+Every item in inventory class E. In particular: no role noun anywhere on the
+page describes Ayush ("researcher", "engineer", "pentester", "ethical hacker",
+"red team" appear only inside denials); the nmap flags are stated as exercised
+**against a simulator**, never as a scan; the CTF arena is stated as built,
+never as entered; and no `labs` entry was authored to fill the register.
+
+### 1Q.5 Architecture — **VERIFIED**, zero new dependencies
+
+Reused without modification: the world registry, `WorldLayout`, `TitleBlock`,
+`ArchiveIndex`, the shared gate, `tablewrap` scroll-port, typography and
+spacing tokens, the `data-label` narrow-screen table recomposition, and the
+`prefers-reduced-motion` guard convention.
+
+New files are three, and the layout grammar is deliberately LEARNING's one
+world over — a reader arriving from the field notebook should not have to learn
+a second way to read a register. The worlds are separated by their ground
+(`dossier`) and accent, not by a second set of layout ideas.
+
+**No new framework. No new dependency.** `package.json` gained exactly one
+line, an npm script; `package-lock.json` is untouched.
+
+### 1Q.6 Content audit extended — §8c and §8d
+
+The hard part, and the reason it is worth reading: **the page legitimately
+contains every dangerous noun** — "certification", "penetration", "CVE",
+"vulnerability" — because its negative register names each one in order to deny
+it. A pattern matching the noun would fail on the honest sentence and would
+have to be silenced with a page-level exclusion, which is how an audit becomes
+inert.
+
+So **§8c matches the grammar of a claim, not the noun**: a first-person
+identity, a possessive, a completed action, an awarded credential, a placement,
+a quantified year count. *"No CVE, disclosure, advisory or report."* does not
+parse as any of those. *"I hold the OSCP"* does. **Ten patterns, applied to
+every page, with no exclusions anywhere.** Plus a CVE-identifier guard: a real
+`CVE-YYYY-NNNN` in prose fails while no lab entry is filed.
+
+**§8d is the inverse**: six required denials must be **present** on the built
+page. Delete one and every affirmative sentence left behind stays literally
+true while the page as a whole stops being — the precise failure §1H.8 warned
+about. The build fails if a denial goes missing.
+
+### 1Q.7 Audit negative-tested — **VERIFIED, 35/35**
+
+`scripts/test-security-audit.mjs`, run as `npm run test:security`, and wired
+into both `ci.yml` and `deploy.yml`.
+
+| Property | Result |
+|---|---|
+| Control: the honest page passes the gate | **pass** |
+| **14 planted fabrications must fail** | **all 14 fail correctly** — role claims first and third person, certifications held and possessed, engagements performed, security audits delivered, third-party work, findings in others' software, zero-days, placements, quantified experience, self-rated levels, a CVE identifier |
+| **14 legitimate sentences must pass** | **all 14 pass** — all seven denials verbatim, lab subjects named, the simulated scanner, a defensive decision, learning stated plainly, an ordinary ordinal, "vulnerability" and "penetration" as topics |
+| **3 denials removed must fail** | **all 3 fail correctly** |
+| The failure explains itself and cites §1H.8 | **pass** |
+| The page is byte-intact after testing | **pass** |
+
+**The test found a real defect in the audit and it was fixed.** The
+third-party-finding pattern accepted only digit quantifiers, so *"Discovered two
+vulnerabilities in Apache"* walked straight through it. Spelled-out numbers were
+added — enumerated rather than a generic `\w+` gap, because a generic gap also
+matches *"found nothing wrong with vulnerabilities in …"*. This is recorded
+because it is the whole argument for negative-testing an audit: it passed 34/35
+and was still broken.
+
+**Ordering defect also caught and fixed.** `test:security` plants sentences into
+the built page and restores them in a `finally`. Placed after `Build and verify`
+in `deploy.yml` — as it first was — the uploaded artifact would be one a test
+last wrote to rather than one `verify` scanned, the same defect §1N.1 recorded
+for `test:github`. It now runs **before** `verify` in the deploy path, so
+`verify` re-emits `dist/` and scans the exact bytes that ship. In `ci.yml`,
+which publishes nothing, order does not matter.
+
+### 1Q.8 Tests — **VERIFIED**
+
+| Command | Result |
+|---|---|
+| `npm ci` | 272 packages, **0 vulnerabilities** |
+| `astro check` | **0 errors, 0 warnings, 0 hints** (50 files) |
+| `npm run test:github` | **18/18** |
+| `npm run test:security` | **35/35** |
+| `npm run verify` | **pass** — 8 worlds, 17 pages |
+| `npm audit --audit-level=high` | **0 vulnerabilities** |
+| `git diff --check` | clean |
+
+### 1Q.9 Responsive — **VERIFIED**, Chrome against a local preview
+
+Zero horizontal overflow at **320, 375, 768, 1280 and 1920 px**. Zero at
+**text-only 200%** at 320, 375 and 1280 px. Measured as
+`scrollWidth − clientWidth` on the document element, with the offending
+elements collected on failure; there were none.
+
+### 1Q.10 Accessibility — **VERIFIED** (structural), and what that does not mean
+
+| Check | Result |
+|---|---|
+| `<h1>` | **exactly 1**; 7 `<h2>` |
+| Duplicate `id` | **none** (13 ids) |
+| Broken `aria-labelledby` | **none** |
+| Positive `tabindex` | **0** of 16 focusables |
+| Skip link | present, `href="#main"`, **moves focus** |
+| `#main` | `tabindex="-1"`, **accepts focus** |
+| Focus ring | resolves to **`2px solid rgb(156,48,22)`**, 3 px offset |
+| Table | 1 table, 1 `<caption>`, **9 `scope`** attributes, `<th scope="row">` per row |
+| Scroll port | `role="region"` + `tabindex="0"` + `aria-label="Register of evidenced security claims"` |
+| Console errors / CSP violations | **zero** |
+| Internal links | all resolve, including `/learning#log` and `/learning#register` |
+| Reduced motion | **12 media blocks, 371 declarations**; this world's own `dossier-bar` animation **is** inside a `no-preference` guard; **0 unguarded infinite animations** |
+
+**Reduced-motion behaviour was NOT exercised** — the machine does not report
+`prefers-reduced-motion: reduce`. The guard's presence is verified; the
+rendered result under the query is **NOT TESTED**.
+
+**No WCAG compliance is claimed.** No axe, Lighthouse or screen-reader audit
+was run; none was installed. A defect found and fixed during review: the
+register's `<th>` cells were centring, because the UA stylesheet's
+`th { text-align: center }` beats an inherited value — an explicit
+`text-align: start` now sits on the cells.
+
+### 1Q.11 Security scan of the build — **VERIFIED**
+
+Credentials **none** · local machine paths **none** · source maps **none** ·
+`api.github.com` **none** · `.env` references **none** · network-capable
+constructs in shipped JS **none** (`fetch(`, `XMLHttpRequest`, `WebSocket`,
+`EventSource`, `sendBeacon`, dynamic `import(`) · inline scripts **none** — the
+page's single `<script>` is the shared external world-gate module · external
+resource origins **none** (only `ayushrijal.com.np` itself) · `localhost`
+occurrences on the new page **0**.
+
+No existing assertion was weakened. §8's "no overstated holdings" patterns and
+the "still declaring itself empty" check both still pass unchanged.
+
+### 1Q.12 Browser coverage
+
+**Chrome only**, against `astro preview` on localhost. Firefox **NOT TESTED**.
+Safari / WebKit **NOT TESTED**.
+
+### 1Q.13 Known limitations
+
+| Item | State |
+|---|---|
+| Reduced-motion behaviour | **NOT TESTED** — guard present, query not emulable here |
+| Firefox / Safari | **NOT TESTED** |
+| axe / Lighthouse / screen reader | **NEVER PERFORMED** |
+| WCAG compliance | **NOT CLAIMED** |
+| Production behaviour of this page | **NOT TESTED** — not deployed, by instruction |
+| `labs` register | **0 entries**, and correctly so |
+
+### 1Q.14 Files changed
+
+| File | Change |
+|---|---|
+| `src/pages/cybersecurity.astro` | rewritten, +217 |
+| `src/lib/security.ts` | **new** — the typed evidence registry |
+| `src/styles/cybersecurity.css` | **new** — the dossier sheet |
+| `scripts/test-security-audit.mjs` | **new** — the negative test |
+| `scripts/verify-output.mjs` | +139, §8c and §8d |
+| `.github/workflows/ci.yml` | +8, one step |
+| `.github/workflows/deploy.yml` | +12, one step, placed before `verify` |
+| `package.json` | +1 line, `test:security`. **No dependency change**; `package-lock.json` untouched |
+
+Nothing else. No CNAME, no DNS, no HTTPS setting, no deployment workflow logic,
+no legacy routing, no other world, no contact channel, no favicon, no
+`og:image`. `Agriculture_simulator` not touched.
+
+### 1Q.15 Deployment status — **NOT DEPLOYED, BY INSTRUCTION**
+
+Not merged, not pushed, not deployed. Branch `m15-cybersecurity`, local only.
+`origin/main` remains **`ee95c44`**; production still serves the M14 artifact
+from 2026-08-24T14:11:08Z. **The page has never been served over HTTP** and
+nothing here claims it has.
+
+### 1Q.16 Remaining owner actions — unchanged by M15
+
+| Item | State |
+|---|---|
+| Architect review of this branch | **BLOCKED** — awaiting review before merge |
+| `github-data.yml` execution against `main` | **NOT OBSERVED** — 0 runs at the time of writing |
+| Real email delivery | **OWNER ACTION — NOT TESTED** |
+| OpenWeatherMap rotation in `Agriculture_simulator` | **OWNER ACTION — EXTERNAL, unresolved.** Not touched. **The project is not security-clean while it stands** |
+
+### 1Q.17 CYBERSECURITY status
+
+**Built, and still holds zero findings.** That is the correct state, not an
+incomplete one. The register fills when work exists that can satisfy the `labs`
+schema — a discipline, an environment, and an authorisation — and not before.
 
 ---
 

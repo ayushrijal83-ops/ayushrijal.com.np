@@ -16,6 +16,7 @@
     "verify:output": "node scripts/verify-output.mjs",
     "github:fetch": "node scripts/fetch-github.mjs",
     "test:github": "node scripts/test-github.mjs",
+    "test:security": "node scripts/test-security-audit.mjs",
     "astro": "astro"
   },
   "dependencies": {

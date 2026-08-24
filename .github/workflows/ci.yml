@@ -69,5 +69,13 @@ jobs:
       - name: Test the GitHub fallback and secret isolation
         run: npm run test:github
 
+      # M15. The security content audit, negative-tested: a planted claim of a
+      # certification, an engagement, a CVE or a placement must fail the gate,
+      # and the page's own negative register — which names every one of those
+      # nouns in order to deny it — must still pass. Runs after `verify` because
+      # it plants into the built page and restores it.
+      - name: Test the security content audit
+        run: npm run test:security
+
       - name: Audit dependencies
         run: npm audit --audit-level=high

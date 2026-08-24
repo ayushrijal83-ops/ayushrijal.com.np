@@ -1,7 +1,40 @@
 ---
+/**
+ * CYBERSECURITY — the Security Research Archive. AR-04.
+ *
+ * Built in M15, after being held on hold since M08.
+ *
+ * The thing this page must not become is the reason it stayed empty for seven
+ * milestones: a security section under content pressure fabricates, and it
+ * fabricates in a specific direction — tools become engagements, courses become
+ * certifications, a built CTF arena becomes a placement. §1H.8 checked every
+ * repository and found no finding to file.
+ *
+ * So the page publishes the only thing that is genuinely its own: the boundary.
+ * What is evidenced (pointing at LEARNING and PROJECTS rather than restating
+ * them), what is simulated, what is explicitly not claimed, and what would have
+ * to be true before an entry could appear in the register at the bottom.
+ *
+ * Every string comes from `@lib/security`, which carries the source each row
+ * was read out of. Nothing is written inline here.
+ *
+ * No client-side JavaScript. The world gate is the shared one from WorldLayout.
+ */
 import WorldLayout from '@layouts/WorldLayout.astro';
+import TitleBlock from '@components/projects/TitleBlock.astro';
 import ArchiveIndex, { type IndexEntry } from '@components/archive/ArchiveIndex.astro';
 import { getCollection } from 'astro:content';
+import { getWorld } from '@lib/worlds';
+import {
+  EVIDENCE,
+  BOUNDARIES,
+  NOT_CLAIMED,
+  FILING_STANDARD,
+  POSTURE,
+} from '@lib/security';
+import '@styles/cybersecurity.css';
+
+const world = getWorld('cybersecurity');
 
 const entries: IndexEntry[] = (await getCollection('labs', (e) => !e.data.draft))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
@@ -13,11 +46,185 @@ const entries: IndexEntry[] = (await getCollection('labs', (e) => !e.data.draft)
     verified: e.data.verified,
     register: e.data.discipline.toUpperCase(),
   }));
+
+const cells = [
+  { key: 'Sheet', value: `${world.ref} · Security`, accent: true },
+  { key: 'Filed findings', value: `${entries.length}` },
+  { key: 'Evidenced', value: `${EVIDENCE.length} claims, all indexed` },
+  { key: 'Not claimed', value: `${NOT_CLAIMED.length} entries` },
+];
 ---
 
-<WorldLayout world="cybersecurity">
-  <ArchiveIndex
-    entries={entries}
-    emptyNote="No security work has been filed yet. The schema requires each entry to record the environment it was carried out in and its authorisation, so nothing can be published here without its context."
-  />
+<WorldLayout
+  world="cybersecurity"
+  title="Security"
+  description="What this archive can and cannot evidence about security: a wargame worked in public, a platform built to teach it, and an explicit register of what is not claimed. No findings are filed."
+  masthead={false}
+>
+  <div class="sheet dossier">
+    <p class="t-label dossier__mark">
+      <span>{world.ref} · {world.gateTitle}</span>
+      <span>{world.world}</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display dossier__title">Security Research Archive</h1>
+    <p class="t-text dossier__intro">{POSTURE.purpose}</p>
+
+    <TitleBlock cells={cells} label="Archive details" />
+
+    <div class="dossier__body">
+      {/* ── 01 Standing ─────────────────────────────────────────────── */}
+      <section class="fold" aria-labelledby="standing">
+        <h2 class="t-label fold__head" id="standing">
+          <span class="fold__no">01</span>
+          <span class="fold__title">Standing</span>
+        </h2>
+
+        <p class="thesis">{POSTURE.standing}</p>
+
+        <p class="t-text fold__note">
+          A security archive that holds no findings can still be honest about
+          why. Everything below is either a pointer to evidence that lives in
+          another part of this site, or a statement of something this archive
+          does <em>not</em> hold. Nothing here is a summary of work you cannot
+          go and check.
+        </p>
+      </section>
+
+      {/* ── 02 What the evidence supports ───────────────────────────── */}
+      <section class="fold" aria-labelledby="evidence-h" id="evidence">
+        <h2 class="t-label fold__head" id="evidence-h">
+          <span class="fold__no">02</span>
+          <span class="fold__title">What the evidence supports</span>
+        </h2>
+
+        <p class="t-text fold__note">
+          Five claims, each with the artifact it rests on and where to check it.
+          The work itself is filed in the field notebook and the workshop; this
+          is the index to it, not a second copy.
+        </p>
+
+        <div
+          class="tablewrap"
+          role="region"
+          aria-label="Register of evidenced security claims"
+          tabindex="0"
+        >
+          <table class="ledger">
+            <caption>Evidenced claims · and where each one is checkable</caption>
+            <thead>
+              <tr>
+                <th scope="col">Claim</th>
+                <th scope="col">Basis</th>
+                <th scope="col">Evidence</th>
+                <th scope="col">Filed in</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                EVIDENCE.map((row) => (
+                  <tr>
+                    <th scope="row" class="ledger__claim">
+                      {row.claim}
+                    </th>
+                    <td data-label="Basis">
+                      <span class="basis" data-basis={row.basis}>
+                        {row.basis === 'verified' ? 'Verified' : 'Partly verified'}
+                      </span>
+                    </td>
+                    <td data-label="Evidence" class="ledger__evidence">
+                      {row.evidence}
+                    </td>
+                    <td data-label="Filed in">
+                      <a href={row.where.href}>{row.where.label}</a>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ── 03 Simulated, not real ──────────────────────────────────── */}
+      <section class="fold" aria-labelledby="boundary-h" id="boundary">
+        <h2 class="t-label fold__head" id="boundary-h">
+          <span class="fold__no">03</span>
+          <span class="fold__title">Simulated, not real</span>
+        </h2>
+
+        <p class="t-text fold__note">
+          The most overstatable thing in any security record is tooling. A
+          subject list containing <em>nmap</em> and <em>Wireshark</em> reads as
+          scanning and capturing. What exists here is a simulator, written so a
+          mission could be graded. Each entry states what was exercised and what
+          was not.
+        </p>
+
+        <dl class="bounds">
+          {
+            BOUNDARIES.map((b) => (
+              <div class="bounds__row">
+                <dt class="bounds__subject">{b.subject}</dt>
+                <dd class="bounds__body">
+                  <p class="bounds__done">{b.done}</p>
+                  <p class="bounds__not">{b.notDone}</p>
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+
+      {/* ── 04 Not claimed ──────────────────────────────────────────── */}
+      <section class="fold" aria-labelledby="notclaimed-h" id="not-claimed">
+        <h2 class="t-label fold__head" id="notclaimed-h">
+          <span class="fold__no">04</span>
+          <span class="fold__title">Not claimed</span>
+        </h2>
+
+        <p class="t-text fold__note">
+          Checked against every repository in M08 rather than assumed. On a
+          security page the absent credentials are the ones a reader most needs
+          stated, because a tool list implies all of them.
+        </p>
+
+        <ul class="denials" role="list">
+          {NOT_CLAIMED.map((d) => <li class="denials__item">{d}</li>)}
+        </ul>
+      </section>
+
+      {/* ── 05 The filing standard ──────────────────────────────────── */}
+      <section class="fold" aria-labelledby="standard-h" id="standard">
+        <h2 class="t-label fold__head" id="standard-h">
+          <span class="fold__no">05</span>
+          <span class="fold__title">The filing standard</span>
+        </h2>
+
+        <p class="t-text fold__note">
+          The register below is empty because of the schema, not because the
+          page has not been written. These are the constraints an entry has to
+          satisfy before it can appear.
+        </p>
+
+        <ol class="standard" role="list">
+          {FILING_STANDARD.map((s) => <li class="standard__item">{s}</li>)}
+        </ol>
+      </section>
+
+      {/* ── 06 The register ─────────────────────────────────────────── */}
+      <section class="fold" aria-labelledby="register-h" id="register">
+        <h2 class="t-label fold__head" id="register-h">
+          <span class="fold__no">06</span>
+          <span class="fold__title">Filed findings</span>
+        </h2>
+
+        <ArchiveIndex
+          entries={entries}
+          emptyNote="No security work has been filed yet. The schema requires each entry to record the environment it was carried out in and its authorisation, so nothing can be published here without its context."
+        />
+      </section>
+    </div>
+  </div>
 </WorldLayout>
