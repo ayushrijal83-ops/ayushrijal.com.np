@@ -1,0 +1,29 @@
+{
+  "name": "ayushrijal-com-np",
+  "version": "2.0.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "description": "ayushrijal.com.np — V2. A static technical archive built with Astro.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "verify": "astro check && astro build && node scripts/verify-output.mjs",
+    "verify:output": "node scripts/verify-output.mjs",
+    "github:fetch": "node scripts/fetch-github.mjs",
+    "test:github": "node scripts/test-github.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "7.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

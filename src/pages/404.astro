@@ -1,0 +1,140 @@
+---
+/**
+ * 404 — the sheet that is not in this archive.
+ *
+ * GitHub Pages serves `/404.html` for any path it cannot resolve, and it is
+ * the ONLY mechanism a static host gives you for a URL that no longer exists.
+ * That makes this page the load-bearing part of the V1 → V2 cutover: six
+ * published V1 URLs end in `.html` and none of them survives the rename, so
+ * without this page every inbound link and every indexed result lands on
+ * GitHub's own grey 404 with no way back into the archive.
+ *
+ * It deliberately does NOT redirect. A meta-refresh guess at where someone
+ * meant to go is worse than an index they can read — and the mapping from V1
+ * to V2 is not one-to-one (`/blog.html` has no destination at all). The
+ * decision on redirect stubs is the architect's; see PROJECT_PROGRESS §1J.9.
+ *
+ * No world channel of its own. It is chrome, not a world, so it is printed on
+ * the archive's default stock and says which sheets exist.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import SiteHeader from '@components/nav/SiteHeader.astro';
+import { WORLDS } from '@lib/worlds';
+---
+
+<BaseLayout
+  title="Not in this archive"
+  description="No sheet is filed at this address. The archive's eight sheets are listed here."
+>
+  {/* A 404 must never be indexed. GitHub Pages serves this file for every
+      unresolvable path, so without `noindex` a crawler can collect it under
+      any number of URLs — and its canonical points at /404, which is not a
+      page that exists. `noindex` settles both: the canonical becomes moot and
+      the page stays out of results. Added in M12; the legacy redirect stub
+      deliberately does NOT carry it, because there the whole point is to let a
+      crawler follow the canonical to the new URL. */}
+  <meta name="robots" content="noindex" slot="head" />
+  <div class="world-body">
+    <SiteHeader current="none" />
+
+    <main id="main" tabindex="-1">
+      <div class="sheet notfound">
+        <p class="t-label notfound__mark">
+          <span>No reference</span>
+          <span>Not in this archive</span>
+        </p>
+        <hr class="rule rule--strong" />
+
+        <h1 class="t-display notfound__title">Not in this archive</h1>
+        <p class="t-text notfound__lede">
+          Nothing is filed at that address. It may have been renamed, or it may
+          never have existed &mdash; this archive was rebuilt, and the pages the
+          old site published are not the pages this one has.
+        </p>
+
+        <h2 class="t-label notfound__heading">Sheets held</h2>
+        <ul class="notfound__list" role="list">
+          {
+            WORLDS.map((w) => (
+              <li class="notfound__item">
+                <a class="notfound__link" href={w.href}>
+                  <span class="t-label notfound__ref">{w.ref}</span>
+                  <span class="notfound__name">{w.world}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </main>
+  </div>
+</BaseLayout>
+
+<style>
+  .notfound {
+    padding-block: var(--space-2xl) var(--space-3xl);
+  }
+
+  .notfound__mark {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    padding-block-end: var(--space-2xs);
+    color: var(--ink-faint);
+  }
+
+  .notfound__title {
+    font-size: var(--step-4);
+    margin-block-start: var(--space-m);
+  }
+
+  .notfound__lede {
+    margin-block-start: var(--space-s);
+    max-inline-size: 52ch;
+    color: var(--ink-secondary);
+  }
+
+  .notfound__heading {
+    margin-block-start: var(--space-2xl);
+    color: var(--world-accent);
+  }
+
+  .notfound__list {
+    margin-block-start: var(--space-s);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .notfound__item {
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  .notfound__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-s);
+    padding-block: var(--space-s);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .notfound__link:hover .notfound__name,
+  .notfound__link:focus-visible .notfound__name {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .notfound__ref {
+    color: var(--world-accent);
+    inline-size: 4.5rem;
+    flex: none;
+  }
+
+  .notfound__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+</style>

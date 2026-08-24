@@ -1,0 +1,42 @@
+---
+/**
+ * SYSTEM A — the wordmark.
+ *
+ * Renders a real, complete heading and an empty stage beside it. The island
+ * fills the stage and demotes the heading to visually-hidden. If the island
+ * never runs — no JS, no `Intl.Segmenter`, webfont never arrives — the heading
+ * *is* the wordmark, styled by CSS to be the finished thing rather than an
+ * apology for one.
+ *
+ * `stack` supplies the narrow-viewport arrangement: the same name broken across
+ * lines, each line then set to the full measure. Passing it changes nothing
+ * about the accessible heading, which stays a single readable string.
+ *
+ * Styles live in `styles/home.css`, not here: the line and glyph elements are
+ * created at runtime and would never receive Astro's scoped-style attribute.
+ */
+export interface Props {
+  text: string;
+  as?: 'h1' | 'p';
+  /** Lets an enclosing landmark reference the heading with `aria-labelledby`. */
+  headingId?: string;
+  /**
+   * Narrow-screen line breakdown, pipe-separated — e.g. `Ayush|Rijal`.
+   * Omitted, the wordmark stays on one line at every width.
+   */
+  stack?: string;
+}
+
+const { text, as: Tag = 'h1', headingId, stack } = Astro.props;
+---
+
+<div class="wordmark" data-wordmark={text} data-wordmark-stack={stack}>
+  <Tag class="wordmark__fallback" id={headingId} data-wordmark-fallback>{text}</Tag>
+  <div
+    class="wordmark__glyphs"
+    data-wordmark-glyphs
+    data-enhanced="pending"
+    aria-hidden="true"
+  >
+  </div>
+</div>

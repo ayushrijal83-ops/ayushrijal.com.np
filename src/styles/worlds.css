@@ -1,0 +1,512 @@
+/* ==========================================================================
+   THE EIGHT GROUNDS
+   ==========================================================================
+   Each world is printed on a different *stock*, not painted a different
+   colour. The brief forbids "simply give every section a different background
+   colour", so what changes between worlds here is geometry: the ruling of the
+   paper, the register marks in the margin, the weight of the hairlines.
+
+   The ink and the type scale never change. That shared skeleton is what makes
+   eight worlds read as one archive. A world MAY choose its stock — see the M04
+   amendment to the token contract in tokens.css — but the stock must be at
+   least as light as `--paper`, or the ink ramp stops clearing WCAG AA.
+
+   Each block sets ONLY the world channel from tokens.css, plus the ground
+   pattern itself. Anything beyond that is an architecture decision.
+   ========================================================================== */
+
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--paper);
+}
+
+/* ==========================================================================
+   THE SURFACE — table and sheet
+   ==========================================================================
+   Opt-in per world via `surface` on WorldLayout, which stamps
+   `data-surface="plate"` on <html>.
+
+   The brief's caution — do not make the whole site literally look like beige
+   paper — is answered structurally rather than with a colour change. Paper
+   stops being the background and becomes an OBJECT: a sheet registered onto a
+   dark working surface, with its own edge and its own corner marks. The tonal
+   step between table and sheet is what gives the page material depth. There is
+   still no shadow, no blur and nothing that appears to hover.
+
+   The world's ground pattern moves onto the sheet, because the ruling belongs
+   to the paper, not to the table.
+   ========================================================================== */
+
+[data-surface='plate'] body {
+  /* Painted on `body` as well as `.ground` so overscroll, and the moment
+     before the ground element is parsed, both show the table rather than a
+     flash of paper. */
+  background-color: var(--table);
+}
+
+[data-surface='plate'] .ground {
+  background-color: var(--table);
+  /* The table has its own ruling — coarser than any sheet's, and much lower in
+     contrast. It reads as the surface under the work, not as more work. */
+  background-image: linear-gradient(
+      to right,
+      var(--table-line) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--table-line) 0 1px, transparent 1px 100%);
+  background-size: 8rem 8rem;
+  background-position: center center;
+}
+
+.plate {
+  position: relative;
+  /* Space for the table to show around the sheet. Collapses to nothing on
+     narrow screens: a phone has no room for a margin, and a sheet that fills
+     the viewport is the correct composition there rather than a compromise. */
+  margin-inline: auto;
+  margin-block: 0;
+  inline-size: 100%;
+  min-block-size: 100vh;
+  background-color: var(--paper);
+  --regmark-inset: var(--space-s);
+}
+
+@media (min-width: 60rem) {
+  .plate {
+    inline-size: min(100% - (var(--space-2xl) * 2), 108rem);
+    margin-block: var(--space-l);
+    min-block-size: auto;
+    border: 1px solid var(--sheet-edge-line);
+    --regmark-inset: var(--space-m);
+  }
+}
+
+/* The world's ruling belongs to the sheet. Repeated here rather than reusing
+   the `.ground` rules because the plate scrolls with the content while the
+   ground is fixed — the same pattern, anchored to a different thing. */
+[data-surface='plate'][data-world='home'] .plate {
+  background-image: linear-gradient(
+      to right,
+      var(--world-grid) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%);
+  background-size: 4rem 4rem;
+  background-position: center top;
+}
+
+[data-surface='plate'][data-world='home'] .ground {
+  /* The sheet carries the blueprint grid now; the table must not repeat it. */
+  background-image: linear-gradient(
+      to right,
+      var(--table-line) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--table-line) 0 1px, transparent 1px 100%);
+  background-size: 8rem 8rem;
+}
+
+@media (forced-colors: active) {
+  .plate {
+    background-image: none;
+    border-color: CanvasText;
+  }
+}
+
+@media print {
+  .plate {
+    border: 0;
+    margin: 0;
+    inline-size: 100%;
+    background-image: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   HOME — blueprint module. The registration grid of the whole archive; every
+   other world's geometry is a variation on this 4rem module.
+   -------------------------------------------------------------------------- */
+[data-world='home'] .ground {
+  background-image: linear-gradient(
+      to right,
+      var(--world-grid) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%);
+  background-size: 4rem 4rem;
+}
+
+/* --------------------------------------------------------------------------
+   ABOUT — the personal archive.
+   --------------------------------------------------------------------------
+   Catalogue-card ruling: horizontal lines only, at the baseline rhythm, the
+   way a library index card is ruled for handwriting.
+
+   ABOUT is also the first world to use the MATERIAL slot of the world channel
+   (see tokens.css). It is printed on a warmer, lighter stock than the rest of
+   the archive — manila rather than drafting blue-grey — because a personal
+   record is filed on card, not drawn on tracing paper.
+
+   The stock is lighter, not darker, which is deliberate: every step of the
+   global ink ramp therefore measures HIGHER against it than against `--paper`
+   (14.71 / 7.44 / 5.69 / 4.82, versus 14.08 / 7.12 / 5.45 / 4.62). Warming a
+   world's paper can only be safe in that direction, and
+   `scripts/verify-output.mjs` asserts it for every world stock rather than
+   trusting this comment.
+
+   ABOUT deliberately does NOT use the plate surface. HOME is a sheet laid on a
+   dark drafting table — an object you look at. ABOUT is the card itself, filling
+   the frame — a record you are holding. That material inversion, not a
+   background colour, is what separates the two worlds.
+   -------------------------------------------------------------------------- */
+[data-world='about'] {
+  /* Material. */
+  --paper: #f0ece1;
+  --paper-raised: #f7f4ea;
+  --paper-recessed: #e6e1d2;
+  --paper-edge: #dcd5c3;
+
+  /* Channel. Warm archival brown, 7.49:1 on the stock above — it carries text
+     as well as linework, which the drafting-blue accent never had to. */
+  --world-accent: #5c4630;
+  --world-accent-wash: rgba(92, 70, 48, 0.08);
+  --world-grid: rgba(92, 70, 48, 0.1);
+}
+
+[data-world='about'] .ground {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0 calc(2rem - 1px),
+    var(--world-grid) calc(2rem - 1px) 2rem
+  );
+  background-size: 100% 2rem;
+}
+
+/* --------------------------------------------------------------------------
+   PROJECTS — engineering drawing sheet. A coarse module with fine
+   subdivisions inside it, the way a drafting sheet is prepared before a
+   drawing goes down.
+   -------------------------------------------------------------------------- */
+[data-world='projects'] {
+  /* Material. The second world to take the MATERIAL slot, and it moves the
+     opposite way from ABOUT: a cool grey drawing stock rather than warm card.
+     HOME is warm drafting paper, ABOUT is warm manila, PROJECTS is the cold
+     white-grey of a print from a plan chest. Measured against the ink ramp at
+     14.39 / 7.28 / 5.57 / 4.72 — every step above AA, and above the global
+     paper, which is the constraint the slot carries. */
+  --paper: #eaeae6;
+  --paper-raised: #f2f2ee;
+  --paper-recessed: #deded9;
+  --paper-edge: #cfcfc9;
+
+  /* Channel. Drafting blue, promoted from linework to text: 7.95:1 here. The
+     heavier rule weight is the world's signature — PROJECTS is drawn with a
+     thicker pen than any other world, which is what makes its tabulation read
+     as an engineering drawing rather than as a table. */
+  --world-accent: var(--blueprint);
+  --world-accent-wash: var(--blueprint-wash);
+  --world-grid: rgba(47, 72, 88, 0.08);
+  --world-rule-weight: 1.5px;
+}
+
+[data-world='projects'] .ground {
+  background-image:
+    /* coarse module */
+    linear-gradient(to right, var(--world-grid) 0 1px, transparent 1px 100%),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%),
+    /* fine subdivision */
+      linear-gradient(
+        to right,
+        var(--blueprint-wash) 0 1px,
+        transparent 1px 100%
+      ),
+    linear-gradient(to bottom, var(--blueprint-wash) 0 1px, transparent 1px 100%);
+  background-size: 8rem 8rem, 8rem 8rem, 1rem 1rem, 1rem 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   AI LAB — the laboratory bench.
+   --------------------------------------------------------------------------
+   Two rulings, and they say different things.
+
+   The field is a dot matrix on a regular pitch: a sample grid, the way a
+   microplate or a specimen tray is laid out. Every position is identical and
+   addressable, which is what a bench is for — you put things in it and compare
+   them.
+
+   Down the inline-start margin runs a GRADUATED SCALE: minor ticks at the
+   sample pitch, a major tick every fifth. That is the world's whole thesis in
+   one piece of furniture. HOME registers, PROJECTS draws, ABOUT files — this
+   world MEASURES, and the margin of every page in it carries a ruler.
+
+   Material. The lightest, least saturated stock in the archive: bench paper
+   rather than drafting paper or card. Measured against the ink ramp at
+   15.21 / 7.69 / 5.88 / 4.99 — every step above AA and above the global paper,
+   which is the constraint the MATERIAL slot carries (see tokens.css).
+
+   Channel. A muted laboratory green, 6.38:1 on the stock above, so it carries
+   text as well as linework. Chosen against the brief's explicit prohibition on
+   neon: this is the green of a chalkboard and a reagent bottle, the darkest
+   and least chromatic accent in the archive, not a terminal phosphor.
+   -------------------------------------------------------------------------- */
+[data-world='ai-lab'] {
+  /* Material. */
+  --paper: #f1f0ea;
+  --paper-raised: #f8f7f2;
+  --paper-recessed: #e7e6de;
+  --paper-edge: #dbdad0;
+
+  /* Channel. */
+  --world-accent: #4a5c3a;
+  --world-accent-wash: rgba(74, 92, 58, 0.07);
+  --world-grid: rgba(74, 92, 58, 0.16);
+
+  /* The bench pitch. One number, so the sample grid and the graduation on the
+     margin cannot drift apart — the scale has to measure the thing it is next
+     to or it is decoration. */
+  --bench-pitch: 1.5rem;
+}
+
+[data-world='ai-lab'] .ground {
+  background-image:
+    /* the graduated margin: major tick every fifth */
+    linear-gradient(
+      to bottom,
+      var(--rule-strong) 0 1px,
+      transparent 1px 100%
+    ),
+    /* minor ticks, at the sample pitch */
+      linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%),
+    /* the sample field */
+      radial-gradient(
+        circle at center,
+        var(--world-grid) 0 1px,
+        transparent 1.5px
+      );
+  background-size:
+    0.75rem calc(var(--bench-pitch) * 5),
+    0.4rem var(--bench-pitch),
+    var(--bench-pitch) var(--bench-pitch);
+  background-position: left top, left top, center center;
+  background-repeat: repeat-y, repeat-y, repeat;
+}
+
+/* --------------------------------------------------------------------------
+   CYBERSECURITY — the classified folder. No ruling at all: bare stock with
+   heavy register bars top and bottom. The absence of a grid is the effect —
+   this world is the one that will not tell you how it is organised.
+   -------------------------------------------------------------------------- */
+[data-world='cybersecurity'] {
+  --world-accent: #8a5a10;
+  --world-accent-wash: rgba(138, 90, 16, 0.09);
+  --world-grid: transparent;
+  --world-rule-weight: 2px;
+}
+
+[data-world='cybersecurity'] .ground {
+  background-color: var(--paper-recessed);
+  background-image: linear-gradient(
+      to bottom,
+      var(--ink) 0 var(--space-3xs),
+      transparent var(--space-3xs)
+    ),
+    linear-gradient(
+      to top,
+      var(--ink) 0 var(--space-3xs),
+      transparent var(--space-3xs)
+    );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* --------------------------------------------------------------------------
+   LEARNING — the engineering computation pad.
+   --------------------------------------------------------------------------
+   Squared paper: a fine grid with every fifth line emphasised, printed the way
+   a computation pad or a field book is printed before anything is written on
+   it. Every other world's ground is drawn for a document that will be SET —
+   registered, ruled, tabulated. This one is drawn for a document that will be
+   WRITTEN ON, which is the difference between the notebook and the archive it
+   is filed in.
+
+   Material. A pale green pad stock — the only green paper in the archive, and
+   the reason a computation pad is recognisable from across a room. Measured
+   against the ink ramp at 14.78 / 7.48 / 5.72 / 4.85: every step above AA and
+   above the global paper, which is the constraint the MATERIAL slot carries
+   (see tokens.css). It sits opposite ABOUT's warm manila and next to nothing
+   else — AI LAB's bench white is warm and neutral, this is cool and green.
+
+   Channel. Writing-ink indigo, 8.57:1 on the stock above. Chosen because it is
+   the colour of the pen rather than of the print: PROJECTS is drafting blue,
+   GITHUB is graphite, AI LAB is chalkboard green, and this world is the one
+   whose marks were made by hand. Nothing in the archive is more literally
+   "ink on paper" than a notebook.
+
+   --notebook-module is the emphasised grid pitch. The margin rule in
+   learning.css and the binding perforation on the gate are both set from it,
+   so the furniture and the paper are the same stationery.
+   -------------------------------------------------------------------------- */
+[data-world='learning'] {
+  /* Material. */
+  --paper: #e9eee9;
+  --paper-raised: #f1f5f0;
+  --paper-recessed: #dfe4df;
+  --paper-edge: #d2d9d2;
+
+  /* Channel. */
+  --world-accent: #33406b;
+  --world-accent-wash: rgba(51, 64, 107, 0.07);
+  --world-grid: rgba(51, 64, 107, 0.13);
+
+  /* The pad's module. Shared with the margin rule and the entrance. */
+  --notebook-module: 2.5rem;
+}
+
+[data-world='learning'] .ground {
+  background-image:
+    /* emphasised every 5th */
+    linear-gradient(to right, var(--world-grid) 0 1px, transparent 1px 100%),
+    linear-gradient(to bottom, var(--world-grid) 0 1px, transparent 1px 100%),
+    /* fine ruling */
+      linear-gradient(
+        to right,
+        var(--world-accent-wash) 0 1px,
+        transparent 1px 100%
+      ),
+    linear-gradient(
+      to bottom,
+      var(--world-accent-wash) 0 1px,
+      transparent 1px 100%
+    );
+  background-size:
+    var(--notebook-module) var(--notebook-module),
+    var(--notebook-module) var(--notebook-module),
+    calc(var(--notebook-module) / 5) calc(var(--notebook-module) / 5),
+    calc(var(--notebook-module) / 5) calc(var(--notebook-module) / 5);
+}
+
+/* --------------------------------------------------------------------------
+   GITHUB — the public code archive.
+   --------------------------------------------------------------------------
+   Ledger tabulation: vertical column rules only, the way accounting stock is
+   ruled before anything is entered in it. Every other world's ground is ruled
+   horizontally or on a grid; this one is the only one ruled the short way, and
+   that is what a register of holdings looks like before it is filled in.
+
+   The column pitch is a token, `--ledger-column`, because the entrance rules
+   the plate away on the same pitch. The gate and the paper have to be the same
+   stationery or the entrance is an effect rather than a mechanism.
+
+   Material. A cool blue-grey ledger stock — the only genuinely BLUE paper in
+   the archive, against HOME's warm drafting, ABOUT's manila, PROJECTS' neutral
+   grey and AI LAB's bench white. Measured against the ink ramp at
+   14.81 / 7.49 / 5.73 / 4.86: every step above AA and above the global paper,
+   which is the constraint the MATERIAL slot carries (see tokens.css).
+
+   Channel. Graphite, 7.94:1 on the stock above. The least chromatic accent in
+   the archive on purpose — this world's job is to get out of the way of the
+   record. The archive's spot red appears exactly once here, as the stamp on
+   the compiled date, which is what a spot colour is for.
+   -------------------------------------------------------------------------- */
+[data-world='github'] {
+  /* Material. */
+  --paper: #ebedf1;
+  --paper-raised: #f4f5f8;
+  --paper-recessed: #e1e3e9;
+  --paper-edge: #d4d7df;
+
+  /* Channel. */
+  --world-accent: #40484f;
+  --world-accent-wash: rgba(64, 72, 79, 0.07);
+  --world-grid: rgba(64, 72, 79, 0.12);
+
+  /* The ruling pitch. Shared with the entrance — see gate.css `ruling`. */
+  --ledger-column: 6rem;
+}
+
+[data-world='github'] .ground {
+  background-image: linear-gradient(
+    to right,
+    var(--world-grid) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: var(--ledger-column) 100%;
+}
+
+/* --------------------------------------------------------------------------
+   CONTACT — correspondence stock.
+   --------------------------------------------------------------------------
+   Sprocket perforations down both margins and nothing in between. Continuous
+   stationery: the stock a message is printed on and then torn off and sent.
+   It is the only ground in the archive with a physical EDGE condition rather
+   than a field — every other world rules its middle, this one only marks where
+   the sheet was held and where it will be separated.
+
+   Kept from M02 unchanged in M09. The world was renamed (Transmission Room →
+   Correspondence) and the ground was re-read rather than redrawn: perforated
+   continuous stationery is correspondence stock, and swapping a ground that
+   already works and is already unique would have been churn dressed as design.
+
+   Material. The LIGHTEST and warmest stock in the archive — correspondence
+   paper, thinner and whiter than the drawing, card and pad stocks around it.
+   Measured against the ink ramp at 15.41 / 7.80 / 5.96 / 5.05: the highest
+   contrast of any world, which is right for the one page a visitor has to read
+   carefully enough to act on. Above AA and above the global paper at every
+   step, which is the constraint the MATERIAL slot carries (see tokens.css).
+
+   Channel. Cancellation plum, 8.47:1 on the stock above. The violet-black of a
+   postal cancellation and of the aniline copying ink correspondence was once
+   written in — dark, low-chroma, red-leaning, and specifically NOT the bright
+   violet the brief rules out. It is the last unclaimed hue in the archive:
+   HOME red, ABOUT brown, PROJECTS drafting blue, AI LAB green, GITHUB
+   graphite, LEARNING indigo.
+
+   This world spends NO spot colour at all — the only one that does not. On a
+   letter there is one ink, and the correspondence ink is already the accent.
+   -------------------------------------------------------------------------- */
+[data-world='contact'] {
+  /* Material. */
+  --paper: #f4f1ec;
+  --paper-raised: #faf8f4;
+  --paper-recessed: #eae7e0;
+  --paper-edge: #ded9d0;
+
+  /* Channel. */
+  --world-accent: #63384c;
+  --world-accent-wash: rgba(99, 56, 76, 0.07);
+  --world-grid: rgba(99, 56, 76, 0.16);
+}
+
+[data-world='contact'] .ground {
+  background-image: radial-gradient(
+      circle at 1.25rem 50%,
+      var(--world-grid) 0 3px,
+      transparent 3.5px
+    ),
+    radial-gradient(
+      circle at calc(100% - 1.25rem) 50%,
+      var(--world-grid) 0 3px,
+      transparent 3.5px
+    );
+  background-size: 100% 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   The ground is decoration. At these contrast levels the patterns are already
+   near-invisible, but in forced-colours mode they would be promoted to
+   CanvasText and become noise over the content. Remove them outright.
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .ground {
+    background-image: none;
+  }
+}
+
+@media print {
+  .ground {
+    display: none;
+  }
+}

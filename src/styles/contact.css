@@ -1,0 +1,505 @@
+/* ==========================================================================
+   CONTACT — correspondence
+   ==========================================================================
+   Seven worlds document. This one is addressed to somebody, and the layout
+   grammar is the whole difference.
+
+   Every other world in the archive reads down the START edge. HOME centres a
+   composition, ABOUT hangs field labels in a left margin, PROJECTS tabulates
+   from the left, AI LAB numbers stations from the left, GITHUB rules folios
+   from the left, LEARNING rules a red margin down the left and writes to the
+   right of it. **This is the only world with anything aligned to the END
+   edge**, and that one inversion is what makes it read as a letter rather than
+   as another sheet in the file: a letter carries its references in the top
+   corner opposite the text.
+
+   Three devices, and no others:
+
+   1. THE REFERENCE BLOCK. Top, inline-end, right-aligned: sheet, channels,
+      form, reply. What a formal letter puts where the sender's details go.
+      It is the only right-aligned block in the archive.
+
+   2. THE FOLD MARKS. Two short ticks in the outer margin at the thirds, the
+      registration a sheet carries so it folds square into an envelope. They
+      are the one thing on the page that moves, and they strike rather than
+      settle — see the entrance note below.
+
+   3. THE LETTER MEASURE. The body is set narrower than the archive's default.
+      A letter is set narrow because it is read once, closely, by one person.
+
+   No new colour, no new type, no new spacing. Every value here is a token, and
+   this world spends no spot colour at all — see the channel note in
+   worlds.css.
+   ========================================================================== */
+
+.letter {
+  position: relative;
+  padding-block-start: var(--space-l);
+}
+
+.letter__mark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-s);
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.letter__title {
+  font-size: var(--step-4);
+  margin-block-start: var(--space-m);
+}
+
+.letter__lede {
+  margin-block-start: var(--space-s);
+  /* The letter measure. Narrower than `--measure` on purpose. */
+  max-inline-size: 46ch;
+  font-size: var(--step-1);
+  line-height: var(--leading-snug);
+}
+
+/* --------------------------------------------------------------------------
+   THE REFERENCE BLOCK — the archive's only right-aligned furniture
+   --------------------------------------------------------------------------
+   Below 48rem it goes back to reading order and left alignment: an
+   end-aligned block in a 280px column is not a letterhead, it is a ragged
+   left edge, and the device is worth less than the legibility.
+   -------------------------------------------------------------------------- */
+.refs {
+  margin-block-start: var(--space-xl);
+  border-block-start: 1px solid var(--rule);
+}
+
+.refs__row {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-2xs);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.refs__key {
+  color: var(--ink-tertiary);
+}
+
+.refs__value {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+
+.refs__value--accent {
+  color: var(--world-accent);
+}
+
+@media (min-width: 48rem) {
+  .refs {
+    margin-inline-start: auto;
+    inline-size: min(100%, 24rem);
+    text-align: end;
+  }
+
+  .refs__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-m);
+    align-items: baseline;
+  }
+
+  .refs__key {
+    text-align: start;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   FOLD MARKS — the registration a sheet carries so it folds square
+   --------------------------------------------------------------------------
+   Two ticks in the outer margin at the thirds of the letter body. Decoration,
+   so they are pseudo-elements carrying no text, and they are hidden where
+   there is no margin to put them in.
+   -------------------------------------------------------------------------- */
+.body {
+  position: relative;
+  margin-block-start: var(--space-xl);
+}
+
+.body::before,
+.body::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(var(--space-m) * -1);
+  inline-size: var(--space-s);
+  border-block-start: 1px solid var(--world-accent);
+  transform-origin: left center;
+}
+
+.body::before {
+  inset-block-start: 33.33%;
+}
+
+.body::after {
+  inset-block-start: 66.66%;
+}
+
+@media (max-width: 47.999rem) {
+  .body::before,
+  .body::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .body::before,
+  .body::after {
+    /* The only movement on the page, and it is two hairlines a centimetre
+       long. A letter is not choreographed; it is registered, folded and sent.
+       The marks STRIKE — scaled out from the margin edge — rather than
+       settling into place, because a fold mark is printed in one action.
+       Nothing else in the archive scales. */
+    animation: fold-strike var(--dur-base) var(--ease-plot) backwards;
+    animation-delay: var(--enter-marks);
+  }
+
+  .body::after {
+    animation-delay: var(--enter-rules);
+  }
+}
+
+@keyframes fold-strike {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   CLAUSE — one numbered section of the letter
+   -------------------------------------------------------------------------- */
+.clause {
+  padding-block: var(--space-xl);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.clause:last-of-type {
+  border-block-end: 0;
+}
+
+.clause__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+  margin: 0;
+}
+
+.clause__no {
+  color: var(--world-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.clause__title {
+  color: var(--ink);
+}
+
+.clause__lede {
+  margin-block-start: var(--space-s);
+  max-inline-size: 56ch;
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   THE INVITATION — the one line the page is built around
+   -------------------------------------------------------------------------- */
+.invitation {
+  margin-block-start: var(--space-m);
+  font-family: var(--font-text);
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  max-inline-size: 30ch;
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   MATTERS — what a correspondence here can be about
+   -------------------------------------------------------------------------- */
+.matters {
+  display: grid;
+  gap: 0;
+  margin-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule);
+}
+
+.matter {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-s);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+@media (min-width: 40rem) {
+  .matter {
+    grid-template-columns: 3rem 12rem minmax(0, 1fr);
+    column-gap: var(--space-m);
+    align-items: baseline;
+  }
+}
+
+.matter__no {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.matter__name {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--world-accent);
+}
+
+.matter__gloss {
+  margin: 0;
+  max-inline-size: 56ch;
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   CORRESPONDENT — who the letter is from
+   -------------------------------------------------------------------------- */
+.correspondent {
+  margin-block-start: var(--space-m);
+  padding-inline-start: var(--space-m);
+  border-inline-start: 2px solid var(--world-accent);
+}
+
+.correspondent__name {
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: var(--step-3);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  /* "Ayush Rijal" has a space in it and fits everywhere; a name is not
+     guaranteed to. Same guarantee as `.t-display` in global.css — `break-word`
+     acts only when a word genuinely does not fit, so nothing that fits today
+     changes. Caught by the M09 stress pass, which pushed a 53-character
+     space-free name through this element at 320px. */
+  overflow-wrap: break-word;
+}
+
+.correspondent__roles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-xs);
+  margin-block-start: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-secondary);
+}
+
+/* Separators drawn by CSS, so the list stays a list for a screen reader
+   rather than a pre-joined string. Same device as HOME and ABOUT. */
+.correspondent__roles li + li::before {
+  content: '/';
+  margin-inline-end: var(--space-xs);
+  color: var(--rule-strong);
+}
+
+.correspondent__roles li + .correspondent__roles-secondary::before {
+  content: '\00B7';
+}
+
+.correspondent__roles-secondary {
+  color: var(--world-accent);
+}
+
+@media (max-width: 29.99rem) {
+  /* A wrapped separator lands at the start of the next line, where it reads as
+     a bullet rather than as a separator. The list stacks and they go — the
+     separators are decoration, the list is the content. */
+  .correspondent__roles {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3xs);
+  }
+
+  .correspondent__roles li + li::before,
+  .correspondent__roles li + .correspondent__roles-secondary::before {
+    content: none;
+  }
+}
+
+.correspondent__where {
+  margin-block-start: var(--space-s);
+  max-inline-size: 56ch;
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   CHANNELS — the address block
+   --------------------------------------------------------------------------
+   The one part of this page that has to work. Every value is a link, every
+   link states where it was verified from, and the primary one is marked in
+   words as well as in weight.
+   -------------------------------------------------------------------------- */
+.channels {
+  display: grid;
+  gap: 0;
+  margin-block-start: var(--space-m);
+  border-block-start: var(--world-rule-weight) solid var(--rule-strong);
+}
+
+.channel {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-m);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+@media (min-width: 48rem) {
+  .channel {
+    grid-template-columns: 7rem minmax(0, 1fr) 14rem;
+    column-gap: var(--space-m);
+    align-items: baseline;
+  }
+}
+
+.channel__label {
+  color: var(--ink-tertiary);
+}
+
+.channel__value {
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  color: var(--world-accent);
+  text-underline-offset: 4px;
+  /* An email address and a profile URL are each one unbreakable token. Without
+     this the longer of them sets the page's minimum width and pushes a
+     horizontal scrollbar at 320px — measured in M05, and the reason this
+     declaration exists rather than being tidied away. */
+  overflow-wrap: anywhere;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.channel__basis {
+  color: var(--ink-faint);
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.channel__primary {
+  /* Marked in a WORD, not only in position or weight. */
+  color: var(--world-accent);
+}
+
+.ext {
+  /* The external mark. Not colour-only, and not the link's only signal. */
+  font-size: 0.85em;
+  color: var(--ink-tertiary);
+}
+
+/* --------------------------------------------------------------------------
+   NO FORM — the section that explains an absence rather than hiding it
+   -------------------------------------------------------------------------- */
+.noform {
+  margin-block-start: var(--space-m);
+  max-inline-size: 56ch;
+}
+
+.noform p + p {
+  margin-block-start: var(--space-s);
+}
+
+.noform strong {
+  font-weight: 500;
+  color: var(--world-accent);
+}
+
+/* --------------------------------------------------------------------------
+   UNLISTED — facts a contact page is expected to assert, none of which exists
+   -------------------------------------------------------------------------- */
+.unlisted {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-s);
+  margin-block-start: var(--space-m);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.unlisted li {
+  /* Struck out, the way an unfilled field on a form is. Same device ABOUT and
+     LEARNING use, deliberately: it is the same statement. */
+  text-decoration: line-through;
+  text-decoration-color: var(--rule-strong);
+}
+
+.unlisted__note {
+  margin-block-start: var(--space-m);
+  max-inline-size: 56ch;
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+.unlisted__note + .unlisted__note {
+  margin-block-start: var(--space-s);
+}
+
+/* --------------------------------------------------------------------------
+   SIGN-OFF — the last line in the archive
+   -------------------------------------------------------------------------- */
+.signoff {
+  margin-block-start: var(--space-xl);
+  padding-block-start: var(--space-m);
+  border-block-start: 1px solid var(--rule);
+  max-inline-size: 42ch;
+  font-size: var(--step-1);
+  line-height: var(--leading-snug);
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   Forced colours: the fold marks, the correspondent rule and the accent-only
+   distinctions all need a colour that survives.
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .body::before,
+  .body::after,
+  .correspondent {
+    border-color: CanvasText;
+  }
+
+  .channel__primary,
+  .matter__name,
+  .clause__no {
+    color: CanvasText;
+  }
+}
+
+@media print {
+  .clause,
+  .channel,
+  .matter {
+    break-inside: avoid;
+  }
+
+  .body::before,
+  .body::after {
+    display: none;
+  }
+
+  .refs {
+    text-align: start;
+  }
+}

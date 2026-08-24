@@ -1,0 +1,551 @@
+---
+/**
+ * ABOUT — the personal archive.
+ * ============================================================================
+ * HOME is a drafting table: a sheet laid on a dark working surface, the name
+ * struck across it in condensed display type, structure announced by big
+ * uppercase headings. You look AT it.
+ *
+ * ABOUT is the card itself. Warm stock filling the frame, no plate and no
+ * table behind it, the subject's name set quietly in the reading serif rather
+ * than stamped, and structure announced the way a catalogue record announces
+ * it — by small mono field labels in a left margin, not by display headings.
+ * You are HOLDING it.
+ *
+ * That inversion is the world's identity, and it is carried by material,
+ * layout grammar and typographic register — not by a background colour. The
+ * two worlds share every piece of engineering: the same layout, the same
+ * header and colophon, the same gate, the same tokens, the same ink.
+ *
+ * ── Content ────────────────────────────────────────────────────────────────
+ * Every claim on this page comes from `lib/profile.ts` and appears verbatim.
+ * There is no biographical prose written here, which is what makes the
+ * no-fabrication rule enforceable rather than merely intended: adding an
+ * unverified fact to this page requires adding it to the verified record
+ * first, on purpose. The M01 audit found V1 asserting a timeline, a tech list
+ * and security work that had never been checked (PROJECT_PROGRESS §9.4, K6).
+ *
+ * The UNRECORDED block at the foot is not an apology. It is the archive being
+ * honest about the extent of its holdings, which is the same instinct that
+ * makes the rest of the record trustworthy.
+ *
+ * ── Client JavaScript ──────────────────────────────────────────────────────
+ * None. Every effect on this page is CSS. The page is finished HTML.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import { PROFILE } from '@lib/profile';
+import { getWorld } from '@lib/worlds';
+
+const about = getWorld('about');
+
+/** The current chapter, as record fields rather than as a paragraph. */
+const CHAPTER: { field: string; value: string }[] = [
+  {
+    field: 'Education',
+    value: `${PROFILE.education.level} — ${PROFILE.education.institution}`,
+  },
+  { field: 'Learning', value: PROFILE.learning.join(' · ') },
+];
+
+/**
+ * The three philosophy statements, each labelled with what it is a position
+ * ON. Verbatim from the verified record; the labels are filing, not claims.
+ */
+const POSITIONS: { on: string; statement: string }[] = [
+  { on: 'Method', statement: PROFILE.philosophy },
+  { on: 'On AI', statement: PROFILE.motivations.aiPhilosophy },
+  { on: 'On security', statement: PROFILE.motivations.cybersecurityPhilosophy },
+];
+
+/**
+ * Fields the archive does not hold. Named individually rather than hidden,
+ * because the specific absences are the ones a reader would otherwise assume
+ * were being implied — see §21 of the M04 brief.
+ */
+const UNRECORDED = ['Location', 'Employment', 'Certifications', 'Graduation date'];
+---
+
+<WorldLayout world="about" title="About" masthead={false}>
+  <div class="sheet record">
+    {/* Archive header — the drawer label this record was filed under. */}
+    <p class="t-label record__mark">
+      <span class="record__tab">{about.ref}</span>
+      <span>{about.gateTitle}</span>
+      <span class="record__mark-end">Compiled from source</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    {/* ── Subject ────────────────────────────────────────────────────── */}
+    <section class="entry entry--subject" aria-labelledby="subject-name">
+      {/* Not a heading: it sits above the <h1> in DOM order, and an <h2> there
+          would invert the document outline. The section is named by the <h1>
+          instead, which is the more accurate name for it anyway. */}
+      <p class="t-label entry__label">Subject</p>
+
+      <div class="entry__body">
+        <h1 class="subject__name" id="subject-name">{PROFILE.name}</h1>
+
+        <ul class="subject__identity" role="list">
+          {PROFILE.identity.primary.map((role) => <li>{role}</li>)}
+          <li class="subject__identity-secondary">{PROFILE.identity.secondary}</li>
+        </ul>
+
+        <p class="subject__statement">{PROFILE.about}</p>
+      </div>
+    </section>
+
+    {/* ── 01 Current chapter ─────────────────────────────────────────── */}
+    <section class="entry" aria-labelledby="chapter-heading">
+      <h2 class="t-label entry__label" id="chapter-heading">
+        <span class="entry__no">01</span>{' '}
+        <span>Current chapter</span>
+      </h2>
+
+      <dl class="entry__body fields">
+        {
+          CHAPTER.map(({ field, value }) => (
+            <div class="fields__row">
+              <dt class="t-label fields__key">{field}</dt>
+              <dd class="fields__value">{value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    {/* ── 02 What I work with ────────────────────────────────────────── */}
+    <section class="entry" aria-labelledby="interests-heading">
+      <h2 class="t-label entry__label" id="interests-heading">
+        <span class="entry__no">02</span>{' '}
+        <span>What I work with</span>
+      </h2>
+
+      <ul class="entry__body holdings" role="list">
+        {
+          PROFILE.interests.map((interest, i) => (
+            <li class="holdings__item">
+              <span class="t-label holdings__no">{String(i + 1).padStart(2, '0')}</span>
+              <span class="holdings__name">{interest}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    {/* ── 03 Positions ───────────────────────────────────────────────── */}
+    <section class="entry" aria-labelledby="positions-heading">
+      <h2 class="t-label entry__label" id="positions-heading">
+        <span class="entry__no">03</span>{' '}
+        <span>Positions</span>
+      </h2>
+
+      <div class="entry__body positions">
+        {
+          POSITIONS.map(({ on, statement }) => (
+            <figure class="position">
+              <blockquote class="position__quote">
+                <p>{statement}</p>
+              </blockquote>
+              <figcaption class="t-label position__on">{on}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    {/* ── 04 Closing ─────────────────────────────────────────────────── */}
+    <section class="entry entry--closing" aria-labelledby="closing-heading">
+      <h2 class="t-label entry__label" id="closing-heading">
+        <span class="entry__no">04</span>{' '}
+        <span>Closing statement</span>
+      </h2>
+
+      <div class="entry__body">
+        <p class="closing">{PROFILE.motivations.ambition}</p>
+      </div>
+    </section>
+
+    {/* ── Unrecorded ─────────────────────────────────────────────────── */}
+    <section class="entry entry--unrecorded" aria-labelledby="unrecorded-heading">
+      <h2 class="t-label entry__label" id="unrecorded-heading">Not yet recorded</h2>
+
+      <div class="entry__body">
+        <ul class="unrecorded" role="list">
+          {UNRECORDED.map((field) => <li>{field}</li>)}
+        </ul>
+        <p class="unrecorded__note">
+          These fields are absent because they have not been confirmed, not because
+          they are being withheld. The record is filled in as each line is verified.
+        </p>
+      </div>
+    </section>
+  </div>
+</WorldLayout>
+
+<style>
+  /* ========================================================================
+     THE RECORD
+     ========================================================================
+     Layout grammar: an editorial margin. Every entry is a label in the left
+     margin and its content in the main column — the way a catalogue record, an
+     index card or a typed archival form is set. HOME's grammar is a centred
+     composition with full-width rules; this one is asymmetric and reads down
+     the margin. Same twelve-column skeleton, different sentence.
+
+     ── The entrance ──────────────────────────────────────────────────────
+     Same schedule tokens as HOME (`--enter-*` in tokens.css), same policy: no
+     content stage may start from `opacity: 0`, and every animation uses
+     `backwards` fill so the UNANIMATED state is the FINISHED state. Reduced
+     motion, a dropped stylesheet or an engine without `@keyframes` all land on
+     "record complete", never on "record invisible".
+
+     ABOUT's motion language is settling, not striking: entries come to rest
+     from a small downward offset, like cards dropped into a drawer, rather
+     than a typebar hitting a platen. Restrained on purpose — this world is the
+     quiet one.
+     ====================================================================== */
+
+  .record {
+    padding-block-start: var(--space-l);
+  }
+
+  /* The drawer label above the record. */
+  .record__mark {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2xs) var(--space-s);
+    padding-block-end: var(--space-2xs);
+    color: var(--ink-faint);
+  }
+
+  /* The accession number, set as a folder tab: reversed out of the world
+     accent. The one filled shape on the page, and it is 4rem wide — a material
+     cue used once, which is what stops it becoming decoration. */
+  .record__tab {
+    background-color: var(--world-accent);
+    color: var(--paper-raised);
+    padding: 0.15em var(--space-2xs) 0.2em;
+  }
+
+  .record__mark-end {
+    margin-inline-start: auto;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  /* ------------------------------------------------------------------
+     ENTRY — the margin/content pair every section is built from
+     ------------------------------------------------------------------ */
+  .entry {
+    display: grid;
+    gap: var(--space-2xs);
+    padding-block: var(--space-l);
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  /* The section headings. Set as archival field labels rather than as display
+     type: in this world the structure is announced the way a catalogue record
+     announces it, in small tracked mono in the margin. They are still real
+     <h2> elements, so the document outline and heading navigation are intact —
+     the visual register changed, the semantics did not. */
+  .entry__label {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2xs);
+    margin: 0;
+    font-weight: 500;
+    color: var(--world-accent);
+  }
+
+  .entry__no {
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 48rem) {
+    .entry {
+      /* The editorial margin. 11rem holds the longest label ("Closing
+         statement") on one line at every clamp step. */
+      grid-template-columns: 11rem minmax(0, 1fr);
+      gap: var(--space-m);
+      padding-block: var(--space-xl);
+    }
+
+    .entry__label {
+      /* Labels hang in the margin and stay put while their entry scrolls
+         past; the content column sets the height. */
+      position: sticky;
+      inset-block-start: var(--space-s);
+      align-self: start;
+      flex-direction: column;
+      gap: var(--space-3xs);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .entry {
+      animation: entry-settle var(--dur-slow) var(--ease-plot) backwards;
+      animation-delay: var(--enter-index);
+    }
+
+    /* The subject is filed first because it is the record; the rest follow it
+       into the drawer a beat later. */
+    .entry--subject {
+      animation-delay: var(--enter-rules);
+    }
+  }
+
+  @keyframes entry-settle {
+    from {
+      /* Opaque from the first frame — movement only. See the entrance policy
+         note in home.css: opacity here would gate the paint of the text. */
+      translate: 0 var(--space-2xs);
+    }
+    to {
+      translate: 0 0;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     SUBJECT — the one place the record raises its voice
+     ------------------------------------------------------------------
+     Set in `--font-text` (the reading serif), mixed case, at display size.
+     HOME stamps the same name in condensed uppercase with measured per-glyph
+     kerning; here it is TYPED, not stamped. Same name, two registers — which
+     is the clearest single signal that these are different worlds.
+     ------------------------------------------------------------------ */
+  .subject__name {
+    font-family: var(--font-text);
+    font-weight: 400;
+    font-size: var(--step-5);
+    line-height: 1;
+    letter-spacing: var(--tracking-tight);
+    margin: 0;
+  }
+
+  .subject__identity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2xs) var(--space-xs);
+    margin-block-start: var(--space-s);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-secondary);
+  }
+
+  /* Separators drawn by CSS, so the list stays a list for a screen reader
+     rather than a pre-joined string. Same device as HOME's identity line. */
+  .subject__identity li + li::before {
+    content: '/';
+    margin-inline-end: var(--space-xs);
+    color: var(--rule-strong);
+  }
+
+  .subject__identity-secondary {
+    color: var(--world-accent);
+  }
+
+  .subject__identity li + .subject__identity-secondary::before {
+    content: '\00B7';
+  }
+
+  /* Below 30rem the three roles cannot sit on one line, and a wrapped item
+     carries its separator to the start of the next line — where a leading "/"
+     or "·" reads as a bullet rather than as a separator. So the list stacks and
+     the separators go. The separators are decoration; the list is the content. */
+  @media (max-width: 29.99rem) {
+    .subject__identity {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-3xs);
+    }
+
+    .subject__identity li + li::before,
+    .subject__identity li + .subject__identity-secondary::before {
+      content: none;
+    }
+  }
+
+  .subject__statement {
+    margin-block-start: var(--space-m);
+    max-inline-size: 46ch;
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+  }
+
+  /* ------------------------------------------------------------------
+     FIELDS — typed record rows
+     ------------------------------------------------------------------ */
+  .fields {
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .fields__row {
+    display: grid;
+    gap: var(--space-3xs);
+    padding-block: var(--space-s);
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  .fields__key {
+    color: var(--ink-tertiary);
+  }
+
+  .fields__value {
+    margin: 0;
+    font-size: var(--step-1);
+  }
+
+  @media (min-width: 30rem) {
+    .fields__row {
+      grid-template-columns: 8rem minmax(0, 1fr);
+      gap: var(--space-m);
+      align-items: baseline;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     HOLDINGS — the numbered index of what this person works with
+     ------------------------------------------------------------------
+     Numbered because an archive numbers its holdings, and because seven
+     unnumbered words would read as a skills-tag cloud, which is precisely the
+     generic-portfolio register this site exists to avoid.
+     ------------------------------------------------------------------ */
+  .holdings {
+    display: grid;
+    gap: 0;
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .holdings__item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-s);
+    padding-block: var(--space-xs);
+    border-block-end: 1px solid var(--rule-faint);
+  }
+
+  .holdings__no {
+    color: var(--ink-faint);
+    /* Fixed box so the names align on a common left edge regardless of the
+       number, the way a tabulated list is set. */
+    inline-size: 2.5rem;
+    flex: none;
+  }
+
+  .holdings__name {
+    font-size: var(--step-1);
+  }
+
+  @media (min-width: 48rem) {
+    .holdings {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-xl);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     POSITIONS — the three statements, as quoted record
+     ------------------------------------------------------------------
+     A rule in the world accent runs down the inline-start edge of each, which
+     is how a marked-up document flags a passage. The statements are the
+     owner's own words, so they are set as quotations and attributed to what
+     they are positions on.
+     ------------------------------------------------------------------ */
+  .positions {
+    display: grid;
+    gap: var(--space-l);
+  }
+
+  .position {
+    margin: 0;
+    padding-inline-start: var(--space-m);
+    border-inline-start: 2px solid var(--world-accent);
+  }
+
+  .position__quote {
+    margin: 0;
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    max-inline-size: 52ch;
+  }
+
+  /* Quotation marks drawn rather than typed, so the statement stored in
+     profile.ts stays the verbatim sentence with no punctuation added to it. */
+  .position__quote p::before {
+    content: '\201C';
+  }
+
+  .position__quote p::after {
+    content: '\201D';
+  }
+
+  .position__on {
+    margin-block-start: var(--space-2xs);
+    color: var(--ink-tertiary);
+  }
+
+  /* ------------------------------------------------------------------
+     CLOSING — the last line of the record
+     ------------------------------------------------------------------ */
+  .closing {
+    font-size: var(--step-2);
+    line-height: var(--leading-snug);
+    max-inline-size: 34ch;
+    text-wrap: balance;
+  }
+
+  /* ------------------------------------------------------------------
+     UNRECORDED — the extent of the holdings, stated
+     ------------------------------------------------------------------ */
+  .entry--unrecorded {
+    border-block-end: 0;
+  }
+
+  .unrecorded {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-s);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-tertiary);
+  }
+
+  .unrecorded li {
+    /* Ruled off, the way an unfilled field on a form is struck out. */
+    text-decoration: line-through;
+    text-decoration-color: var(--rule-strong);
+  }
+
+  .unrecorded__note {
+    margin-block-start: var(--space-s);
+    max-inline-size: 54ch;
+    font-size: var(--step--1);
+    color: var(--ink-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+     Forced colours: the tab is the only reversed element on the page, and
+     would otherwise resolve to a solid block with same-colour text on it.
+     ------------------------------------------------------------------ */
+  @media (forced-colors: active) {
+    .record__tab {
+      background-color: transparent;
+      color: CanvasText;
+      border: 1px solid CanvasText;
+    }
+  }
+
+  @media print {
+    .entry {
+      break-inside: avoid;
+    }
+  }
+</style>

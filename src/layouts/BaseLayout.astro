@@ -1,0 +1,118 @@
+---
+/**
+ * The document shell. Every page in the archive is printed on this.
+ *
+ * V1's single worst structural defect was six hand-maintained <head> blocks
+ * that had already drifted apart (PROJECT_PROGRESS §3, K5). This file is the
+ * fix: the head is authored once, and there is no mechanism by which a page
+ * can have a different one.
+ */
+import '@styles/tokens.css';
+import '@styles/fonts.css';
+import '@styles/global.css';
+import '@styles/worlds.css';
+import '@styles/gate.css';
+import { SITE } from '@lib/site';
+
+type Props = {
+  title: string;
+  description?: string;
+  /** `data-world` on <html>. Selects the world's ground and accent channel. */
+  world?: string;
+  /** Suppresses the site chrome. Used by the isolated prototypes in /lab. */
+  bare?: boolean;
+  /**
+   * Stamps `data-surface="plate"` on <html>, which switches the page ground
+   * from paper to the dark drafting table and turns the content column into a
+   * sheet registered onto it.
+   *
+   * Set from the root element rather than inferred with `:has(.plate)` so the
+   * material is decided by the layout that knows, deterministically, in every
+   * engine — and so `body` itself is painted correctly before any content is
+   * parsed, which `:has()` cannot guarantee.
+   */
+  surface?: boolean;
+};
+
+const {
+  title,
+  description = SITE.description,
+  world = 'home',
+  bare = false,
+  surface = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', SITE.url);
+const fullTitle = title === SITE.title ? `${SITE.title} — ${SITE.role}` : `${title} — ${SITE.title}`;
+---
+
+<!doctype html>
+<html lang={SITE.lang} data-world={world} data-surface={surface ? 'plate' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    {/* `summary`, not `summary_large_image`. The archive publishes no
+        `og:image` — there is no photograph, screenshot or card artwork in it,
+        and inventing one for social previews would be the only decorative
+        image on the whole site. Declaring a large-image card with no image
+        tells X to render a card it cannot fill; `summary` is what this page
+        actually is. Corrected in M10. */}
+    <meta name="twitter:card" content="summary" />
+
+    {/*
+      Only the two faces used above the fold are preloaded. Preloading the
+      whole family would compete with the HTML for bandwidth and make the
+      wordmark arrive *later*, not sooner. `crossorigin` is required even
+      same-origin: fonts are fetched in CORS mode, and omitting it causes a
+      second, duplicate fetch.
+    */}
+    <link
+      rel="preload"
+      href="/fonts/plex-cond-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/plex-mono-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    {/*
+      Content Security Policy. GitHub Pages serves static files and cannot set
+      response headers, so the policy ships in the document. Two honest caveats,
+      both documented in docs/SECURITY.md §4:
+        - `style-src` needs 'unsafe-inline' because Astro inlines small
+          stylesheets and the typography islands write `style` properties
+          through CSSOM.
+        - `frame-ancestors` is ignored when a CSP arrives by <meta>, so
+          clickjacking protection needs a real header and is not available on
+          this host. Recorded rather than pretended.
+    */}
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="color-scheme" content="light" />
+    <slot name="head" />
+  </head>
+
+  <body>
+    {!bare && <a class="skip-link" href="#main">Skip to content</a>}
+    <div class="ground" aria-hidden="true"></div>
+    <slot />
+  </body>
+</html>

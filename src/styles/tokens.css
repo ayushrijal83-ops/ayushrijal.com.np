@@ -1,0 +1,327 @@
+/* ==========================================================================
+   DESIGN TOKENS — "The Archive"
+   ==========================================================================
+   Design thesis
+   -------------
+   The site is a technical archive: ink printed on drafting paper. Every
+   surface behaves like a document — ruled, registered, numbered, labelled.
+   Nothing glows, nothing floats, nothing blurs. Depth comes from paper
+   weight and hairline rules, never from shadow or glass.
+
+   Explicitly rejected (hard requirement): neon, cyberpunk, purple/cyan
+   gradients, glowing text, glassmorphism, particle fields, matrix rain,
+   floating shapes, ambient decorative motion.
+
+   Token contract
+   --------------
+   1. GLOBAL tokens below are shared by all eight worlds and are immutable.
+      A world may NOT redefine the type scale, the spacing scale, the ink, or
+      the motion curves. That shared skeleton is what makes eight different
+      worlds read as one site.
+   2. A world overrides ONLY the WORLD CHANNEL — the CHANNEL slot below, plus
+      the MATERIAL slot named there — by setting them on its own
+      `[data-world="..."]` root. Anything outside that list is an architecture
+      decision, not a styling decision.
+   3. Components consume semantic variables only. Never hardcode a colour,
+      a size, or a duration in a component rule.
+
+   ── M04 amendment: the MATERIAL slot ───────────────────────────────────────
+   Until M04 the paper was immutable too, and the channel was four variables.
+   Building ABOUT proved that too tight. Eight worlds that differ only in
+   linework geometry converge on one look, which is the failure mode the brief
+   names explicitly ("if the difference is only a different background colour:
+   FAIL" — and its inverse is just as true: if every world is the same stock,
+   the geometry alone will not carry them apart).
+
+   So a world may now also choose its STOCK: the four `--paper-*` tones. It
+   still may not touch the ink, because the ink is what makes the archive one
+   archive, and because the ink ramp's floor IS the WCAG AA threshold against
+   `--paper` — every step was derived against that one value.
+
+   That derivation is the constraint on this slot, not a suggestion: a world's
+   stock must be at least as light as `--paper` (#ece7dc), or the ramp stops
+   clearing AA and four text colours silently fail at once.
+   `scripts/verify-output.mjs` measures every world stock against every ink
+   step on each build, so the constraint is enforced rather than remembered.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------
+     PAPER & INK
+     A warm, slightly yellowed drafting stock. The greys are all warm —
+     no neutral or cool greys anywhere, they read as "digital UI" instantly.
+     ------------------------------------------------------------------ */
+  --paper: #ece7dc;
+  --paper-raised: #f4f0e8;
+  --paper-recessed: #e2dccf;
+  --paper-edge: #d8d1c1;
+
+  /* The ink ramp. Every step carries TEXT, so every step clears WCAG AA
+     (4.5:1) against `--paper` — the ramp's floor is the AA threshold, not the
+     lightest tone that still looked like ink. The two lower steps were
+     originally set by eye at 3.65:1 and 2.21:1, which is how the sheetmark and
+     the figure glosses ended up unreadable to anyone the design was not
+     already easy for. Contrast against --paper, measured:
+
+       --ink            14.08:1
+       --ink-secondary   7.12:1
+       --ink-tertiary    5.45:1
+       --ink-faint       4.62:1
+
+     Hue and saturation are unchanged; only lightness moved, so the ramp still
+     reads as one ink at four dilutions. Anything genuinely decorative belongs
+     in the hairline tokens below, which carry no text and are free to be
+     faint. Re-derive these before changing `--paper`. */
+  --ink: #1c1a17;
+  --ink-secondary: #4f4a42;
+  --ink-tertiary: #615b52;
+  --ink-faint: #6d6657;
+
+  /* Hairlines. The archive is built out of these. */
+  --rule: #c3bcab;
+  --rule-strong: #9a9280;
+  --rule-faint: #d5cec0;
+
+  /* ------------------------------------------------------------------
+     SPOT COLOUR
+     One spot colour, used the way a technical manual uses red: correction
+     marks, registration, the single thing on the sheet that matters.
+     Never as a fill, never as a gradient, never as a glow.
+     ------------------------------------------------------------------ */
+  --spot: #9c3016;
+  --spot-ink: #f4f0e8;
+  --spot-wash: rgba(156, 48, 22, 0.08);
+
+  /* Structural blue, for blueprint linework only. Never for text. */
+  --blueprint: #2f4858;
+  --blueprint-wash: rgba(47, 72, 88, 0.07);
+
+  /* ------------------------------------------------------------------
+     WORLD CHANNEL — the CHANNEL slot
+     What a world may override, besides the MATERIAL slot (the `--paper-*`
+     tones above; see the M04 amendment in the contract at the top of this
+     file). Defaults = HOME.
+     ------------------------------------------------------------------ */
+  --world-accent: var(--spot);
+  --world-accent-wash: var(--spot-wash);
+  --world-grid: var(--blueprint-wash);
+  --world-rule-weight: 1px;
+
+  /* ------------------------------------------------------------------
+     TYPEFACES
+     ------------------------------------------------------------------
+     Two layers on purpose. The FACE layer names concrete font stacks; the
+     ROLE layer says which face plays which part. Components only ever touch
+     the role layer, so swapping a face is a one-line change here and never a
+     search-and-replace across components.
+
+     IBM Plex is approved for the prototype but is NOT locked. To audition an
+     alternative, add a face stack below and repoint the role — or stamp
+     `data-type-set` on <html> and use the comparison block further down,
+     which overrides the roles without touching any component.
+     ------------------------------------------------------------------ */
+  --face-plex-condensed: 'IBM Plex Sans Condensed', 'Helvetica Neue Condensed',
+    'Arial Narrow', system-ui, sans-serif;
+  --face-plex-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --face-plex-serif: 'IBM Plex Serif', 'Iowan Old Style', 'Palatino Linotype',
+    Georgia, serif;
+  --face-plex-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas,
+    monospace;
+
+  /* Roles. This is the only typography surface components are allowed to use. */
+  --font-display: var(--face-plex-condensed);
+  --font-text: var(--face-plex-serif);
+  --font-mono: var(--face-plex-mono);
+
+  /*
+     The wordmark reads its face from here, and `src/scripts/wordmark.ts`
+     reads this same variable at runtime rather than hardcoding a family —
+     so a face swap moves the measured glyph layout with it automatically.
+     Kept as a bare family name because the canvas `font` shorthand needs one.
+  */
+  --wordmark-family: 'IBM Plex Sans Condensed';
+  --wordmark-weight: 700;
+
+  /* ------------------------------------------------------------------
+     TYPE SCALE
+     A printed scale, not a UI scale. Ratio ~1.26 (a slow, editorial
+     progression), clamped for fluidity between 360px and 1440px.
+     ------------------------------------------------------------------ */
+  --step--2: clamp(0.68rem, 0.66rem + 0.10vw, 0.74rem);
+  --step--1: clamp(0.79rem, 0.76rem + 0.14vw, 0.88rem);
+  --step-0: clamp(1rem, 0.96rem + 0.18vw, 1.09rem);
+  --step-1: clamp(1.25rem, 1.18rem + 0.34vw, 1.45rem);
+  --step-2: clamp(1.56rem, 1.44rem + 0.6vw, 1.94rem);
+  --step-3: clamp(1.95rem, 1.75rem + 1vw, 2.58rem);
+  --step-4: clamp(2.44rem, 2.11rem + 1.63vw, 3.44rem);
+  --step-5: clamp(3.05rem, 2.53rem + 2.6vw, 4.58rem);
+
+  --leading-tight: 1.08;
+  --leading-snug: 1.3;
+  --leading-text: 1.62;
+
+  /* Letterspacing. Archival labels are always tracked out. */
+  --tracking-label: 0.16em;
+  --tracking-tight: -0.015em;
+
+  /* ------------------------------------------------------------------
+     SPACING — 4px base, printed rhythm
+     ------------------------------------------------------------------ */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2.25rem;
+  --space-xl: 3.5rem;
+  --space-2xl: 5.5rem;
+  --space-3xl: 8rem;
+
+  /* ------------------------------------------------------------------
+     MEASURE & GRID
+     ------------------------------------------------------------------ */
+  --measure: 66ch;
+  --sheet-max: 82.5rem;
+  --sheet-gutter: clamp(1.25rem, 0.9rem + 1.8vw, 3rem);
+  --grid-columns: 12;
+  --grid-gap: clamp(1rem, 0.6rem + 1.4vw, 1.75rem);
+
+  /* Baseline unit the whole archive snaps to. */
+  --baseline: 0.5rem;
+
+  /* ------------------------------------------------------------------
+     MOTION
+     Mechanical, not organic. Things move the way a plotter arm or a
+     card-catalogue drawer moves: decisive start, hard settle, no bounce,
+     no float, no easing that implies weightlessness.
+     ------------------------------------------------------------------ */
+  --ease-plot: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --ease-drawer: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-step: steps(12, end);
+
+  --dur-instant: 90ms;
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 560ms;
+  --dur-plate: 900ms;
+
+  /* Every animated property in the system reads its duration through one of
+     these. The reduced-motion block below zeroes them at the source, so no
+     component has to remember to opt in. */
+  --motion-scale: 1;
+
+  --radius: 0px; /* The archive has no rounded corners. This is deliberate. */
+  --focus-ring: 2px solid var(--spot);
+  --focus-offset: 3px;
+
+  /* ------------------------------------------------------------------
+     MATERIAL — the table and the sheet
+     ------------------------------------------------------------------
+     The brief's caution is that the site must not simply *be* beige paper.
+     So paper is not the ground; paper is an OBJECT. A sheet is registered
+     onto a dark drafting surface, and the contrast between the two is what
+     stops the page reading as an undifferentiated wash.
+
+     Still no shadow and no blur. The sheet reads as a physical object because
+     of the tonal step and a hairline edge, exactly the way a printed plate
+     does — not because it appears to hover.
+     ------------------------------------------------------------------ */
+  --table: #17161a;
+  --table-line: #262429;
+  --sheet-edge-line: #cbc3b1;
+
+  /* ------------------------------------------------------------------
+     ENTRANCE CHOREOGRAPHY
+     ------------------------------------------------------------------
+     One shared timeline, so every stage of an entrance is scheduled against
+     the same clock instead of each component inventing its own delays. A
+     world's entrance reads these; it does not define new ones.
+
+     Order is the concept: the surface arrives, the sheet is registered onto
+     it, the rules are drawn, then the type is set. Zeroed under reduced motion
+     by --motion-scale below.
+
+     These are SETTLE delays, not reveal delays. Content is already painted and
+     already opaque at 0ms; a stage's delay only decides when its small
+     positional offset resolves (see the entrance policy note in home.css).
+     They were roughly halved in M03-B.1: with nothing fading in, a long wait
+     no longer builds anticipation, it just leaves text sitting fractionally
+     out of place. Everything is finished inside ~700ms.
+     ------------------------------------------------------------------ */
+  --enter-marks: 90ms; /* registration marks find the corners */
+  --enter-rules: 170ms; /* hairlines draw across the sheet */
+  --enter-type: 240ms; /* wordmark glyphs strike */
+  --enter-body: 320ms; /* editorial text settles */
+  --enter-index: 400ms; /* contents index files in */
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Zeroed at the token source, so a component cannot forget to respect it.
+   Motion is removed; nothing is hidden and no content depends on it.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-plate: 1ms;
+
+    /* The entrance keeps its ORDER but loses its duration. Collapsing the
+       schedule here means a reduced-motion visitor sees the finished
+       composition immediately, with full hierarchy and no staging — rather
+       than the same choreography played fast, which is what "reduce" is
+       usually mistaken for. */
+    --enter-marks: 0ms;
+    --enter-rules: 0ms;
+    --enter-type: 0ms;
+    --enter-body: 0ms;
+    --enter-index: 0ms;
+  }
+}
+
+/* ==========================================================================
+   TYPE-SET COMPARISON
+   ==========================================================================
+   Typography is a primary visual element here, and the face pairing is
+   explicitly not locked. Stamping `data-type-set` on <html> repoints the role
+   layer so a candidate can be judged on the real composition rather than in a
+   specimen — no component changes, no rebuild of the wordmark logic.
+
+   These are audition harnesses. Adding one to the shipped markup is a design
+   decision, not a styling one.
+   ========================================================================== */
+:root[data-type-set='sans'] {
+  /* Plex Sans in the display role: less compressed, more neutral, closer to
+     technical documentation than to a printed masthead. */
+  --font-display: var(--face-plex-sans);
+  --wordmark-family: 'IBM Plex Sans';
+}
+
+:root[data-type-set='mono-display'] {
+  /* Mono in the display role: pushes hardest toward the machine-room
+     register, at real cost to the wordmark's density. */
+  --font-display: var(--face-plex-mono);
+  --wordmark-family: 'IBM Plex Mono';
+}
+
+:root[data-type-set='serif-body'] {
+  /* Serif everywhere but the labels — the most editorial of the three. */
+  --font-display: var(--face-plex-serif);
+  --wordmark-family: 'IBM Plex Serif';
+}
+
+/* ==========================================================================
+   FORCED COLOURS (Windows High Contrast)
+   Hairline rules are the whole visual system, so they must survive.
+   ========================================================================== */
+@media (forced-colors: active) {
+  :root {
+    --rule: CanvasText;
+    --rule-strong: CanvasText;
+    --rule-faint: CanvasText;
+    --world-accent: LinkText;
+  }
+}

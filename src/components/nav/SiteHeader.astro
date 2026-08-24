@@ -1,0 +1,143 @@
+---
+/**
+ * The archive's index strip. Authored once; V1 copy-pasted this into six
+ * documents and they had already drifted (PROJECT_PROGRESS §3).
+ *
+ * `data-world-link` marks a link as a crossing between worlds, which is what
+ * the exit half of the transition system binds to. Links without it navigate
+ * normally.
+ *
+ * On HOME the strip does not repeat the name. The Home sheet *is* the masthead
+ * — printing `AYUSH RIJAL` in the chrome directly above the wordmark competes
+ * with the one thing the page is built to reveal. The rule lives here rather
+ * than as a per-page prop because it is a property of the design, not a
+ * decision a page should be able to make differently.
+ */
+import { WORLDS } from '@lib/worlds';
+import { SITE } from '@lib/site';
+
+type Props = { current: string };
+const { current } = Astro.props;
+---
+
+<header class="masthead">
+  <div class="sheet masthead__inner">
+    {
+      current === 'home' ? (
+        <p class="t-label masthead__here">Index</p>
+      ) : (
+        <a class="masthead__mark" href="/" data-world-link>
+          <span class="masthead__name">{SITE.title}</span>
+          <span class="t-label masthead__ref">Archive</span>
+        </a>
+      )
+    }
+
+    <nav aria-label="Archive sections">
+      <ul class="masthead__list" role="list">
+        {
+          WORLDS.filter((w) => w.id !== 'home').map((w) => (
+            <li>
+              <a
+                class="masthead__link"
+                href={w.href}
+                data-world-link
+                aria-current={w.id === current ? 'page' : undefined}
+              >
+                {w.nav}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+  <hr class="rule" />
+</header>
+
+<style>
+  .masthead {
+    position: relative;
+    z-index: 10;
+  }
+
+  .masthead__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+    padding-block: var(--space-2xs);
+  }
+
+  @media (min-width: 48rem) {
+    .masthead__inner {
+      gap: var(--space-s) var(--space-m);
+      padding-block: var(--space-s);
+    }
+  }
+
+  .masthead__mark {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2xs);
+    text-decoration: none;
+  }
+
+  .masthead__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-0);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .masthead__ref {
+    color: var(--ink-faint);
+  }
+
+  .masthead__here {
+    color: var(--ink-faint);
+  }
+
+  .masthead__list {
+    display: flex;
+    flex-wrap: wrap;
+    /* Tight on a phone, where seven links wrap to two rows and every pixel of
+       masthead is a pixel the name does not get. The strip measured 130px at
+       390px wide before M03-B.1 — one sixth of the first screen spent on
+       navigation the visitor has not asked for yet. */
+    gap: var(--space-3xs) var(--space-s);
+    margin: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .masthead__list {
+      gap: var(--space-xs) var(--space-m);
+    }
+  }
+
+  .masthead__link {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    color: var(--ink-secondary);
+    padding-block-end: 2px;
+    /* Transparent to start so the underline does not shift the baseline when
+       it appears — the link box is the same size in both states. */
+    border-block-end: 1px solid transparent;
+    transition: color var(--dur-fast) var(--ease-plot);
+  }
+
+  .masthead__link:hover {
+    color: var(--ink);
+    border-block-end-color: var(--rule-strong);
+  }
+
+  .masthead__link[aria-current='page'] {
+    color: var(--ink);
+    border-block-end-color: var(--world-accent);
+  }
+</style>

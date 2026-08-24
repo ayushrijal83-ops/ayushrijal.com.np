@@ -1,0 +1,305 @@
+/* ==========================================================================
+   GLOBAL — reset, base typography, and the shared archive primitives.
+   Loaded on every page. Consumes tokens.css only; defines no raw colours.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-block-start: var(--space-xl);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+
+ol[role='list'],
+ul[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+img,
+picture,
+svg,
+video,
+canvas {
+  display: block;
+  max-inline-size: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+:where(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--step-0);
+  line-height: var(--leading-text);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  min-block-size: 100vh;
+
+  /* A word may never be the thing that puts a horizontal scrollbar on the
+     archive.
+     ------------------------------------------------------------------
+     `anywhere`, not `break-word`, and the difference is the entire point:
+     only `anywhere` is counted when an engine computes an element's
+     MIN-CONTENT size. `break-word` breaks a word that has already overflowed;
+     `anywhere` stops the word from setting a grid track's floor in the first
+     place, which is where the overflow was actually being created.
+
+     M10 measured the site under a text-only resize to 200% — `font-size: 32px`
+     on the root at a 320px viewport, the setting a low-vision reader uses when
+     they enlarge text without zooming the page. Every world overflowed:
+     HOME 214px, AI LAB 148, GITHUB 142, PROJECTS 137, CONTACT 128, ABOUT 110,
+     LEARNING 97. In each case the mechanism was the same — a grid or flex item
+     whose automatic minimum size is its min-content, holding a word like
+     "Cybersecurity" that is 250px wide at 32px, forcing its track wider than
+     the page.
+
+     This one declaration takes HOME, ABOUT, GITHUB and CONTACT to zero. The
+     remaining three fail through `display: table`, which cannot shrink below
+     its min-content whatever you set on it, and that needs a design decision
+     rather than a property — see PROJECT_PROGRESS §1J.3.
+
+     Measured to change NOTHING at normal text size: all seven worlds, nine
+     widths, before and after, identical. It only ever acts on a word that
+     genuinely cannot fit. */
+  overflow-wrap: anywhere;
+
+  /* The paper substrate is painted by `.ground` (styles/worlds.css), a single
+     fixed layer behind the content. Keeping it off `body` means the pattern
+     does not scroll, does not repaint on every scroll frame, and can differ
+     per world without any component knowing which world it is in. */
+}
+
+/* --------------------------------------------------------------------------
+   Typographic roles
+   -------------------------------------------------------------------------- */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  /* Display type is set at up to `--step-5`, where a single long word is wider
+     than a 320px phone: "CORRESPONDENCE" measures 340px against a 305px
+     viewport. Hyphenate where the engine can, and hard-break where it cannot,
+     so a world's name can never be the thing that puts a horizontal scrollbar
+     on the archive.
+
+     Added in M09, when renaming one world from "Transmission Room" (two words,
+     wraps freely) to "Correspondence" (one word, does not) pushed BOTH its own
+     page and the HOME contents index wide. Fixed here rather than on the two
+     selectors that happened to break, because the property being asserted is
+     "display type never overflows", and it should hold for the next world name
+     nobody has written yet. `break-word` only acts when a word genuinely does
+     not fit, so nothing that fits today changes. */
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+.t-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.t-text {
+  font-family: var(--font-text);
+  max-inline-size: var(--measure);
+}
+
+.t-text + .t-text {
+  margin-block-start: var(--space-s);
+}
+
+/* The archival label. Every plate, figure, sheet and reference number on the
+   site uses this one role — it is the connective tissue between the worlds. */
+.t-label {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.t-meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Archive primitives
+   -------------------------------------------------------------------------- */
+
+/* The sheet: the printed page every world composes onto. */
+.sheet {
+  inline-size: min(100% - (var(--sheet-gutter) * 2), var(--sheet-max));
+  margin-inline: auto;
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+/* Hairline rule. The single most-used mark in the system. */
+.rule {
+  border: 0;
+  border-block-start: var(--world-rule-weight) solid var(--rule);
+  margin: 0;
+}
+
+.rule--strong {
+  border-block-start-color: var(--rule-strong);
+}
+
+.rule--faint {
+  border-block-start-color: var(--rule-faint);
+}
+
+/* --------------------------------------------------------------------------
+   THE TABLE SCROLL PORT
+   --------------------------------------------------------------------------
+   A `display: table` box cannot shrink below its min-content width, whatever
+   is set on it. Under a text-only resize to 200% that is 346px of table inside
+   a 209px column on LEARNING, and the same shape on PROJECTS and AI LAB — the
+   three pages M10 measured and could not fix with a property (§1J.3).
+
+   The sanctioned treatment for a data table that genuinely cannot reflow is to
+   give it its own scroll port, and the important part is what this does NOT
+   do: the wrapper is outside the `<table>`, so the table element, its
+   `<caption>`, its `<thead>` and every `scope` stay exactly as they were.
+   Nothing is hidden from assistive technology and no semantics change. It is
+   markup added around, never inside.
+
+   `role="region"` plus an `aria-label` so a screen reader announces what the
+   scrollable area contains, and `tabindex="0"` so it can be reached and
+   scrolled with the arrow keys — a scroll container that only a mouse can
+   move is a keyboard trap in the other direction.
+
+   It costs one tab stop per table at sizes where nothing scrolls. That is the
+   deliberate trade, and it is the recommended one: a container that becomes
+   scrollable only under enlargement must still be focusable when it does, and
+   there is no CSS that makes `tabindex` conditional on overflow.
+
+   At normal text size none of these ever scrolls, so nothing about the
+   composition changes. Verified: 12 pages x 10 widths, before and after,
+   identical.
+   -------------------------------------------------------------------------- */
+.tablewrap {
+  overflow-x: auto;
+  /* Paint the scrollbar in the world's own ink rather than the platform's. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.tablewrap > table {
+  /* Without this the table still reports its min-content to the flex/grid
+     parent above the wrapper and widens it from inside. */
+  min-inline-size: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+.visually-hidden:not(:focus):not(:active) {
+  clip-path: inset(50%);
+  block-size: 1px;
+  inline-size: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--space-2xs);
+  inset-inline-start: var(--space-2xs);
+  z-index: 100;
+  background-color: var(--ink);
+  color: var(--paper);
+  padding: var(--space-2xs) var(--space-s);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Progressive enhancement
+   Anything that only makes sense once its island has booted is hidden until
+   the script marks it ready. Every such element MUST have a no-JS fallback
+   sibling — see Wordmark.astro for the pattern.
+   -------------------------------------------------------------------------- */
+[data-enhanced='pending'] {
+  display: none;
+}

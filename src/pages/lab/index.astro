@@ -1,0 +1,47 @@
+---
+/**
+ * Index of the isolated prototypes. Not linked from the site and `noindex` —
+ * these are working instruments for architectural review, not pages.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import '@styles/lab.css';
+
+const PROTOTYPES = [
+  {
+    href: '/lab/wordmark',
+    title: 'Custom wordmark layout',
+    note: 'System A. Per-grapheme positions, kerning cost, fallback path.',
+  },
+  {
+    href: '/lab/pretext',
+    title: 'Pretext 0.0.8 — experiment record',
+    note: 'System B. Evaluated, then removed. The rig is gone; the evidence is not.',
+  },
+  {
+    href: '/lab/viewports',
+    title: 'Responsive review harness',
+    note: 'Any route at all seven test-matrix viewports at once.',
+  },
+];
+---
+
+<BaseLayout title="Prototype lab" world="home" bare>
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <main class="lab" id="main" tabindex="-1">
+    <h1 class="lab__title">Prototype lab</h1>
+    <p class="lab__intro">
+      Instruments, not pages. Nothing here is linked from the site, and
+      nothing the site ships depends on anything here.
+    </p>
+    <ul class="lab__list">
+      {
+        PROTOTYPES.map((p) => (
+          <li>
+            <a href={p.href}>{p.title}</a> — {p.note}
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+</BaseLayout>

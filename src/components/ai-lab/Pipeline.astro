@@ -1,0 +1,61 @@
+---
+/**
+ * A signal path, drawn as a list.
+ *
+ * Every technical diagram on this page is one of these. The brief asks for
+ * "a visual technical explanation rather than a decorative diagram", and for
+ * important information never to be reachable only through an SVG — so this
+ * is not an SVG. It is an ordered list of stages with the connectors drawn in
+ * CSS, which means:
+ *
+ *   - the stages are text, in order, in the HTML. A screen reader gets the
+ *     pipeline as "list, 5 items", in sequence, with no alt text to write and
+ *     nothing to keep in sync;
+ *   - it is complete with CSS disabled and complete with JavaScript disabled;
+ *   - it recomposes rather than scales. Below 52rem it is a vertical stack
+ *     with downward connectors; above, a horizontal run with rightward ones.
+ *     A wide diagram shrunk to phone width is unreadable, and that is the
+ *     failure this avoids by not being one drawing.
+ *
+ * `note` is for the thing a diagram normally cannot say: where a stage runs,
+ * what it costs, which of them is the one that surprises you.
+ */
+export type Stage = {
+  /** The stage itself. Kept to one or two words — it is a label, not prose. */
+  label: string;
+  /** What performs it: a library, a model, a device. */
+  detail?: string;
+  /** A qualification. Rendered smaller, under the detail. */
+  note?: string;
+};
+
+type Props = {
+  /** Names the pipeline. Becomes the accessible name of the list. */
+  caption: string;
+  stages: Stage[];
+  /** Optional line under the caption, for a measured fact about the path. */
+  legend?: string;
+};
+
+const { caption, stages, legend } = Astro.props;
+---
+
+<figure class="pipeline">
+  <figcaption class="pipeline__caption">
+    <span class="t-label pipeline__captiontext">{caption}</span>
+    {legend && <span class="pipeline__legend">{legend}</span>}
+  </figcaption>
+
+  <ol class="pipeline__flow" aria-label={caption}>
+    {
+      stages.map((stage, i) => (
+        <li class="pipeline__stage">
+          <span class="t-label pipeline__index">{String(i + 1).padStart(2, '0')}</span>
+          <span class="pipeline__label">{stage.label}</span>
+          {stage.detail && <span class="pipeline__detail">{stage.detail}</span>}
+          {stage.note && <span class="pipeline__note">{stage.note}</span>}
+        </li>
+      ))
+    }
+  </ol>
+</figure>

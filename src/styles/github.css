@@ -1,0 +1,622 @@
+/* ==========================================================================
+   GITHUB — the public code archive
+   ==========================================================================
+   A register, not a dashboard.
+
+   The furniture of this world is accounting stationery: ruled columns, a
+   holding number down the inline-start margin, a tally rather than a chart,
+   and a stamp on the date the record was compiled. Nothing here is a card, a
+   tile, a widget or a metric, because none of those are things an archive
+   contains.
+
+   Three rules held throughout:
+
+     EVERY HOLDING IS LISTED.   Ten repositories exist and ten rows are
+                                printed. Classification replaces omission —
+                                see REPO_KIND in lib/github.ts.
+     A TALLY IS NOT A CHART.    The language index draws one cell per
+                                repository. There is no percentage anywhere on
+                                this page, because no proportion was measured.
+     ABSENCE IS A SECTION.      What the snapshot does NOT contain gets its own
+                                heading, rather than being a gap the reader is
+                                left to notice.
+
+   Consumed only by `/github`. Every colour, size and duration comes through a
+   token; there is not a hardcoded value in this file.
+   ========================================================================== */
+
+.archive {
+  padding-block-start: var(--space-l);
+}
+
+.archive__mark {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.archive__title {
+  font-size: var(--step-4);
+  margin-block-start: var(--space-m);
+}
+
+.archive__intro {
+  margin-block-start: var(--space-s);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   THE STANDING CLAIM
+   --------------------------------------------------------------------------
+   The one piece of positioning on the page, set as a ruled entry rather than
+   as a pull-quote — this world's equivalent of the lab's working principle,
+   and deliberately quieter, because the argument it makes is that the page
+   should be doing less talking.
+   -------------------------------------------------------------------------- */
+.claim {
+  margin-block-start: var(--space-xl);
+  padding-inline-start: var(--space-m);
+  border-inline-start: 2px solid var(--world-accent);
+}
+
+.claim__statement {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+.claim__gloss {
+  margin-block-start: var(--space-m);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   SECTIONS
+   -------------------------------------------------------------------------- */
+.folio {
+  margin-block-start: var(--space-2xl);
+}
+
+.folio__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+}
+
+.folio__no {
+  color: var(--world-accent);
+}
+
+.folio__title {
+  margin-block-start: var(--space-2xs);
+  font-size: var(--step-2);
+}
+
+.folio__lede {
+  margin-block-start: var(--space-s);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   CROSS-REFERENCE — the repositories that also hold a curated record
+   --------------------------------------------------------------------------
+   The bridge between this world and PROJECTS, and the reason it is at the top
+   rather than buried: a visitor arriving here from a project record needs the
+   return path immediately. Featured by whether a curated record EXISTS, never
+   by stars — three of the ten repositories have one, and the star counts on
+   this account are 1, 1 and 0, which would be a meaningless ranking.
+   -------------------------------------------------------------------------- */
+.crossref {
+  list-style: none;
+  display: grid;
+  gap: var(--space-m);
+  margin-block-start: var(--space-m);
+}
+
+.crossref__item {
+  padding: var(--space-s) var(--space-m);
+  background-color: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-inline-start: 2px solid var(--world-accent);
+}
+
+.crossref__repo {
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.crossref__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+  margin-block-start: var(--space-2xs);
+}
+
+@media (min-width: 52rem) {
+  .crossref {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THE REGISTER OF HOLDINGS
+   --------------------------------------------------------------------------
+   A real table. Ten rows, one per public repository, and the description sits
+   inside the repository cell rather than in a column of its own — a
+   description is part of what the holding IS, not a separate measurement, and
+   giving it a column would have forced every other column narrow to serve the
+   longest sentence.
+   -------------------------------------------------------------------------- */
+.holdings {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-start: var(--space-m);
+}
+
+.holdings caption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  color: var(--ink-faint);
+}
+
+.holdings th,
+.holdings td {
+  text-align: start;
+  padding: var(--space-s) var(--space-s) var(--space-s) 0;
+  border-block-end: 1px solid var(--rule-faint);
+  vertical-align: baseline;
+}
+
+.holdings thead th {
+  padding-block: var(--space-2xs);
+  border-block-end: var(--world-rule-weight) solid var(--rule-strong);
+  white-space: nowrap;
+}
+
+.holdings__no {
+  color: var(--world-accent);
+  inline-size: 1%;
+  white-space: nowrap;
+}
+
+.holdings__name {
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  font-weight: 500;
+  /* Repository names are unbreakable tokens with underscores and dots in them.
+     Without this, `Agriculture_simulator` sets the min-content width of the
+     whole table. */
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+
+.holdings__desc {
+  display: block;
+  margin-block-start: var(--space-3xs);
+  font-family: var(--font-text);
+  font-size: var(--step--1);
+  font-weight: 400;
+  color: var(--ink-secondary);
+  max-inline-size: 52ch;
+}
+
+/* GitHub's own words, not the archive's. Marked so the distinction survives
+   the reader forgetting the caption said so. */
+.holdings__desc::before {
+  content: '“';
+  color: var(--ink-faint);
+}
+
+.holdings__desc::after {
+  content: '”';
+  color: var(--ink-faint);
+}
+
+.holdings__desc--absent {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.holdings__desc--absent::before,
+.holdings__desc--absent::after {
+  content: none;
+}
+
+.holdings__meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.holdings__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  align-items: start;
+}
+
+/* The class mark. Six classes, and the point of printing it is that a profile
+   README being a profile README is a fact worth stating rather than a reason
+   to delete the row. `project` is the only one that carries the accent,
+   because it is the only one with a curated record behind it. */
+.class {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+  border-block-end: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.class[data-class='project'] {
+  color: var(--world-accent);
+  border-block-end-color: var(--world-accent);
+}
+
+/* An archived repository is still a holding. It is marked, never dropped. */
+.holdings__archived {
+  display: block;
+  margin-block-start: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--spot);
+}
+
+/* --------------------------------------------------------------------------
+   THE LANGUAGE TALLY
+   --------------------------------------------------------------------------
+   One cell per repository. NOT a bar, NOT a percentage, NOT a proportion of
+   anything — the snapshot holds one primary language per repository and
+   nothing else, so a count of repositories is the only language fact that can
+   honestly be drawn. Drawing it as discrete cells rather than a continuous bar
+   is the difference: you can count the cells and check the number.
+   -------------------------------------------------------------------------- */
+.tally {
+  list-style: none;
+  display: grid;
+  gap: var(--space-s);
+  margin-block-start: var(--space-m);
+}
+
+.tally__row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) 1fr auto;
+  gap: var(--space-s);
+  align-items: center;
+  padding-block-end: var(--space-2xs);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.tally__name {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.tally__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs);
+}
+
+.tally__cell {
+  inline-size: var(--space-s);
+  block-size: var(--space-s);
+  background-color: var(--world-accent);
+}
+
+/* Repositories GitHub could not classify. Left open rather than filled: the
+   absence of a language is a different thing from a language, and it should
+   not read as a sixth entry in the same ink. */
+.tally__row[data-lang='none'] .tally__cell {
+  background-color: transparent;
+  border: 1px solid var(--rule-strong);
+}
+
+.tally__count {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   LAST PUSH — a dated list, and nothing more than that
+   -------------------------------------------------------------------------- */
+.pushes {
+  list-style: none;
+  margin-block-start: var(--space-m);
+  border-block-start: var(--world-rule-weight) solid var(--rule-strong);
+}
+
+.pushes__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block: var(--space-xs);
+  border-block-end: 1px solid var(--rule-faint);
+}
+
+.pushes__date {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--world-accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pushes__repo {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+
+/* --------------------------------------------------------------------------
+   WHAT IS NOT HERE
+   --------------------------------------------------------------------------
+   Its own section, with its own heading, in the same weight as the sections
+   that do contain something. An archive that lists only its holdings is
+   telling half the truth about itself.
+   -------------------------------------------------------------------------- */
+.absent {
+  list-style: none;
+  margin-block-start: var(--space-m);
+  display: grid;
+  gap: var(--space-m);
+}
+
+.absent__item {
+  padding-inline-start: var(--space-s);
+  border-inline-start: 1px dashed var(--rule-strong);
+}
+
+.absent__what {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.absent__why {
+  margin-block-start: var(--space-3xs);
+  color: var(--ink-secondary);
+}
+
+@media (min-width: 52rem) {
+  .absent {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   PROVENANCE — the stamp
+   --------------------------------------------------------------------------
+   The compiled date is the one place the archive's spot red appears in this
+   world, and it is used the way a date stamp is used: to say when this
+   impression was taken. Everything above it is only true as of this line.
+   -------------------------------------------------------------------------- */
+.stamp {
+  margin-block-start: var(--space-l);
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+  padding: var(--space-2xs) var(--space-s);
+  border: 1px solid var(--spot);
+  color: var(--spot);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The fallback state. Not an error — the loader's third step is a designed
+   outcome (lib/github.ts), and this is what it looks like. */
+.unavailable {
+  margin-block-start: var(--space-l);
+  padding-inline-start: var(--space-s);
+  border-inline-start: 2px solid var(--spot);
+  color: var(--ink-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   Links out
+   -------------------------------------------------------------------------- */
+.src {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--world-accent);
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+
+.src:hover {
+  text-decoration-thickness: 2px;
+}
+
+.src__out {
+  font-size: 0.85em;
+  flex: none;
+}
+
+/* The profile link is the one call to action in the world, so it is the one
+   thing sized above the body text. Still a link on a ruled line, not a
+   button — this archive has no buttons. */
+.profile {
+  margin-block-start: var(--space-m);
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  padding-block-end: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  color: var(--world-accent);
+  border-block-end: 2px solid var(--world-accent);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.profile:hover {
+  background-color: var(--world-accent-wash);
+}
+
+/* --------------------------------------------------------------------------
+   Narrow screens — the register becomes labelled blocks
+   -------------------------------------------------------------------------- */
+@media (max-width: 47.999rem) {
+  .holdings thead {
+    /* Clipped, not `display: none`: the headings are what the `data-label`
+       values quote, and they belong in the accessibility tree. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .holdings tr {
+    display: block;
+    padding-block: var(--space-s);
+    border-block-end: var(--world-rule-weight) solid var(--rule);
+  }
+
+  .holdings td,
+  .holdings tbody th {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .holdings td + td,
+  .holdings tbody th + td {
+    margin-block-start: var(--space-2xs);
+  }
+
+  .holdings td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-faint);
+  }
+
+  .holdings__meta {
+    white-space: normal;
+  }
+
+  .tally__row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .tally__cells {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ENTRANCE
+   --------------------------------------------------------------------------
+   The same policy as every other world: content is painted and opaque at 0ms,
+   `backwards` fill means the unanimated state is the finished state, and the
+   whole block sits inside `no-preference` so a reduced-motion visitor never
+   enters it.
+
+   What moves: the register is ruled in from the inline-start edge — the one
+   motion this world is entitled to, because ruling is what it does.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .holdings {
+    animation: archive-rule var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-index);
+  }
+
+  .claim {
+    animation: archive-enter var(--dur-slow) var(--ease-plot) backwards;
+    animation-delay: var(--enter-rules);
+  }
+}
+
+@keyframes archive-rule {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes archive-enter {
+  from {
+    translate: -0.5rem 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Forced colours and print
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .crossref__item,
+  .class,
+  .stamp {
+    border-color: CanvasText;
+  }
+
+  /* The tally's filled and open cells are the only place a fill carries
+     meaning here, and a background is not guaranteed to render. */
+  .tally__cell {
+    background-color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .tally__row[data-lang='none'] .tally__cell {
+    background-color: Canvas;
+  }
+}
+
+@media print {
+  .crossref {
+    grid-template-columns: 1fr;
+  }
+
+  .holdings tr,
+  .crossref__item {
+    break-inside: avoid;
+  }
+}

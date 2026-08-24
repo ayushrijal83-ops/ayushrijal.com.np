@@ -1,0 +1,256 @@
+---
+/**
+ * A PROJECT RECORD.
+ * ============================================================================
+ * One drawing sheet per project: title block, verified repository facts, the
+ * specification, then the narrative.
+ *
+ * The order is the argument. Facts first, prose second — a reader can check
+ * what the repository actually reports before reading a word of what its
+ * author claims about it. That is the opposite of a portfolio case study,
+ * which leads with the claim and links the evidence at the bottom if at all.
+ *
+ * `roadmap` renders in its own struck-through block, never among the stack.
+ * See the field's note in content.config.ts for the specific README that made
+ * that separation necessary.
+ *
+ * No client JavaScript beyond the shared world-gate module in the layout.
+ */
+import type { GetStaticPaths } from 'astro';
+import WorldLayout from '@layouts/WorldLayout.astro';
+import TitleBlock, { type Cell } from '@components/projects/TitleBlock.astro';
+import { getCollection, render } from 'astro:content';
+import { getWorld } from '@lib/worlds';
+import { loadGitHubSnapshot, repoByUrl } from '@lib/github';
+import '@styles/projects.css';
+
+export const getStaticPaths = (async () => {
+  const entries = await getCollection('projects', (e) => !e.data.draft);
+  return entries.map((entry) => ({
+    params: { slug: entry.data.slug ?? entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+type Props = { entry: Awaited<ReturnType<typeof getCollection<'projects'>>>[number] };
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const world = getWorld('projects');
+const repo = repoByUrl(loadGitHubSnapshot(), entry.data.repo);
+
+const day = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: '2-digit',
+});
+const iso = (d: Date | string) => new Date(d).toISOString().slice(0, 10);
+
+const cells: Cell[] = [
+  { key: 'Record', value: `${world.ref} · ${entry.id}`, accent: true },
+  { key: 'Class', value: entry.data.kind ?? 'Not classified' },
+  { key: 'State', value: entry.data.status },
+  { key: 'Role', value: entry.data.role ?? 'Not recorded' },
+];
+---
+
+<WorldLayout
+  world="projects"
+  title={entry.data.title}
+  description={entry.data.summary}
+  masthead={false}
+>
+  <div class="sheet record">
+    <p class="t-label sheetmark">
+      <a href="/projects" class="record__back">← Register</a>
+      <span>{world.ref} · Project record</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display record__title">{entry.data.title}</h1>
+    <p class="t-text record__summary">{entry.data.summary}</p>
+
+    <TitleBlock cells={cells} label="Record details" />
+
+    {/* ── Verified repository facts ───────────────────────────────── */}
+    <section aria-labelledby="facts-heading">
+      <h2 class="t-label record__section" id="facts-heading">
+        As reported by the repository
+      </h2>
+
+      {
+        repo ? (
+          <dl class="facts">
+            <div>
+              <dt class="t-label facts__key">Primary language</dt>
+              <dd class="facts__value">{repo.language ?? 'Not reported'}</dd>
+            </div>
+            <div>
+              <dt class="t-label facts__key">Created</dt>
+              <dd class="facts__value">
+                <time datetime={iso(repo.createdAt)}>
+                  {day.format(new Date(repo.createdAt))}
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt class="t-label facts__key">Last worked</dt>
+              <dd class="facts__value">
+                <time datetime={iso(repo.pushedAt)}>
+                  {day.format(new Date(repo.pushedAt))}
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt class="t-label facts__key">Stars</dt>
+              <dd class="facts__value">{repo.stars}</dd>
+            </div>
+          </dl>
+        ) : (
+          <p class="facts facts__unavailable">
+            Repository data could not be read at build time. Everything below is
+            the written record, unaccompanied by the figures that would normally
+            corroborate it.
+          </p>
+        )
+      }
+    </section>
+
+    {/* ── Specification ───────────────────────────────────────────── */}
+    {
+      entry.data.stack.length > 0 && (
+        <section aria-labelledby="stack-heading">
+          <h2 class="t-label record__section" id="stack-heading">
+            Built with
+          </h2>
+          <ul class="spec" role="list">
+            {entry.data.stack.map((tech) => (
+              <li>{tech}</li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {/* ── The narrative ───────────────────────────────────────────── */}
+    <div class="prose record__prose">
+      <Content />
+    </div>
+
+    {/* ── Stated intentions, kept apart from capabilities ─────────── */}
+    {
+      entry.data.roadmap.length > 0 && (
+        <section aria-labelledby="roadmap-heading" class="record__roadmap">
+          <h2 class="t-label record__section" id="roadmap-heading">
+            Not built — stated intentions only
+          </h2>
+          <p class="t-text record__roadmapnote">
+            These appear in the repository's own documentation as future work.
+            They are listed here so that reading that documentation quickly
+            cannot mistake them for features. None of them exists in the code.
+          </p>
+          <ul class="spec spec--roadmap" role="list">
+            {entry.data.roadmap.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {/* ── Source ──────────────────────────────────────────────────── */}
+    {
+      entry.data.repo && (
+        <section aria-labelledby="source-heading" class="record__source">
+          <h2 class="t-label record__section" id="source-heading">
+            Source
+          </h2>
+          <p>
+            <a class="source-link" href={entry.data.repo} rel="noopener noreferrer">
+              {entry.data.title} on GitHub
+              <span class="source-link__out" aria-hidden="true">
+                ↗
+              </span>
+            </a>
+          </p>
+        </section>
+      )
+    }
+
+    <p class="record__return">
+      <a class="source-link" href="/projects">Back to the register</a>
+    </p>
+  </div>
+</WorldLayout>
+
+<style>
+  .record {
+    padding-block-start: var(--space-l);
+  }
+
+  .sheetmark {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+    padding-block-end: var(--space-2xs);
+    color: var(--ink-faint);
+  }
+
+  .record__back {
+    color: var(--world-accent);
+    text-decoration: none;
+  }
+
+  .record__back:hover {
+    text-decoration: underline;
+  }
+
+  .record__title {
+    font-size: var(--step-4);
+    margin-block-start: var(--space-m);
+  }
+
+  .record__summary {
+    margin-block-start: var(--space-s);
+    font-size: var(--step-1);
+    color: var(--ink-secondary);
+  }
+
+  .record__section {
+    margin-block-start: var(--space-xl);
+    padding-block-end: var(--space-2xs);
+    border-block-end: 1px solid var(--rule);
+    color: var(--world-accent);
+  }
+
+  .record__prose {
+    margin-block-start: var(--space-xl);
+  }
+
+  .record__roadmapnote {
+    margin-block-start: var(--space-s);
+    color: var(--ink-secondary);
+  }
+
+  .record__roadmap .spec {
+    margin-block-start: var(--space-m);
+  }
+
+  .record__source p {
+    margin-block-start: var(--space-m);
+  }
+
+  .record__return {
+    margin-block-start: var(--space-2xl);
+    padding-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  @media (min-width: 64rem) {
+    .record__title {
+      font-size: var(--step-5);
+    }
+  }
+</style>

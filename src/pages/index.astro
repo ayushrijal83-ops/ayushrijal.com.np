@@ -1,0 +1,81 @@
+---
+/**
+ * HOME — the drafting table.
+ *
+ * The page is composed as a registered sheet: drafting furniture at the head,
+ * the name set as the primary drawing, the method as a figure, the record as a
+ * title block, and the archive's contents as an index.
+ *
+ * The wordmark is set by System A, a small custom glyph-positioning layer.
+ *
+ * The standfirst is set by CSS — a float, which flows it around the masthead
+ * natively. It was briefly laid out by a JavaScript island instead; measurement
+ * removed both the island and its dependency (PROJECT_PROGRESS §1C.1).
+ *
+ * Nothing here is required. The page renders complete, readable and correctly
+ * ordered as static HTML; the one island only changes how the name is *set*.
+ *
+ * Every factual claim comes from `lib/profile.ts`. No biography is written
+ * here, which is what makes "do not invent content" enforceable rather than
+ * merely intended.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import Wordmark from '@components/home/Wordmark.astro';
+import ProcessCycle from '@components/home/ProcessCycle.astro';
+import TitleBlock from '@components/home/TitleBlock.astro';
+import ArchiveContents from '@components/home/ArchiveContents.astro';
+import { PROFILE } from '@lib/profile';
+import { getWorld } from '@lib/worlds';
+import '@styles/home.css';
+
+const home = getWorld('home');
+---
+
+<WorldLayout world="home" title={PROFILE.name} masthead={false} surface>
+  <div class="sheet">
+    {/* Drafting furniture: which sheet this is, and what it records. */}
+    <p class="t-label sheetmark">
+      <span>{home.ref} · {home.gateTitle}</span>
+      <span>Sheet 1 of 1</span>
+    </p>
+    <hr class="rule rule--strong rule--drawn" />
+
+    <section class="hero" aria-labelledby="wordmark-heading">
+      <div class="hero__block" data-hero-block>
+        <Wordmark text={PROFILE.name} headingId="wordmark-heading" />
+
+        <div class="identity">
+          <hr class="rule rule--drawn" />
+          {/* The classification, as parts rather than a pre-joined string, so
+              the separators are drawn by CSS and the list stays a list. */}
+          <ul class="identity__list" role="list">
+            {PROFILE.identity.primary.map((role) => <li>{role}</li>)}
+            <li class="identity__item--secondary">{PROFILE.identity.secondary}</li>
+          </ul>
+        </div>
+
+        {/* The strapline. It sits with the name because that is what it is —
+            how this person works, stated in their own words — and because on a
+            phone it has to be inside the first screen to do its job. Fig. 01
+            below draws the same sentence as a cycle; it does not restate it. */}
+        <p class="strapline">{PROFILE.philosophy}</p>
+      </div>
+
+      <p class="standfirst">{PROFILE.about}</p>
+    </section>
+
+    <hr class="rule rule--strong" />
+
+    <ProcessCycle headingId="method-heading" />
+
+    <hr class="rule" />
+
+    <TitleBlock headingId="record-heading" />
+
+    <ArchiveContents headingId="contents-heading" />
+  </div>
+</WorldLayout>
+
+<script>
+  import '@scripts/home';
+</script>

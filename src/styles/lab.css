@@ -1,0 +1,138 @@
+/* ==========================================================================
+   PROTOTYPE LAB
+   ==========================================================================
+   Instrument styling, not design. These pages are a measuring rig; they are
+   deliberately plain so nothing about the visual treatment flatters or
+   disguises the result. They are `noindex` and are not linked from the site.
+   ========================================================================== */
+
+.lab {
+  padding: var(--space-l) var(--sheet-gutter) var(--space-3xl);
+  max-inline-size: 74rem;
+  margin-inline: auto;
+}
+
+.lab__title {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.lab__intro {
+  max-inline-size: var(--measure);
+  margin-block-start: var(--space-s);
+  color: var(--ink-secondary);
+}
+
+.lab__section {
+  margin-block-start: var(--space-2xl);
+}
+
+.lab__h {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--spot);
+  padding-block-end: var(--space-2xs);
+  border-block-end: 1px solid var(--rule);
+}
+
+.lab__note {
+  max-inline-size: var(--measure);
+  margin-block-start: var(--space-s);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+}
+
+.lab__readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-s);
+  margin-block-start: var(--space-m);
+  padding-block: var(--space-s);
+  border-block: 1px solid var(--rule);
+}
+
+.lab__metric dt {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+}
+
+.lab__metric dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab__compare {
+  display: grid;
+  gap: var(--space-m);
+  margin-block-start: var(--space-m);
+}
+
+@media (min-width: 56rem) {
+  .lab__compare {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lab__panel {
+  padding: var(--space-m);
+  border: 1px solid var(--rule);
+}
+
+.lab__panel > h3 {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-tertiary);
+  margin-block-end: var(--space-s);
+}
+
+.lab__list {
+  margin-block-start: var(--space-s);
+  padding-inline-start: var(--space-m);
+  max-inline-size: var(--measure);
+  color: var(--ink-secondary);
+}
+
+.lab__list li + li {
+  margin-block-start: var(--space-2xs);
+}
+
+
+/* A stamp, in the archival sense: this sheet is not the record of record.
+   /lab is unlinked and `noindex`, but an unlabelled page that looks like the
+   rest of the site is one screenshot away from being mistaken for it. */
+.lab__stamp {
+  display: inline-block;
+  margin-block-end: var(--space-s);
+  padding: var(--space-3xs) var(--space-2xs);
+  border: 1px solid var(--spot);
+  color: var(--spot);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.lab__code {
+  margin-block-start: var(--space-s);
+  padding: var(--space-s);
+  border: 1px solid var(--rule);
+  background-color: var(--paper-recessed);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  /* Code is the one thing on the page allowed its own scrollbar. The page body
+     must never scroll sideways; a long command line must not force it to. */
+  overflow-x: auto;
+}

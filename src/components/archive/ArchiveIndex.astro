@@ -1,0 +1,136 @@
+---
+/**
+ * The index of a world's holdings.
+ *
+ * Every content-bearing world renders through this, so an entry looks the same
+ * wherever it is filed and the eight worlds stay recognisably one archive.
+ *
+ * The empty state is a designed state, not a placeholder. At M02 every
+ * collection is deliberately empty — the brief forbids migrating unverified
+ * content, and PROJECT_PROGRESS §9.4 records that none of V1's copy has been
+ * checked. An archive with nothing filed says so plainly; it does not invent
+ * holdings to look busy.
+ */
+export type IndexEntry = {
+  id: string;
+  title: string;
+  summary: string;
+  date: Date;
+  verified: boolean;
+  /** Short uppercase classification, e.g. `SHIPPED`, `DEFENSIVE`. */
+  register: string;
+};
+
+type Props = {
+  entries: IndexEntry[];
+  /** What this world will hold once entries are filed. */
+  emptyNote: string;
+};
+
+const { entries, emptyNote } = Astro.props;
+
+const fmt = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+});
+---
+
+<section class="sheet index" aria-labelledby="index-heading">
+  <h2 class="t-label" id="index-heading">
+    Holdings · {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+  </h2>
+
+  {
+    entries.length === 0 ? (
+      <p class="index__empty t-text">{emptyNote}</p>
+    ) : (
+      <ol class="index__list" role="list">
+        {entries.map((entry, i) => (
+          <li class="index__row">
+            <hr class="rule rule--faint" />
+            <article class="index__entry">
+              <p class="t-label index__no">{String(i + 1).padStart(3, '0')}</p>
+              <div class="index__body">
+                <h3 class="t-heading index__title">{entry.title}</h3>
+                <p class="t-text index__summary">{entry.summary}</p>
+              </div>
+              <p class="t-label index__meta">
+                <span>{entry.register}</span>
+                <span>
+                  <time datetime={entry.date.toISOString()}>
+                    {fmt.format(entry.date)}
+                  </time>
+                </span>
+                {/* An unverified entry says so on its face rather than
+                    passing silently as confirmed fact. */}
+                {!entry.verified && <span class="index__provisional">Provisional</span>}
+              </p>
+            </article>
+          </li>
+        ))}
+      </ol>
+    )
+  }
+</section>
+
+<style>
+  .index {
+    padding-block-start: var(--space-xl);
+  }
+
+  .index__empty {
+    margin-block-start: var(--space-s);
+    padding-inline-start: var(--space-s);
+    border-inline-start: 2px solid var(--world-accent);
+    color: var(--ink-secondary);
+  }
+
+  .index__list {
+    margin-block-start: var(--space-m);
+  }
+
+  .index__entry {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--space-2xs) var(--space-m);
+    padding-block: var(--space-m);
+  }
+
+  .index__no {
+    color: var(--world-accent);
+  }
+
+  .index__title {
+    font-size: var(--step-1);
+  }
+
+  .index__summary {
+    margin-block-start: var(--space-3xs);
+    color: var(--ink-secondary);
+  }
+
+  .index__meta {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .index__provisional {
+    color: var(--spot);
+  }
+
+  @media (min-width: 48rem) {
+    .index__entry {
+      grid-template-columns: 3.5rem minmax(0, 1fr) 16rem;
+    }
+
+    .index__meta {
+      grid-column: 3;
+      grid-row: 1;
+      display: grid;
+      gap: var(--space-3xs);
+      align-content: start;
+    }
+  }
+</style>

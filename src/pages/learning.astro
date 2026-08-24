@@ -1,0 +1,535 @@
+---
+/**
+ * LEARNING — the field notebook.
+ * ============================================================================
+ * The world with the most obvious failure mode in the whole archive.
+ *
+ * A "skills" page is where portfolios lie, and they lie in a specific way: the
+ * conventional format — a technology name and a bar filled to 90% — has no
+ * truth conditions. Nobody can check it, so nobody can be wrong, so everyone
+ * writes the number they would like to be true. Every other world here can be
+ * audited against a repository. This one had to be MADE auditable before it
+ * could be built.
+ *
+ * ── Four decisions, and each is a defence ──────────────────────────────────
+ *
+ * 1. NO LEVELS. Every subject carries a STANDING (what was done) and a BASIS
+ *    (whether anyone else can check). Both can be wrong, which is the point.
+ *    `lib/learning.ts` holds them and nothing on this page invents one.
+ *
+ * 2. "STATED" IS A FIRST-CLASS ANSWER. C, German and the degree have no
+ *    artifact in this archive. They are in the register, marked `Stated`,
+ *    rather than dressed up in evidence they do not have or quietly dropped —
+ *    dropping them would make the register look stronger by hiding the parts
+ *    that cannot be checked, which is the same lie in a subtler shape.
+ *
+ * 3. THE LOG IS DATED, AND THE DATES ARE COMMITS. The Bandit log is not a
+ *    claim to know Linux. It is thirteen levels, six days and nineteen
+ *    commits, all of them public and none of them written by me.
+ *
+ * 4. THE OPEN QUESTIONS ARE THE BEST PAGE IN THE NOTEBOOK. Five things that
+ *    were built, shipped, and never measured. Each one is keyed to the
+ *    experiment whose `result` field records the absence, and the build FAILS
+ *    if the experiment is gone — so a question can never outlive its source.
+ *
+ * ── Client JavaScript ──────────────────────────────────────────────────────
+ * None. Every effect on this page is CSS; the world gate in the layout is the
+ * only script the route ships.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import TitleBlock, { type Cell } from '@components/projects/TitleBlock.astro';
+import { getCollection } from 'astro:content';
+import { getWorld } from '@lib/worlds';
+import { PROFILE } from '@lib/profile';
+import {
+  BASIS_LABEL,
+  FIELD_LOG,
+  LOG_SOURCE,
+  METHOD,
+  NOT_RECORDED,
+  OPEN_QUESTIONS,
+  STANDING_LABEL,
+  STRANDS,
+} from '@lib/learning';
+import '@styles/learning.css';
+
+const world = getWorld('learning');
+
+const subjectCount = STRANDS.reduce((n, s) => n + s.subjects.length, 0);
+
+/**
+ * Join the open questions to the experiments they came out of.
+ *
+ * Throws rather than skipping: a question whose experiment has been deleted is
+ * a question with nothing behind it, and this world's whole argument is that
+ * every line has something behind it. Failing the build is the correct
+ * response, exactly as `getWorld` fails on an unknown world.
+ */
+const experiments = new Map(
+  (await getCollection('experiments', (e) => !e.data.draft)).map((e) => [e.id, e]),
+);
+const questions = OPEN_QUESTIONS.map(({ experiment, question }) => {
+  const entry = experiments.get(experiment);
+  if (!entry) {
+    throw new Error(
+      `Open question refers to experiment "${experiment}", which is not in the ` +
+        `collection. Either restore it or remove the question — see OPEN_QUESTIONS ` +
+        `in lib/learning.ts.`,
+    );
+  }
+  return { question, title: entry.data.title, result: entry.data.result };
+});
+
+/**
+ * Notes filed in the `learning` collection. Empty as of M08, and the section
+ * says so out loud rather than disappearing: an empty section that renders
+ * nothing is a section nobody notices is broken.
+ */
+const filed = (await getCollection('learning', (e) => !e.data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const day = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: '2-digit',
+});
+const fmt = (iso: string) => day.format(new Date(`${iso}T00:00:00Z`));
+
+const cells: Cell[] = [
+  { key: 'Sheet', value: `${world.ref} · Learning`, accent: true },
+  { key: 'Subjects', value: `${subjectCount} in ${STRANDS.length} strands` },
+  { key: 'Field log', value: `${FIELD_LOG.length} entries` },
+  { key: 'Open questions', value: String(questions.length) },
+];
+---
+
+<WorldLayout
+  world="learning"
+  title="Learning"
+  description="A register of what Ayush Rijal is learning, with the standing of each subject and the evidence for it — plus a dated field log and the questions still open."
+  masthead={false}
+>
+  <div class="sheet pad">
+    <p class="t-label pad__mark">
+      <span>{world.ref} · {world.gateTitle}</span>
+      <span>{world.world}</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display pad__title">Field Notebook</h1>
+    <p class="t-text pad__intro">
+      Not a list of technologies I claim to know. A record of what I am trying
+      to understand, what standing each subject has actually reached, and
+      whether you can check it without taking my word for it.
+    </p>
+
+    <TitleBlock cells={cells} label="Notebook details" />
+
+    <div class="pad__body">
+      {/* ── 01 The standing note ───────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="note">
+        <h2 class="t-label leaf__head" id="note">
+          <span class="leaf__no">01</span>
+          <span class="leaf__title">The standing note</span>
+        </h2>
+
+        <p class="thesis">
+          Learning is not a list of technologies I claim to know. It is a record
+          of what I am trying to understand.
+        </p>
+
+        <figure class="position">
+          <blockquote class="position__quote">
+            <p>{PROFILE.motivations.aiPhilosophy}</p>
+          </blockquote>
+          <figcaption class="t-label position__on">On AI</figcaption>
+        </figure>
+
+        <p class="t-text leaf__lede">
+          That sentence is why this page has two columns where a skills page has
+          one bar. <strong>Standing</strong> says what was actually done with a
+          subject. <strong>Basis</strong> says whether anyone else can check it.
+          A subject can be honestly present with nothing behind it — that is
+          what <em>Stated</em> means, and three of the entries below carry it.
+        </p>
+
+        <div class="legend">
+          <dl class="legend__axis">
+            <dt class="t-label legend__title">Standing</dt>
+            <dd class="legend__list">
+              <div class="legend__row">
+                <span class="t-label legend__key">Built</span>
+                <p class="legend__def">
+                  Used to make something that runs, and that you can read.
+                </p>
+              </div>
+              <div class="legend__row">
+                <span class="t-label legend__key">Experimented</span>
+                <p class="legend__def">
+                  Wired up and tried, in a project with a purpose — not a
+                  tutorial.
+                </p>
+              </div>
+              <div class="legend__row">
+                <span class="t-label legend__key">Currently learning</span>
+                <p class="legend__def">
+                  Worked on now, with the working visible somewhere.
+                </p>
+              </div>
+              <div class="legend__row">
+                <span class="t-label legend__key">Exploring</span>
+                <p class="legend__def">
+                  Read about and poked at. Nothing has been finished with it.
+                </p>
+              </div>
+              <div class="legend__row">
+                <span class="t-label legend__key">Not attempted</span>
+                <p class="legend__def">
+                  Never done. Recorded because the absence is the useful fact.
+                </p>
+              </div>
+            </dd>
+          </dl>
+
+          <dl class="legend__axis">
+            <dt class="t-label legend__title">Basis</dt>
+            <dd class="legend__list">
+              <div class="legend__row">
+                <span class="t-label legend__key">Verified</span>
+                <p class="legend__def">
+                  Read out of source. The evidence names the file, the constant
+                  or the commit range, so you can go and disagree with it.
+                </p>
+              </div>
+              <div class="legend__row">
+                <span class="t-label legend__key">Partly verified</span>
+                <p class="legend__def">
+                  Some of it is in the source and some of it is not. The
+                  evidence says which part is which.
+                </p>
+              </div>
+              <div class="legend__row">
+                <span class="t-label legend__key">Stated</span>
+                <p class="legend__def">
+                  I said so, and this archive holds nothing that shows it.
+                  Included anyway, marked as what it is.
+                </p>
+              </div>
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      {/* ── 02 Register of subjects ────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="register">
+        <h2 class="t-label leaf__head" id="register">
+          <span class="leaf__no">02</span>
+          <span class="leaf__title">Register of subjects</span>
+        </h2>
+        <p class="t-text leaf__lede">
+          Grouped by strand, never ranked. Sorting these by standing would put a
+          bar chart back on the page with the numbers taken off.
+        </p>
+
+        <div class="tablewrap" role="region" aria-label="Register of subjects" tabindex="0">
+          <table class="subjects">
+            <caption>
+              {subjectCount} subjects · standing and basis, no proficiency levels
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Subject</th>
+                <th scope="col">Standing</th>
+                <th scope="col">Basis</th>
+                <th scope="col">Evidence</th>
+              </tr>
+            </thead>
+            {
+              STRANDS.map((strand) => (
+                <tbody>
+                  <tr>
+                    <th class="strand__name" colspan="4" scope="colgroup">
+                      {strand.name}
+                    </th>
+                  </tr>
+                  {strand.subjects.map((s) => (
+                    <tr class="subject__row">
+                      <th class="subject__name" scope="row">
+                        {s.name}
+                      </th>
+                      <td data-label="Standing">
+                        <span class="standing" data-standing={s.standing}>
+                          {STANDING_LABEL[s.standing]}
+                        </span>
+                      </td>
+                      <td data-label="Basis">
+                        <span class="basis" data-basis={s.basis}>
+                          {BASIS_LABEL[s.basis]}
+                        </span>
+                      </td>
+                      <td class="evidence" data-label="Evidence">
+                        {s.evidence}
+                        {s.href && (
+                          <a class="evidence__more" href={s.href}>
+                            Set out at length &rarr;
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              ))
+            }
+          </table>
+        </div>
+      </section>
+
+      {/* ── 03 Re-implementation ───────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="method-h" id="method">
+        <h2 class="t-label leaf__head" id="method-h">
+          <span class="leaf__no">03</span>
+          <span class="leaf__title">Re-implementation as a method</span>
+        </h2>
+        <p class="t-text leaf__lede">
+          The same thing keeps happening in the source. Faced with a tool that
+          is not understood, the response is to write a version of it — not a
+          mock that returns the right answer, but something with the tool&rsquo;s
+          actual behaviour in it, because a fake cannot be got wrong and
+          therefore teaches nothing. Three instances, all inside YushaCyber.
+        </p>
+
+        <figure class="position">
+          <blockquote class="position__quote">
+            <p>{PROFILE.motivations.programming}</p>
+          </blockquote>
+          <figcaption class="t-label position__on">On writing code</figcaption>
+        </figure>
+
+        <div class="remakes">
+          {
+            METHOD.map((m) => (
+              <div class="remake">
+                <p class="remake__tool">{m.tool}</p>
+                <div>
+                  <p class="remake__built">{m.built}</p>
+                  <p class="remake__scale">{m.scale}</p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <p class="t-text leaf__note">
+          Worth being precise about what this is and is not evidence of. It
+          shows the behaviour of these tools was understood well enough to
+          reproduce and grade. It is not a record of running them against a real
+          network, and the register above says so on every affected row.
+        </p>
+      </section>
+
+      {/* ── 04 The field log ───────────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="log-h" id="log">
+        <h2 class="t-label leaf__head" id="log-h">
+          <span class="leaf__no">04</span>
+          <span class="leaf__title">Field log &mdash; the Linux shell</span>
+        </h2>
+        <p class="t-text leaf__lede">
+          OverTheWire&rsquo;s Bandit, worked in the open. Every level has a note
+          written for it and a commit that filed it, so this is a dated record
+          rather than a claim. The level answers are in those notes and are
+          deliberately not reproduced here.
+        </p>
+
+        <p class="log__meta">
+          <span>{FIELD_LOG.length} levels</span>
+          <span>{LOG_SOURCE.commits} commits</span>
+          <span>{LOG_SOURCE.activeDays} active days</span>
+          <span>{fmt(LOG_SOURCE.from)} &ndash; {fmt(LOG_SOURCE.to)}</span>
+        </p>
+
+        <p class="log__intent">
+          The repository describes itself as &ldquo;{LOG_SOURCE.statedIntent}
+          &rdquo; It was created on {fmt(LOG_SOURCE.created)}, and what the log
+          currently shows is {LOG_SOURCE.commits} commits across{' '}
+          {LOG_SOURCE.activeDays} days. The stated intention is recorded as an
+          intention, next to the record, and neither has been edited to agree
+          with the other.
+        </p>
+
+        <div class="tablewrap" role="region" aria-label="Field log" tabindex="0">
+          <table class="log">
+            <caption>Bandit 0 to 13 · what each level turned on</caption>
+            <thead>
+              <tr>
+                <th scope="col">Filed</th>
+                <th scope="col">Level</th>
+                <th scope="col">What it turned on</th>
+                <th scope="col">Own note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                FIELD_LOG.map((e) => (
+                  <tr>
+                    <td class="log__date" data-label="Filed">
+                      {fmt(e.date)}
+                    </td>
+                    <th class="log__level" scope="row">
+                      {e.level}
+                    </th>
+                    <td class="log__learned" data-label="What it turned on">
+                      {e.learned}
+                    </td>
+                    <td
+                      class:list={['log__own', { 'log__own--none': !e.sideNote }]}
+                      data-label="Own note"
+                    >
+                      {e.sideNote ?? '—'}
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <p class="t-text leaf__note">
+          The last column is the one worth reading. Six of the thirteen levels
+          produced a second file about the command itself &mdash; not what it
+          did here, but what it does. That is the same instinct as section 03,
+          two hundred lines of shell code earlier: the level was already solved
+          when those notes were written.
+        </p>
+      </section>
+
+      {/* ── 05 Open questions ──────────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="questions">
+        <h2 class="t-label leaf__head" id="questions">
+          <span class="leaf__no">05</span>
+          <span class="leaf__title">Open questions</span>
+        </h2>
+        <p class="t-text leaf__lede">
+          Five things that were built, shipped and never measured. Each comes
+          out of an experiment in the AI Lab whose recorded result is an
+          absence; none of them is rhetorical, and none has an answer here.
+        </p>
+
+        <div class="queries">
+          {
+            questions.map((q, i) => (
+              <div class="query">
+                <p class="t-label query__no">{String(i + 1).padStart(2, '0')}</p>
+                <div>
+                  <p class="query__text">{q.question}</p>
+                  <p class="query__from">
+                    From <a href="/ai-lab">{q.title}</a>
+                  </p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      {/* ── 06 Filed notes ─────────────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="filed">
+        <h2 class="t-label leaf__head" id="filed">
+          <span class="leaf__no">06</span>
+          <span class="leaf__title">Filed notes</span>
+        </h2>
+
+        {
+          filed.length === 0 ? (
+            <p class="t-text filed__empty">
+              Nothing filed here yet. The Linux notes live in their own
+              repository rather than being copied into this one, and section 04
+              indexes them; when notes are written for this archive directly,
+              they will appear in this section.
+            </p>
+          ) : (
+            <div class="filed">
+              {filed.map((e) => (
+                <article class="filed__item">
+                  <p class="t-label filed__date">
+                    {day.format(e.data.date)} · {e.data.kind}
+                  </p>
+                  <h3 class="filed__title">{e.data.title}</h3>
+                  <p class="t-text">{e.data.summary}</p>
+                </article>
+              ))}
+            </div>
+          )
+        }
+      </section>
+
+      {/* ── 07 Not in this notebook ────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="omitted">
+        <h2 class="t-label leaf__head" id="omitted">
+          <span class="leaf__no">07</span>
+          <span class="leaf__title">Not in this notebook</span>
+        </h2>
+
+        <ul class="omitted" role="list">
+          {NOT_RECORDED.map((field) => <li>{field}</li>)}
+        </ul>
+        <p class="omitted__note">
+          None of these exists, so none of them appears. They are named
+          individually rather than left out silently, because a page about
+          learning that simply omits certifications is read as modest, and this
+          one would rather be read as accurate.
+        </p>
+      </section>
+
+      {/* ── 08 Sources ─────────────────────────────────────────────── */}
+      <section class="leaf" aria-labelledby="sources">
+        <h2 class="t-label leaf__head" id="sources">
+          <span class="leaf__no">08</span>
+          <span class="leaf__title">Sources</span>
+        </h2>
+        <p class="t-text leaf__lede">
+          Everything marked <em>Verified</em> above came from one of these.
+        </p>
+
+        <ul class="sources" role="list">
+          <li class="sources__item">
+            <span class="sources__what">Field log</span>
+            <a
+              class="sources__link"
+              href={LOG_SOURCE.repo}
+              rel="noopener noreferrer"
+            >
+              {LOG_SOURCE.repo}<span class="out" aria-hidden="true"> &#8599;</span>
+            </a>
+          </li>
+          <li class="sources__item">
+            <span class="sources__what">The wargame</span>
+            <a
+              class="sources__link"
+              href={LOG_SOURCE.wargame}
+              rel="noopener noreferrer"
+            >
+              {LOG_SOURCE.wargame}<span class="out" aria-hidden="true"> &#8599;</span>
+            </a>
+          </li>
+          <li class="sources__item">
+            <span class="sources__what">The repositories</span>
+            <a class="sources__link" href="/github">Public code archive</a>
+          </li>
+          <li class="sources__item">
+            <span class="sources__what">The projects</span>
+            <a class="sources__link" href="/projects">Engineering workshop</a>
+          </li>
+          <li class="sources__item">
+            <span class="sources__what">The experiments</span>
+            <a class="sources__link" href="/ai-lab">Experimental laboratory</a>
+          </li>
+          <li class="sources__item">
+            <span class="sources__what">The person</span>
+            <a class="sources__link" href="/about">Personal record</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</WorldLayout>

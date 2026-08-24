@@ -1,0 +1,79 @@
+name: GitHub data
+
+# K4 — the scheduled half of the build-time GitHub integration
+# (PROJECT_PROGRESS §8.3, §9.6).
+#
+# CI already refreshes the data on every push to `v2`, so the site is current
+# whenever it is rebuilt. What is missing without this workflow is the FALLBACK
+# going stale: `github.snapshot.json` is the committed last-known-good that the
+# build reads when a fetch fails, and a fallback last written months ago is a
+# fallback that lies. This job's only job is to keep it fresh.
+#
+# Cadence is the §9.6 recommendation — every six hours, plus on demand. The
+# repositories change a few times a week at most; six hours costs four runs a
+# day of about twenty seconds each and is comfortably inside the free tier.
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+# Write is needed to commit the refreshed snapshot back to `v2`, and is the
+# only elevated grant anywhere in this repository's automation.
+permissions:
+  contents: write
+
+# One at a time. Two overlapping runs would race on the same push, and the
+# second would fail on a non-fast-forward. No cancel-in-progress: a run that
+# has already fetched should be allowed to finish committing.
+concurrency:
+  group: github-data
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      # No `npm ci`. `scripts/fetch-github.mjs` has zero dependencies — Node 22+
+      # has global `fetch` — so installing the toolchain here would buy nothing
+      # but a minute of runner time and a lockfile's worth of supply chain.
+      #
+      # GITHUB_TOKEN is the runner's automatic token, scoped to this repository
+      # and expiring with the job. It raises the rate limit from 60 to 5000
+      # req/hr and never leaves the runner: only the allow-listed fields in
+      # `normalise` are written to disk, and Actions masks the value in logs.
+      #
+      # `--promote` is a no-op unless a repository fact actually changed, so a
+      # quiet week produces no commits rather than 28 timestamp bumps.
+      - name: Refresh the committed snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/fetch-github.mjs --promote
+
+      # Verifying before committing matters more here than in CI: this job
+      # writes to the branch unattended. A snapshot that breaks the build must
+      # not be the thing that lands while nobody is looking.
+      - name: Install
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify
+
+      - name: Commit if the facts moved
+        run: |
+          if git diff --quiet -- src/data/github.snapshot.json; then
+            echo "Snapshot unchanged; nothing to commit."
+            exit 0
+          fi
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/github.snapshot.json
+          git commit -m 'chore(data): refresh the GitHub fallback snapshot'
+          git push

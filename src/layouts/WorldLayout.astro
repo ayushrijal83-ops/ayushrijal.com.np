@@ -1,0 +1,123 @@
+---
+/**
+ * A world. Everything a section shares — the gate, the index strip, the sheet
+ * masthead, the colophon — lives here, so a world page contains only what
+ * makes it that world.
+ */
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from '@components/nav/SiteHeader.astro';
+import SiteFooter from '@components/nav/SiteFooter.astro';
+import WorldGate from '@components/transition/WorldGate.astro';
+import RegistrationMarks from '@components/archive/RegistrationMarks.astro';
+import { getWorld } from '@lib/worlds';
+
+type Props = {
+  world: string;
+  /** Overrides the world's own name as the <h1>. Home does this. */
+  title?: string;
+  /**
+   * Overrides the world's summary as the meta description.
+   *
+   * Added in M05 for project records: every detail page under one world would
+   * otherwise ship the same description, which is the duplicate-metadata
+   * defect V1 had across its six documents (PROJECT_PROGRESS §3) reappearing
+   * one level down. A world page still omits it and inherits the world's own.
+   */
+  description?: string;
+  /** Suppress the standard sheet masthead when a world composes its own. */
+  masthead?: boolean;
+  /**
+   * Present the world as a physical sheet registered onto the drafting table,
+   * rather than as ink directly on the page ground.
+   *
+   * This is the answer to "do not make the whole site literally look like
+   * beige paper": paper stops being the background and becomes an object, with
+   * a darker working surface behind it and registration marks at its corners.
+   * Opt-in per world, so each world keeps its own visual language — HOME uses
+   * it; the others currently do not.
+   */
+  surface?: boolean;
+};
+
+const {
+  world: id,
+  title,
+  description,
+  masthead = true,
+  surface = false,
+} = Astro.props;
+const world = getWorld(id);
+---
+
+<BaseLayout
+  title={title ?? world.world}
+  description={description ?? world.summary}
+  world={world.id}
+  surface={surface}
+>
+  <slot name="head" slot="head" />
+
+  {/* The gate is a viewport overlay and deliberately sits OUTSIDE the plate,
+      so it covers the table as well as the sheet. */}
+  <WorldGate world={world} />
+
+  <div class:list={['world-body', { plate: surface }]}>
+    {surface && <RegistrationMarks />}
+    <SiteHeader current={world.id} />
+
+    {/* `tabindex="-1"` so the skip link can move FOCUS here, not just scroll.
+        Without it the fragment sets Chrome's sequential-focus starting point
+        and the next Tab happens to land inside the content — which is why four
+        milestones of static auditing called the skip link "present" and
+        correct. M10 pressed Enter on it with a real keyboard and found
+        `document.activeElement` still on `<body>`: the behaviour that works
+        here is a browser convenience, not the guarantee, and Safari has never
+        implemented it. A screen reader's cursor does not move either.
+
+        It draws no ring on a mouse click: the archive's focus style is
+        `:where(:focus-visible)`, which does not match a click on a
+        programmatically focusable container. */}
+    <main id="main" tabindex="-1">
+      {
+        masthead && (
+          <div class="sheet world-head">
+            <p class="t-label">
+              {world.ref} · {world.gateTitle}
+            </p>
+            <h1 class="t-display world-title">{world.world}</h1>
+            <p class="t-text world-summary">{world.summary}</p>
+            <hr class="rule rule--strong world-rule" />
+          </div>
+        )
+      }
+      <slot />
+    </main>
+
+    <SiteFooter world={world} />
+  </div>
+</BaseLayout>
+
+<script>
+  import { bindWorldGate } from '@scripts/world-gate';
+  bindWorldGate();
+</script>
+
+<style>
+  .world-head {
+    padding-block-start: var(--space-2xl);
+  }
+
+  .world-title {
+    font-size: var(--step-4);
+    margin-block-start: var(--space-2xs);
+  }
+
+  .world-summary {
+    margin-block-start: var(--space-s);
+    color: var(--ink-secondary);
+  }
+
+  .world-rule {
+    margin-block-start: var(--space-l);
+  }
+</style>

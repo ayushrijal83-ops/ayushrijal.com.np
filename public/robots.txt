@@ -1,0 +1,11 @@
+# The archive is public and should be indexed.
+User-agent: *
+Allow: /
+
+# /lab/* are internal prototypes and measurement harnesses — the wordmark
+# renderer, the viewport rig, the Pretext investigation. They are part of the
+# working record, not part of the archive's eight worlds, and they should not
+# compete with it in search results.
+Disallow: /lab/
+
+Sitemap: https://ayushrijal.com.np/sitemap.xml

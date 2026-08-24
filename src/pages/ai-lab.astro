@@ -1,0 +1,653 @@
+---
+/**
+ * AI LAB — the experimental laboratory.
+ * ============================================================================
+ * PROJECTS answers "what have I built". This world answers a different
+ * question: "how does intelligence actually get built here" — which means it
+ * describes MECHANISMS, not products, and it is organised as a bench rather
+ * than as a portfolio.
+ *
+ * Three rules shaped every decision on this page.
+ *
+ * 1. WHERE THE COMPUTATION HAPPENS IS THE HEADLINE FACT. Local and hosted
+ *    inference are different engineering with different costs, different
+ *    failure modes and different privacy properties, and almost every AI page
+ *    on the internet blurs them. The system index has a column for it and
+ *    every row is marked.
+ *
+ * 2. NOTHING HERE WAS TRAINED. Every model on this bench is somebody else's
+ *    weights, applied. That is stated in its own station with a table, rather
+ *    than left for a reader to infer from an absence — see `provenance`.
+ *
+ * 3. EVERY DIAGRAM IS A LIST. The pipelines are `<ol>`s with CSS connectors,
+ *    not SVGs. Nothing important on this page is reachable only through a
+ *    drawing, nothing needs an alt text kept in sync, and every path is
+ *    complete with CSS off. See components/ai-lab/Pipeline.astro.
+ *
+ * Every claim is verified against repository source; the station that makes a
+ * claim links to the thing that proves it. No client JavaScript beyond the
+ * shared world-gate module in the layout.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import Pipeline from '@components/ai-lab/Pipeline.astro';
+import TitleBlock, { type Cell } from '@components/projects/TitleBlock.astro';
+import { getCollection, render } from 'astro:content';
+import { getWorld } from '@lib/worlds';
+import '@styles/ai-lab.css';
+
+const world = getWorld('ai-lab');
+
+/**
+ * A notebook reads forwards. Experiments are numbered and ordered by when the
+ * work happened — ascending, unlike every other index on this site, because
+ * 001 coming first is the whole convention of a lab book and reversing it
+ * would make the numbers argue with the order.
+ */
+const runs = (await getCollection('experiments', (e) => !e.data.draft)).sort(
+  (a, b) => a.data.date.getTime() - b.data.date.getTime(),
+);
+
+const rendered = await Promise.all(
+  runs.map(async (entry, i) => ({
+    entry,
+    no: String(i + 1).padStart(3, '0'),
+    Body: (await render(entry)).Content,
+  })),
+);
+
+const GH = 'https://github.com/ayushrijal83-ops';
+
+/**
+ * The system index.
+ *
+ * `locus` is the load-bearing field: `local` means the computation happens on
+ * the machine running the program, `hosted` means it leaves for someone
+ * else's API, `none` means the area is not implemented at all. Every value
+ * here was read out of a requirements file or a call site, not remembered.
+ */
+type System = {
+  area: string;
+  stack: string;
+  locus: 'local' | 'hosted' | 'none';
+  locusLabel: string;
+  source: { label: string; href: string }[];
+};
+
+const systems: System[] = [
+  {
+    area: 'Local language model',
+    stack: 'Ollama · Mistral, and qwen2.5:0.5b',
+    locus: 'local',
+    locusLabel: 'On the machine',
+    source: [
+      { label: 'Jarvis', href: '/projects/jarvis-assistant' },
+      { label: 'x-man', href: `${GH}/x-man` },
+    ],
+  },
+  {
+    area: 'Model training',
+    stack: 'Not attempted',
+    locus: 'none',
+    locusLabel: 'Nothing trained',
+    source: [],
+  },
+  {
+    area: 'Computer vision',
+    stack: 'OpenCV · MediaPipe · MobileNetV2 · DeepFace',
+    locus: 'local',
+    locusLabel: 'On the machine',
+    source: [
+      { label: 'Jarvis', href: '/projects/jarvis-assistant' },
+      { label: 'AgroVision', href: '/projects/agrovision-nepal' },
+      { label: 'beach_buggy_ai', href: `${GH}/beach_buggy_ai` },
+    ],
+  },
+  {
+    area: 'Voice',
+    stack: 'Vosk · faster-whisper · pyttsx3',
+    locus: 'local',
+    locusLabel: 'On the machine',
+    source: [{ label: 'Jarvis', href: '/projects/jarvis-assistant' }],
+  },
+  {
+    area: 'Gesture and interaction',
+    stack: 'MediaPipe Hands · 21 landmarks',
+    locus: 'local',
+    locusLabel: 'On the machine',
+    source: [
+      { label: 'beach_buggy_ai', href: `${GH}/beach_buggy_ai` },
+      { label: 'Jarvis', href: '/projects/jarvis-assistant' },
+    ],
+  },
+  {
+    area: 'Automation',
+    stack: 'PyAutoGUI · pynput, behind allow-lists',
+    locus: 'local',
+    locusLabel: 'On the machine',
+    source: [{ label: 'Jarvis', href: '/projects/jarvis-assistant' }],
+  },
+  {
+    area: 'Hosted language model',
+    stack: 'OpenAI · Anthropic · Gemini, key-gated',
+    locus: 'hosted',
+    locusLabel: 'Leaves the machine',
+    source: [
+      { label: 'YushaCyber', href: '/projects/yushacyber' },
+      { label: 'beach_buggy_ai', href: `${GH}/beach_buggy_ai` },
+    ],
+  },
+];
+
+/** Every model on the bench, and where its weights came from. */
+const provenance = [
+  ['MobileNetV2', 'ImageNet, as published', 'Crop identification', 'No'],
+  ['MediaPipe Hands', "Google's pretrained graph", 'Hand landmarks', 'No'],
+  ['MediaPipe Face Mesh', "Google's pretrained graph", 'Face and head pose', 'No'],
+  ['Vosk en-us-0.22', 'Published acoustic model', 'Wake word', 'No'],
+  ['faster-whisper small', 'OpenAI Whisper weights', 'Command transcription', 'No'],
+  ['Mistral', 'Pulled through Ollama', 'Assistant replies', 'No'],
+  ['qwen2.5:0.5b', 'Pulled through Ollama', 'Short factual answers', 'No'],
+  ['DeepFace', 'Bundled pretrained weights', 'Expression class', 'No'],
+  ['GPT-4o · Gemini · Claude', "Hosted, someone else's", 'Chat endpoints', 'No'],
+];
+
+const cells: Cell[] = [
+  { key: 'Sheet', value: `${world.ref} · AI Lab`, accent: true },
+  {
+    key: 'Systems',
+    value: `${systems.filter((s) => s.locus !== 'none').length} of ${systems.length} areas`,
+  },
+  { key: 'Experiments', value: `${runs.length} filed` },
+  { key: 'Models trained', value: 'None' },
+];
+---
+
+<WorldLayout
+  world="ai-lab"
+  title="AI Lab"
+  description="How intelligence gets built here — local models, vision, voice and gesture pipelines, and the experiments behind them, including the ones with no measured result."
+  masthead={false}
+>
+  <div class="sheet bench">
+    <p class="t-label bench__mark">
+      <span>{world.ref} · {world.gateTitle}</span>
+      <span>{world.world}</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display bench__title">Experimental Laboratory</h1>
+    <p class="t-text bench__intro">
+      AI is not magic. It is a stack of components, most of them somebody
+      else&rsquo;s, wired together on a machine that can be inspected. This is
+      the bench where that happens — what runs, where it runs, and what
+      actually came out.
+    </p>
+
+    <TitleBlock cells={cells} label="Bench details" />
+
+    {/* ── The working principle ───────────────────────────────────── */}
+    <section class="creed" aria-labelledby="creed">
+      <h2 class="t-label" id="creed">Working principle</h2>
+      <p class="creed__statement">
+        I build, experiment,<br />break, and learn.
+      </p>
+      <p class="t-text creed__gloss">
+        When AI gives me code, I want to understand what it does rather than
+        blindly accepting the output. That is not caution for its own sake. A
+        system you did not understand when it worked is a system you cannot fix
+        when it stops, and everything on this page has stopped at least once.
+      </p>
+      <p class="t-text creed__gloss">
+        So the unit of work here is not a model. It is a <em>pipeline you can
+        follow end to end</em> — a camera frame, a landmark, a number, a
+        keystroke — where every stage can be printed, measured or removed to
+        see what breaks. The interesting engineering has consistently turned
+        out to be in the joins rather than in the models, and the models are
+        the part nobody wrote.
+      </p>
+    </section>
+
+    {/* ── 01 · What is on the bench ───────────────────────────────── */}
+    <section class="station" aria-labelledby="s-index">
+      <p class="t-label station__head">
+        <span class="station__no">01</span>
+        <span>System index</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-index">What is on the bench</h2>
+      <p class="t-text station__lede">
+        Seven rows, six of them implemented, and the column that matters is
+        <strong>inference</strong>. Whether a model runs on this machine or on
+        someone else&rsquo;s decides its latency, its cost, its privacy and
+        what happens to it when the network is gone. Most of this bench is
+        local; the part that is not says so, and so does the row with nothing
+        behind it.
+      </p>
+
+      <div class="tablewrap" role="region" aria-label="Systems in use" tabindex="0">
+        <table class="systems">
+          <caption class="t-label">
+            Systems in use · verified against each repository&rsquo;s source
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" class="t-label">No.</th>
+              <th scope="col" class="t-label">Area</th>
+              <th scope="col" class="t-label">Built with</th>
+              <th scope="col" class="t-label">Inference</th>
+              <th scope="col" class="t-label">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              systems.map((s, i) => (
+                <tr>
+                  <td class="t-label systems__no">{String(i + 1).padStart(2, '0')}</td>
+                  <th scope="row" class="systems__name">
+                    {s.area}
+                  </th>
+                  <td class="systems__meta" data-label="Built with">
+                    {s.stack}
+                  </td>
+                  <td data-label="Inference">
+                    <span class="locus" data-locus={s.locus}>
+                      {s.locusLabel}
+                    </span>
+                  </td>
+                  <td class="systems__meta" data-label="Source">
+                    {s.source.length === 0 ? (
+                      '—'
+                    ) : (
+                      s.source.map((src, n) => (
+                        <>
+                          {n > 0 && ' · '}
+                          <a
+                            class="bench__source"
+                            href={src.href}
+                            rel={src.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                          >
+                            {src.label}
+                          </a>
+                        </>
+                      ))
+                    )}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ── 02 · Local intelligence ─────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-local">
+      <p class="t-label station__head">
+        <span class="station__no">02</span>
+        <span>Local intelligence</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-local">Inference that never leaves</h2>
+      <p class="t-text station__lede">
+        Two projects run a language model through Ollama on the same machine as
+        the application. No request goes to a hosted API, so there is no key,
+        no per-token cost and no rate limit — and the model is only as good as
+        what fits on the hardware, which is the trade the whole arrangement
+        makes.
+      </p>
+
+      <Pipeline
+        caption="Local language model"
+        legend="Jarvis · Ollama · Mistral"
+        stages={[
+          { label: 'Prompt', detail: 'Transcribed command', note: 'Built from the transcript plus the recent conversation, capped at eight turns in memory.' },
+          { label: 'Ollama', detail: 'localhost:11434' },
+          { label: 'Model', detail: 'Mistral, streaming', note: 'Streamed chunk by chunk so the first words are spoken before the last are generated.' },
+          { label: 'Reply', detail: 'Text' },
+          { label: 'Speech', detail: 'pyttsx3' },
+        ]}
+      />
+
+      <p class="t-text station__lede">
+        The second one is the more interesting decision. NepalSathi asks for
+        <code>qwen2.5:0.5b</code> — half a billion parameters — at temperature
+        0.3 with an 80-token ceiling, and if Ollama is not running it answers
+        from rules instead. There is no state in which the feature is simply
+        broken. Both halves of that are deliberate and neither is a
+        compromise; see experiment 005.
+      </p>
+
+      <p class="bench__source-row">
+        <a class="bench__source" href="/projects/jarvis-assistant">
+          Jarvis — the full project record
+        </a>
+      </p>
+    </section>
+
+    {/* ── 03 · Computer vision ────────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-vision">
+      <p class="t-label station__head">
+        <span class="station__no">03</span>
+        <span>Computer vision</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-vision">From a frame to a decision</h2>
+      <p class="t-text station__lede">
+        Every vision system here is the same five steps, and the step that
+        varies is the fourth. A frame is captured, converted, run through a
+        pretrained graph, reduced to something small enough to reason about,
+        and acted on. What differs between projects is what &ldquo;small enough
+        to reason about&rdquo; means — a bounding box, twenty-one landmarks, or
+        ten ranked labels.
+      </p>
+
+      <Pipeline
+        caption="Face and attention"
+        legend="Jarvis · MediaPipe Face Detection + Face Mesh"
+        stages={[
+          { label: 'Camera', detail: 'OpenCV VideoCapture' },
+          { label: 'Convert', detail: 'BGR → RGB' },
+          { label: 'Detect', detail: 'Face Detection, ≥0.3', note: 'Presence only. One second without a hit and the state becomes FACE LOST.' },
+          { label: 'Mesh', detail: 'Face Mesh, 1 face', note: 'Nose tip against the eye line, normalised by eye-corner distance so leaning in does not change it.' },
+          { label: 'State', detail: 'Present · distracted · lost', note: 'Consumed as a style hint, not as a command. See experiment 004.' },
+        ]}
+      />
+
+      <Pipeline
+        caption="Crop identification"
+        legend="AgroVision · MobileNetV2, ImageNet weights"
+        stages={[
+          { label: 'Upload', detail: 'JPEG, 6 MB cap' },
+          { label: 'Resize', detail: '224 × 224' },
+          { label: 'Classify', detail: 'MobileNetV2, top 10', note: 'Ten predictions rather than one, so the mapping below has something to accumulate over.' },
+          { label: 'Plant gate', detail: '≥0.10 on a botanical label', note: 'Fails closed. No plant keyword in the top ten and the answer is Unknown.' },
+          { label: 'Map', detail: '5 crops, summed', note: 'corn, corncob and ear all accumulate onto maize.' },
+        ]}
+      />
+    </section>
+
+    {/* ── 04 · Voice ──────────────────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-voice">
+      <p class="t-label station__head">
+        <span class="station__no">04</span>
+        <span>Voice</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-voice">Two recognisers, one microphone</h2>
+      <p class="t-text station__lede">
+        Listening for a wake word and transcribing a command are two problems
+        wearing one name. The first has to be cheap enough to run forever; the
+        second has to be accurate enough to be worth acting on. Jarvis gives
+        each to a different model, and the small one keeps listening while the
+        assistant is speaking so it can be interrupted.
+      </p>
+
+      <Pipeline
+        caption="Speech in, speech out"
+        legend="Jarvis · Vosk + faster-whisper + pyttsx3 · 16 kHz mono"
+        stages={[
+          { label: 'Listen', detail: 'Vosk, continuous', note: 'Always on. Also hears the cancel phrases during playback — that is the barge-in path.' },
+          { label: 'Wake', detail: '“jarvis”' },
+          { label: 'Capture', detail: '3–4 s, or 450 ms silence', note: 'Bounded by an energy threshold, not a fixed duration. The number is tuned to one microphone.' },
+          { label: 'Transcribe', detail: 'faster-whisper, lazy-loaded' },
+          { label: 'Speak', detail: 'pyttsx3, rate 185', note: 'Interruptible: the speaker loop calls engine.stop() when Vosk hears a cancel phrase.' },
+        ]}
+      />
+    </section>
+
+    {/* ── 05 · Gesture and interaction ────────────────────────────── */}
+    <section class="station" aria-labelledby="s-gesture">
+      <p class="t-label station__head">
+        <span class="station__no">05</span>
+        <span>Gesture and interaction</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-gesture">
+        Twenty-one landmarks, one number
+      </h2>
+      <p class="t-text station__lede">
+        This is the clearest case on the bench of AI, hardware and software
+        being one problem. MediaPipe returns twenty-one hand landmarks per
+        frame; the whole design decision is refusing to classify them. Steering
+        is the x-distance between the wrist and the middle-finger knuckle —
+        one subtraction, already continuous, already signed.
+      </p>
+
+      <Pipeline
+        caption="Hand as an input device"
+        legend="beach_buggy_ai · MediaPipe Hands · capture 1280×720, inference 320×240"
+        stages={[
+          { label: 'Frame', detail: '1280 × 720 @ 30' },
+          { label: 'Downscale', detail: '320 × 240', note: 'Landmarks are normalised coordinates, so nothing downstream notices — and the frame budget comes back.' },
+          { label: 'Landmarks', detail: 'MediaPipe Hands, 21 pts' },
+          { label: 'Reduce', detail: 'wrist(0) → knuckle(9), Δx', note: 'One axis. Fist and open hand are counted separately, because those two states are far apart.' },
+          { label: 'Smooth', detail: 'EMA, α = 0.3', note: 'The actual engineering. Raw landmarks jitter, and a jittering axis across a threshold is undriveable.' },
+          { label: 'Key', detail: 'pynput, ±0.02 threshold' },
+        ]}
+      />
+
+      <p class="t-text station__lede">
+        Those last two numbers — an exponential moving average at 0.3 and a
+        threshold at ±0.02 — are the part with no tutorial behind it. They
+        belong to one camera, one hand and one game, and they were found by
+        playing it. A good input device is mostly a filter.
+      </p>
+    </section>
+
+    {/* ── 06 · Automation ─────────────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-auto">
+      <p class="t-label station__head">
+        <span class="station__no">06</span>
+        <span>Automation</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-auto">
+        A program that can type is a program that can destroy your work
+      </h2>
+      <p class="t-text station__lede">
+        There are no agents here and nothing autonomous. What exists is a
+        recognised command mapped onto a keystroke — and a fence around it,
+        because the failure mode of a voice-driven desktop controller is that
+        it mishears one syllable and closes something you had not saved.
+      </p>
+
+      <Pipeline
+        caption="Command to action"
+        legend="Jarvis · PyAutoGUI, fenced"
+        stages={[
+          { label: 'Transcript', detail: 'From the voice path' },
+          { label: 'Intent', detail: 'Matched against a fixed set', note: 'A lookup, not a planner. Anything unmatched does nothing.' },
+          { label: 'Check', detail: 'App and key allow-lists', note: 'Only whitelisted applications launch; only allow-listed keys are pressed; typing is capped at 120 characters.' },
+          { label: 'Confirm', detail: 'Risky actions only', note: 'alt+F4 is classified risky and asks, inside a five-second window.' },
+          { label: 'Act', detail: 'PyAutoGUI, rate-limited', note: 'Its own fail-safe stays on: throw the mouse into a corner and everything aborts.' },
+        ]}
+      />
+
+      <p class="t-text station__lede">
+        None of those limits are decorative, and none of them were in the first
+        version. They are what the first version taught.
+      </p>
+    </section>
+
+    {/* ── 07 · Provenance ─────────────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-prov">
+      <p class="t-label station__head">
+        <span class="station__no">07</span>
+        <span>Model provenance</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-prov">Nothing here was trained</h2>
+      <p class="t-text station__lede">
+        No model on this bench was trained or fine-tuned. Every one of them is
+        published weights, pulled and applied. There is no dataset, no training
+        run, no accuracy figure and no loss curve, because none of those things
+        exist — and a laboratory page that implied otherwise would be the exact
+        thing this archive is built not to do.
+      </p>
+      <p class="t-text station__lede">
+        What that leaves is a real discipline, and it is the one this bench
+        actually practises: <strong>applying a general model to a narrow
+        problem well</strong>. The plant gate, the label map, the smoothing
+        constant, the wake-word split — none of them touch a weight, and all of
+        them decide whether the system works. Training is the next thing to
+        learn, and it has not been started.
+      </p>
+
+      <div class="tablewrap" role="region" aria-label="Model provenance" tabindex="0">
+        <table class="provenance">
+          <caption class="t-label">
+            Every model in use · read from requirements files and call sites
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">Weights from</th>
+              <th scope="col">Used for</th>
+              <th scope="col">Trained here</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              provenance.map(([model, from, use, trained]) => (
+                <tr>
+                  <th scope="row">{model}</th>
+                  <td data-label="Weights from">{from}</td>
+                  <td data-label="Used for">{use}</td>
+                  <td class="provenance__none" data-label="Trained here">
+                    {trained}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ── 08 · The notebook ───────────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-runs">
+      <p class="t-label station__head">
+        <span class="station__no">08</span>
+        <span>Experiment records</span>
+      </p>
+      <h2 class="t-heading station__title" id="s-runs">The notebook</h2>
+      <p class="t-text station__lede">
+        Filed in the order the work happened. Each record states the question,
+        the apparatus and the result — and the result field is allowed to be
+        empty. Most of these were never instrumented, so most of them say
+        &ldquo;not measured&rdquo; rather than carrying a number that was never
+        taken.
+      </p>
+
+      <ol class="runs" role="list">
+        {
+          rendered.map(({ entry, no, Body }) => (
+            <li>
+              <article class="run" aria-labelledby={`x-${entry.id}`}>
+                <p class="t-label run__mark">
+                  <span class="run__no">Experiment {no}</span>
+                  <span class="outcome" data-outcome={entry.data.outcome}>
+                    {entry.data.outcome}
+                  </span>
+                  <time datetime={entry.data.date.toISOString().slice(0, 10)}>
+                    {entry.data.date.toISOString().slice(0, 10)}
+                  </time>
+                </p>
+
+                <h3 class="t-heading run__title" id={`x-${entry.id}`}>
+                  {entry.data.title}
+                </h3>
+
+                <dl class="run__fields">
+                  <div>
+                    <dt class="t-label run__key">Question</dt>
+                    <dd class="run__value">
+                      {entry.data.hypothesis ?? entry.data.summary}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="t-label run__key">Apparatus</dt>
+                    <dd>
+                      <ul class="run__apparatus" role="list">
+                        {entry.data.apparatus.map((part) => (
+                          <li>{part}</li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="t-label run__key">Result</dt>
+                    {/* The whole reason `result` is optional in the schema.
+                        An experiment with no measurement says so; it does not
+                        get a number invented for it. */}
+                    <dd class:list={['run__value', { 'run__value--absent': !entry.data.result }]}>
+                      {entry.data.result ?? 'Result not documented.'}
+                    </dd>
+                  </div>
+                </dl>
+
+                <div class="run__body">
+                  <Body />
+                </div>
+
+                {entry.data.notebook && (
+                  <p class="run__source">
+                    <a
+                      class="bench__source"
+                      href={entry.data.notebook}
+                      rel="noopener noreferrer"
+                    >
+                      Source for experiment {no}
+                      <span class="bench__out" aria-hidden="true">
+                        ↗
+                      </span>
+                    </a>
+                  </p>
+                )}
+              </article>
+            </li>
+          ))
+        }
+      </ol>
+
+      {
+        runs.length === 0 && (
+          <p class="t-text bench__empty">
+            No experiments have been filed yet. The schema records a hypothesis,
+            the apparatus and the outcome — including failed and inconclusive
+            runs, which are kept rather than dropped.
+          </p>
+        )
+      }
+    </section>
+
+    {/* ── Closing ─────────────────────────────────────────────────── */}
+    <section class="station" aria-labelledby="s-close">
+      <h2 class="t-heading station__title" id="s-close">What the bench is for</h2>
+      <p class="t-text station__lede">
+        Nothing on this page is a model I made. All of it is a system I
+        assembled, ran on my own hardware, took apart when it misbehaved, and
+        can still explain a year later. That is the skill I have actually been
+        building, and it is a different one from prompting well.
+      </p>
+      <p class="t-text station__lede">
+        The measurements are missing and I have said so in every place they are
+        missing. Instrumenting these — latency on the local model, false
+        triggers on the gesture threshold, accuracy on the crop classifier
+        against a labelled set — is the obvious next work, and it is more
+        useful than adding a seventh system to the index.
+      </p>
+    </section>
+  </div>
+</WorldLayout>
+
+<style>
+  .bench__source-row {
+    margin-block-start: var(--space-m);
+  }
+
+  /* `code` inside the station prose. The world's records style their own via
+     ai-lab.css; this is the one place a station body sets an inline literal. */
+  .station__lede code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background-color: var(--paper-recessed);
+    padding: 0.1em 0.3em;
+    /* Same reason as `.run__body code` in ai-lab.css: an unbreakable literal
+       sets the min-content width of whatever grid or flex track it sits in. */
+    overflow-wrap: anywhere;
+  }
+</style>

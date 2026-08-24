@@ -1,0 +1,485 @@
+---
+/**
+ * GITHUB — the public code archive.
+ * ============================================================================
+ * PROJECTS says what was built. AI LAB says how the intelligence in it works.
+ * This world says where the source is, and it is the only one of the three
+ * whose content is entirely fetched rather than written.
+ *
+ * ── Three decisions, and each is an argument ───────────────────────────────
+ *
+ * 1. NOTHING IS HIDDEN. `EXCLUDED_REPOS` used to drop three repositories from
+ *    this index — the profile README, this website, and a personal page. That
+ *    is fine on a portfolio grid and indefensible on a page whose claim is
+ *    that the source is the record. Every public repository is listed, and a
+ *    CLASS column says what each one is. Classification replaced omission in
+ *    M07; see `REPO_KIND` in lib/github.ts.
+ *
+ * 2. NO PROPORTION IS DRAWN. The snapshot holds one primary language per
+ *    repository and no byte counts, so the only honest language aggregate is a
+ *    count of repositories. It is drawn as discrete cells you can count, never
+ *    as a bar or a percentage, and the caption says which measurement it is.
+ *
+ * 3. ABSENCE GETS A HEADING. Contribution totals need the GraphQL API and are
+ *    `null` in the snapshot by design. Rather than leave a gap, folio 04 lists
+ *    what this record does not contain and why. A heatmap is the single most
+ *    common fabrication on pages like this one.
+ *
+ * Descriptions are GitHub's own words, quoted and marked as quotations. Where
+ * a repository also has a curated record, the register links both, which is
+ * the whole "read the description here, inspect the implementation there"
+ * relationship made navigable.
+ *
+ * No client JavaScript beyond the shared world-gate module in the layout. No
+ * request to api.github.com from anywhere but a build.
+ */
+import WorldLayout from '@layouts/WorldLayout.astro';
+import TitleBlock, { type Cell } from '@components/projects/TitleBlock.astro';
+import { getCollection } from 'astro:content';
+import { getWorld } from '@lib/worlds';
+import { loadGitHubSnapshot, publicRepos, repoKind } from '@lib/github';
+import { SITE } from '@lib/site';
+import '@styles/github.css';
+
+const world = getWorld('github');
+const snapshot = loadGitHubSnapshot();
+const repos = publicRepos(snapshot);
+
+/**
+ * The join back to PROJECTS, on the repository URL — the same key
+ * `repoByUrl` uses in the other direction. Built as a map so the register does
+ * not do a linear scan per row, and so a project whose repo URL is mistyped
+ * simply fails to link rather than linking to the wrong record.
+ */
+const projectByRepo = new Map(
+  (await getCollection('projects', (e) => !e.data.draft))
+    .filter((e) => e.data.repo)
+    .map((e) => [e.data.repo!.replace(/\/+$/, '').toLowerCase(), e]),
+);
+const projectFor = (url: string) => projectByRepo.get(url.replace(/\/+$/, '').toLowerCase());
+
+const records = repos.map((repo, i) => ({
+  repo,
+  kind: repoKind(repo.name),
+  project: projectFor(repo.url),
+  no: String(i + 1).padStart(2, '0'),
+}));
+
+/** Repositories that also hold a curated record. Featured by that, never by stars. */
+const crossReferenced = records.filter((r) => r.project);
+
+/**
+ * Repositories per primary language.
+ *
+ * A COUNT OF REPOSITORIES, not a proportion of code. GitHub assigns one
+ * primary language per repository and the snapshot carries nothing finer, so
+ * this is the only language measurement available — and it is reported as the
+ * measurement it is rather than converted into a percentage of something that
+ * was never measured. `null` becomes its own row rather than being dropped.
+ */
+const UNCLASSIFIED = 'Unclassified';
+const tally = [...repos.reduce((m, r) => {
+  const key = r.language ?? UNCLASSIFIED;
+  return m.set(key, (m.get(key) ?? 0) + 1);
+}, new Map<string, number>())].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+const iso = (d: string) => d.slice(0, 10);
+const day = new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
+const compiled = snapshot?.generatedAt;
+
+const profileUrl = `https://github.com/${SITE.github}`;
+
+/**
+ * The title block, and the one place the fallback state had a real bug.
+ *
+ * `${records.length} repositories` printed "0 repositories" when the snapshot
+ * was gone — which is not a missing number, it is a WRONG one: there are ten,
+ * and the page simply could not see them. M07 wrote a test for exactly this
+ * ("the archive claims no holdings it cannot list") and the test was inert,
+ * so the defect shipped underneath a passing assertion. Repaired in M08 when
+ * the assertion started running. Counts derived from absent data now read
+ * `Unavailable`, the same as the compiled date beside them.
+ */
+const cells: Cell[] = [
+  { key: 'Sheet', value: `${world.ref} · GitHub`, accent: true },
+  {
+    key: 'Holdings',
+    value: snapshot ? `${records.length} repositories` : 'Unavailable',
+  },
+  {
+    key: 'Cross-referenced',
+    value: snapshot ? `${crossReferenced.length} in Projects` : 'Unavailable',
+  },
+  { key: 'Compiled', value: compiled ? day.format(new Date(compiled)) : 'Unavailable' },
+];
+
+/** What the snapshot does not contain, and why. Stated, not left as a gap. */
+const notHere: { what: string; why: string }[] = [
+  {
+    what: 'Contribution totals',
+    why: 'The contributions field is null. Totals need the GraphQL API, which mandates a token — so the number is either fetched properly or left absent. It is never estimated from the REST data, which cannot produce it.',
+  },
+  {
+    what: 'Commit counts and streaks',
+    why: 'Not in the snapshot, and not derivable from it. A repository index reports what exists, not how often it was touched, and a fabricated commit graph is the most common untruth on a page like this.',
+  },
+  {
+    what: 'Lines or bytes of code',
+    why: 'GitHub reports one primary language per repository and nothing finer at this endpoint. The tally above therefore counts repositories, and says so, instead of implying a proportion nothing measured.',
+  },
+  {
+    what: 'Private work',
+    why: 'This is the public record only. Anything private is absent by definition, and its absence should not be read as a claim that nothing else exists.',
+  },
+];
+---
+
+<WorldLayout
+  world="github"
+  title="GitHub"
+  description="Every public repository by Ayush Rijal, compiled at build time from the GitHub API — names, descriptions, languages and dates, with the source link for each."
+  masthead={false}
+>
+  <div class="sheet archive">
+    <p class="t-label archive__mark">
+      <span>{world.ref} · {world.gateTitle}</span>
+      <span>{world.world}</span>
+    </p>
+    <hr class="rule rule--strong" />
+
+    <h1 class="t-display archive__title">Public Code Archive</h1>
+    <p class="t-text archive__intro">
+      Every public repository on the account, as GitHub reports it. The
+      descriptions here are GitHub&rsquo;s own words, quoted; the classification
+      is mine. Where a repository also has a written record in the archive, both
+      are linked, because they answer different questions.
+    </p>
+
+    <TitleBlock cells={cells} label="Archive details" />
+
+    {/* ── The standing claim ──────────────────────────────────────── */}
+    <section class="claim" aria-labelledby="claim">
+      <h2 class="t-label" id="claim">Standing claim</h2>
+      <p class="claim__statement">
+        I don&rsquo;t want my portfolio to tell you<br />that I can code. I want
+        the source to show you.
+      </p>
+      <p class="t-text claim__gloss">
+        That is not a claim that any of this is production quality. Most of it
+        is not. It is a claim that you do not have to take my word for
+        anything on this site — every page in the archive that describes code
+        links to the code, and this page lists all of it, including the parts
+        that are not engineering work at all.
+      </p>
+    </section>
+
+    {
+      records.length === 0 ? (
+        <section class="unavailable" aria-labelledby="none">
+          <h2 class="t-label" id="none">
+            Repository data unavailable
+          </h2>
+          <p class="t-text">
+            No snapshot could be read at build time. This is the third step of
+            the loader&rsquo;s fallback contract and a designed state, not an
+            error: the archive says the data is missing rather than showing an
+            empty index that reads as &ldquo;no public work exists&rdquo;.
+          </p>
+          <p class="t-text">
+            The record itself is unaffected and is where it has always been.
+          </p>
+          <a class="profile" href={profileUrl} rel="noopener noreferrer">
+            github.com/{SITE.github}
+            <span class="src__out" aria-hidden="true">↗</span>
+          </a>
+        </section>
+      ) : (
+        <>
+          {/* ── 01 · Cross-referenced ───────────────────────────── */}
+          <section class="folio" aria-labelledby="f-cross">
+            <p class="t-label folio__head">
+              <span class="folio__no">01</span>
+              <span>Cross-referenced</span>
+            </p>
+            <h2 class="t-heading folio__title" id="f-cross">
+              Read the description here, inspect the implementation there
+            </h2>
+            <p class="t-text folio__lede">
+              {crossReferenced.length} of the {records.length} repositories also
+              carry a written record in the workshop. Selected by whether that
+              record exists — not by stars, which on this account are 1, 1 and 0
+              and would rank nothing.
+            </p>
+
+            <ul class="crossref" role="list">
+              {crossReferenced.map(({ repo, project }) => (
+                <li class="crossref__item">
+                  <p class="crossref__repo">{repo.name}</p>
+                  <p class="crossref__links">
+                    <a class="src" href={`/projects/${project!.id}`}>
+                      {project!.data.title} — the record
+                    </a>
+                    <a class="src" href={repo.url} rel="noopener noreferrer">
+                      Source
+                      <span class="src__out" aria-hidden="true">↗</span>
+                    </a>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* ── 02 · The register ───────────────────────────────── */}
+          <section class="folio" aria-labelledby="f-reg">
+            <p class="t-label folio__head">
+              <span class="folio__no">02</span>
+              <span>Register of holdings</span>
+            </p>
+            <h2 class="t-heading folio__title" id="f-reg">
+              Everything that is public
+            </h2>
+            <p class="t-text folio__lede">
+              All {records.length}, most recently pushed first. Nothing is
+              filtered out except forks, which are public code but not authored
+              work. The profile README, this website and a personal page are
+              listed like everything else, with their class printed — an archive
+              that quietly drops three of its ten holdings is not an archive.
+            </p>
+
+            <table class="holdings">
+              <caption class="t-label">
+                Public repositories · descriptions quoted verbatim from GitHub
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="t-label">No.</th>
+                  <th scope="col" class="t-label">Repository</th>
+                  <th scope="col" class="t-label">Class</th>
+                  <th scope="col" class="t-label">Language</th>
+                  <th scope="col" class="t-label">Last push</th>
+                  <th scope="col" class="t-label">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map(({ repo, kind, project, no }) => (
+                  <tr>
+                    <td class="t-label holdings__no">{no}</td>
+                    <th scope="row" class="holdings__name">
+                      {repo.name}
+                      {repo.description ? (
+                        <span class="holdings__desc">{repo.description}</span>
+                      ) : (
+                        <span class="holdings__desc holdings__desc--absent">
+                          No description on GitHub
+                        </span>
+                      )}
+                      {repo.archived && (
+                        <span class="holdings__archived">Archived</span>
+                      )}
+                    </th>
+                    <td data-label="Class">
+                      <span class="class" data-class={kind}>
+                        {kind}
+                      </span>
+                    </td>
+                    <td class="holdings__meta" data-label="Language">
+                      {repo.language ?? '—'}
+                    </td>
+                    <td class="holdings__meta" data-label="Last push">
+                      <time datetime={iso(repo.pushedAt)}>{iso(repo.pushedAt)}</time>
+                    </td>
+                    <td data-label="Source">
+                      <span class="holdings__links">
+                        <a class="src" href={repo.url} rel="noopener noreferrer">
+                          {repo.name}
+                          <span class="src__out" aria-hidden="true">↗</span>
+                        </a>
+                        {project && (
+                          <a class="src" href={`/projects/${project.id}`}>
+                            Record
+                          </a>
+                        )}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <p class="t-text folio__note">
+              The descriptions are quoted rather than rewritten, and one of them
+              shows why that matters. YushaCyber&rsquo;s says it has &ldquo;a
+              thriving community&rdquo;; its
+              <a href="/projects/yushacyber">record in the workshop</a> says it
+              has no users to speak of. Both are on this site because both are
+              true of their own layer — the first is what the repository claims
+              about itself, the second is what I know about it. Rewriting the
+              first to agree with the second would have quietly erased the
+              difference, which is the one thing a two-layer archive exists to
+              preserve.
+            </p>
+          </section>
+
+          {/* ── 03 · Language tally ─────────────────────────────── */}
+          <section class="folio" aria-labelledby="f-lang">
+            <p class="t-label folio__head">
+              <span class="folio__no">03</span>
+              <span>Language tally</span>
+            </p>
+            <h2 class="t-heading folio__title" id="f-lang">
+              Repositories per language, and nothing finer
+            </h2>
+            <p class="t-text folio__lede">
+              One cell per repository. This counts <strong>repositories</strong>,
+              not lines and not bytes — GitHub assigns a single primary language
+              per repository and the snapshot carries nothing below that, so a
+              percentage here would be a proportion of something nobody
+              measured. Count the cells; they are the number.
+            </p>
+            <p class="t-text folio__lede">
+              It is also a blunt instrument, and one row shows why:
+              <code>Agriculture_simulator</code> counts as HTML because it is
+              mostly Jinja templates by byte count, while its logic is Python.
+              GitHub&rsquo;s call is a fact about the repository, not about the
+              work in it.
+            </p>
+
+            <ul class="tally" role="list">
+              {tally.map(([language, count]) => (
+                <li
+                  class="tally__row"
+                  data-lang={language === UNCLASSIFIED ? 'none' : 'set'}
+                >
+                  <span class="tally__name">{language}</span>
+                  <span class="tally__cells" aria-hidden="true">
+                    {Array.from({ length: count }, () => (
+                      <span class="tally__cell" />
+                    ))}
+                  </span>
+                  <span class="tally__count">
+                    {count} {count === 1 ? 'repository' : 'repositories'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* ── 04 · Last push ──────────────────────────────────── */}
+          <section class="folio" aria-labelledby="f-push">
+            <p class="t-label folio__head">
+              <span class="folio__no">04</span>
+              <span>Last push</span>
+            </p>
+            <h2 class="t-heading folio__title" id="f-push">
+              When each holding was last touched
+            </h2>
+            <p class="t-text folio__lede">
+              The date of the most recent push to each repository, as recorded
+              in the snapshot. That is all it is — not a commit count, not
+              activity, not a streak. A repository pushed once and a repository
+              pushed a hundred times show the same single date here.
+            </p>
+
+            <ol class="pushes" role="list">
+              {records.map(({ repo }) => (
+                <li class="pushes__row">
+                  <time class="pushes__date" datetime={iso(repo.pushedAt)}>
+                    {iso(repo.pushedAt)}
+                  </time>
+                  <span class="pushes__repo">{repo.name}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {/* ── 05 · What is not here ───────────────────────────── */}
+          <section class="folio" aria-labelledby="f-absent">
+            <p class="t-label folio__head">
+              <span class="folio__no">05</span>
+              <span>Not in this record</span>
+            </p>
+            <h2 class="t-heading folio__title" id="f-absent">
+              What the snapshot does not contain
+            </h2>
+            <p class="t-text folio__lede">
+              A section rather than a gap. Everything below could be invented
+              convincingly from the data that is here, and each one would be a
+              lie of a slightly different kind.
+            </p>
+
+            <ul class="absent" role="list">
+              {notHere.map(({ what, why }) => (
+                <li class="absent__item">
+                  <p class="absent__what">{what}</p>
+                  <p class="t-text absent__why">{why}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* ── 06 · Provenance ─────────────────────────────────── */}
+          <section class="folio" aria-labelledby="f-prov">
+            <p class="t-label folio__head">
+              <span class="folio__no">06</span>
+              <span>Provenance</span>
+            </p>
+            <h2 class="t-heading folio__title" id="f-prov">
+              How this page got its facts
+            </h2>
+            <p class="t-text folio__lede">
+              A GitHub Actions workflow calls the REST API with the
+              runner&rsquo;s own token, writes an allow-listed set of fields to
+              a JSON snapshot, and the build reads that file. Nothing on this
+              page is fetched by your browser, no credential exists anywhere in
+              what was sent to you, and no visitor spends the API rate limit.
+              If the fetch fails the build uses the last committed snapshot; if
+              that is missing too, this page says so rather than showing an
+              empty index.
+            </p>
+            <p class="t-text folio__lede">
+              Which means every figure above is only true as of the stamp.
+            </p>
+
+            {compiled && (
+              <p class="stamp">
+                <span>Compiled</span>
+                <span>{new Date(compiled).toISOString().slice(0, 16).replace('T', ' ')} UTC</span>
+              </p>
+            )}
+
+            <p class="t-text folio__lede">
+              The account itself, which is the source of record for all of it:
+            </p>
+            <a class="profile" href={profileUrl} rel="noopener noreferrer">
+              github.com/{SITE.github}
+              <span class="src__out" aria-hidden="true">↗</span>
+            </a>
+          </section>
+        </>
+      )
+    }
+  </div>
+</WorldLayout>
+
+<style>
+  .folio__note {
+    margin-block-start: var(--space-m);
+    padding-inline-start: var(--space-s);
+    border-inline-start: 1px dashed var(--rule-strong);
+    color: var(--ink-secondary);
+  }
+
+  .folio__note a {
+    color: var(--world-accent);
+  }
+
+  .folio__lede code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background-color: var(--paper-recessed);
+    padding: 0.1em 0.3em;
+    /* An unbreakable literal otherwise sets the min-content width of whatever
+       track it sits in — the defect M06 traced on the AI Lab bench. */
+    overflow-wrap: anywhere;
+  }
+</style>

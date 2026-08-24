@@ -1,0 +1,124 @@
+---
+/**
+ * RESPONSIVE REVIEW HARNESS
+ *
+ * Renders a route at every viewport in the M03-B test matrix at once, using
+ * same-origin iframes. An iframe establishes a real viewport, so media
+ * queries, container queries and `matchMedia` all resolve against the frame's
+ * width rather than the window's — which is what makes this a genuine test and
+ * not a mock-up.
+ *
+ * It exists because a desktop browser window cannot be resized below roughly
+ * 500px, so phone widths are otherwise untestable without device emulation.
+ * Each frame is scaled down for display only; its internal viewport stays at
+ * the declared size.
+ *
+ * `noindex`, unlinked from the site, and — like the rest of /lab — an
+ * instrument rather than a page.
+ *
+ * Usage: /lab/viewports  (defaults to `/`)
+ *        /lab/viewports?route=/about
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import '@styles/lab.css';
+
+const VIEWPORTS = [
+  { label: 'Desktop', w: 1920, h: 1080 },
+  { label: 'Desktop', w: 1440, h: 900 },
+  { label: 'Laptop', w: 1366, h: 768 },
+  { label: 'Tablet landscape', w: 1024, h: 768 },
+  { label: 'Tablet portrait', w: 768, h: 1024 },
+  { label: 'Phone', w: 390, h: 844 },
+  { label: 'Phone', w: 375, h: 812 },
+];
+
+/** Display width each frame is scaled into. */
+const COLUMN = 340;
+---
+
+<BaseLayout title="Viewport harness" world="home" bare>
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <main class="lab" id="main" tabindex="-1">
+    <h1 class="lab__title">Responsive review</h1>
+    <p class="lab__intro">
+      One route at every viewport in the test matrix. Each frame is a real
+      viewport — media queries resolve against the frame, not the window — and
+      is scaled for display only. Set <code>?route=</code> to review another
+      page.
+    </p>
+
+    <div class="vp__grid">
+      {
+        VIEWPORTS.map((v) => {
+          const scale = COLUMN / v.w;
+          return (
+            <figure class="vp">
+              <figcaption class="vp__caption">
+                <span>{v.label}</span>
+                <span class="vp__size">
+                  {v.w} × {v.h}
+                </span>
+              </figcaption>
+              <div
+                class="vp__viewport"
+                style={`inline-size:${COLUMN}px;block-size:${Math.round(v.h * scale)}px`}
+              >
+                <iframe
+                  class="vp__frame"
+                  title={`Preview at ${v.w} by ${v.h}`}
+                  data-vp-frame
+                  width={v.w}
+                  height={v.h}
+                  loading="lazy"
+                  style={`transform:scale(${scale})`}
+                />
+              </div>
+            </figure>
+          );
+        })
+      }
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .vp__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-l);
+    margin-block-start: var(--space-l);
+  }
+
+  .vp__caption {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-tertiary);
+    padding-block-end: var(--space-2xs);
+  }
+
+  .vp__size {
+    color: var(--ink);
+  }
+
+  .vp__viewport {
+    overflow: hidden;
+    border: 1px solid var(--rule-strong);
+    background-color: var(--paper);
+  }
+
+  .vp__frame {
+    border: 0;
+    display: block;
+    transform-origin: top left;
+  }
+</style>
+
+<script>
+  import '@scripts/lab-viewports';
+</script>
