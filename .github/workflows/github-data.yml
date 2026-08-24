@@ -3,11 +3,11 @@ name: GitHub data
 # K4 — the scheduled half of the build-time GitHub integration
 # (PROJECT_PROGRESS §8.3, §9.6).
 #
-# CI already refreshes the data on every push to `v2`, so the site is current
-# whenever it is rebuilt. What is missing without this workflow is the FALLBACK
-# going stale: `github.snapshot.json` is the committed last-known-good that the
-# build reads when a fetch fails, and a fallback last written months ago is a
-# fallback that lies. This job's only job is to keep it fresh.
+# `deploy.yml` already refreshes the data on every push to `main`, so the site
+# is current whenever it deploys. What is missing without this workflow is the
+# FALLBACK going stale: `github.snapshot.json` is the committed last-known-good
+# that the build reads when a fetch fails, and a fallback last written months
+# ago is a fallback that lies. This job's only job is to keep it fresh.
 #
 # Cadence is the §9.6 recommendation — every six hours, plus on demand. The
 # repositories change a few times a week at most; six hours costs four runs a
@@ -17,7 +17,7 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
-# Write is needed to commit the refreshed snapshot back to `v2`, and is the
+# Write is needed to commit the refreshed snapshot back to `main`, and is the
 # only elevated grant anywhere in this repository's automation.
 permissions:
   contents: write
@@ -34,7 +34,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v2
+          # `main` since the V2 cutover (M13-C). This must track the branch
+          # production is built from: the snapshot it refreshes is the fallback
+          # `deploy.yml` reads when a live fetch fails, so refreshing it on any
+          # other branch would leave production's fallback to go stale — the
+          # exact failure this workflow exists to prevent.
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
