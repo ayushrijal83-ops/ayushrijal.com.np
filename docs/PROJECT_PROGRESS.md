@@ -9,13 +9,14 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M17 — Feature-branch CI hardening** |
+| **Current milestone** | **M18 — Snapshot deployment gap + PR CI** |
+| **M18 status** | **Objective B COMPLETE — VERIFIED; Objective A merged, chain AWAITING OBSERVATION.** PR **#1** (`m18-snapshot-deploy` → `main`, merge `093215d`) produced the repository's first `pull_request` CI run `32825354280` — all four gates green in 30 s, and **zero Deploy runs** on the branch. `github-data.yml` now dispatches `deploy.yml` after a snapshot commit (`fc1166a`, `actions: write`); the recursion guard was proven three times, once live (`f2cc8da` → `total_count: 0`). Merge Deploy `32825466193` success, `deploy-pages` executed. See §1T. |
 | **M17 status** | **COMPLETE — VERIFIED.** Feature branches now run CI automatically: run `32812105029` on `m17-ci-hardening` (`dcd44e2`) passed all four gates in 25 s, and was the **only** run the branch produced — no Deploy, no Pages deployment, production bytes unchanged. Merge `44f928e`, Deploy `32812259354` success (build 31 s, deploy job **executed** 10 s); production re-verified on nine routes. PR CI **NOT OBSERVED — OWNER ACTION**. See §1S. |
 | **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
 | **M15 status** | **Complete — merged in M16.** Branch `m15-cybersecurity` (`2aac8e7`). Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d), negative-tested 35/35. See §1Q. |
 | **M14 status** | **COMPLETE.** HTTPS enforcement **verified** (301 → HTTPS site-wide, valid cert). `github-data.yml` retargeted to `main` (`7ce6e11`), deployed via run `32735886304`, production republished 14:00:30Z and byte-compared against `dist`. `github-data` has **still never executed** — next scheduled 18:00Z. See §1P. |
 | **Last updated** | 2026-08-25 |
-| **Working branch** | `main` — production, deploys on push. `m17-ci-hardening` merged (`--no-ff`, `44f928e`) and retained; rollback of the CI trigger change is `git revert -m 1 44f928e`. `m15-cybersecurity` merged (`--no-ff`, `4caff65`) and retained. Rollback of the Cybersecurity world is `git revert -m 1 4caff65`; of the V2 cutover, `git revert -m 1 927477a`. |
+| **Working branch** | `main` — production, deploys on push. `m18-snapshot-deploy` merged via **PR #1** (`093215d`) and retained; rollback of the snapshot-dispatch change is `git revert -m 1 093215d`. `m17-ci-hardening` merged (`--no-ff`, `44f928e`) and retained; rollback of the CI trigger change is `git revert -m 1 44f928e`. `m15-cybersecurity` merged (`--no-ff`, `4caff65`) and retained. Rollback of the Cybersecurity world is `git revert -m 1 4caff65`; of the V2 cutover, `git revert -m 1 927477a`. |
 
 ---
 
@@ -41,6 +42,7 @@
 | M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
 | M15 | Cybersecurity world | **Complete** | §1Q below. Evidence-based, zero fabrication, 0 findings filed and correctly so. Merged in M16. |
 | M16 | Production integration & verification | **Complete — VERIFIED LIVE** | §1R below. Merge `4caff65`, Deploy `32741152755`; `/cybersecurity/` verified over HTTPS byte-identical; §8c/§8d re-run against production. |
+| M18 | Snapshot deployment gap + PR CI | **Objective B complete; A awaiting observation** | §1T below. First `pull_request` CI run `32825354280` green with zero Deploy runs; snapshot→deploy dispatch merged (`093215d`) but **not yet observed firing**. |
 | M17 | Feature-branch CI hardening | **Complete — VERIFIED** | §1S below. CI run `32812105029` on `m17-ci-hardening` green with zero Deploy runs; merge `44f928e`, Deploy `32812259354` success. PR CI **NOT OBSERVED**. |
 | M14 | Production hardening & closeout | **Complete** | §1P below. HTTPS enforced and verified; `github-data.yml` → `ref: main`; production re-verified and byte-compared. `github-data` execution **NOT OBSERVED**. |
 | Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
@@ -6388,6 +6390,373 @@ OWNER ACTION.**
 request.** Both are small, both are evidence-gathering rather than
 construction, and the first is the only genuinely new defect this milestone
 found. Neither touches the site.
+
+---
+
+## 1T. M18 — Snapshot deployment gap + PR CI observation
+
+**Status: Objective B COMPLETE — VERIFIED. Objective A implemented and merged;
+the scheduled chain is AWAITING OBSERVATION at the time of writing (§1T.10).**
+
+### 1T.1 Objective
+
+Two things, both evidence rather than construction:
+
+- **A.** Close the gap M17 recorded — `github-data.yml` commits a refreshed
+  snapshot to `main`, but production keeps serving the older figures because
+  that commit starts no deployment.
+- **B.** Close M17's one unobserved CI criterion: a real `pull_request` run.
+
+No redesign, no features, no dependency, no content change.
+
+### 1T.2 Starting state
+
+| | |
+|---|---|
+| Branch at start | `main` |
+| HEAD | **`8cd6300`** (M17 record) |
+| `origin/main` | `8cd6300` — equal |
+| Working tree | clean |
+| Milestone branch | `m18-snapshot-deploy`, cut from `8cd6300` |
+
+### 1T.3 Files changed
+
+**One file.** `.github/workflows/github-data.yml`, commit **`fc1166a`**, +42/−4
+(most of it comment). Not touched: `deploy.yml`, `ci.yml`, every page,
+component and stylesheet, every client script, `package.json`,
+`package-lock.json`, `scripts/*`, all Cybersecurity content.
+
+`deploy.yml` being untouched matters: the deployment workflow's M17-proven
+properties carry over unmodified rather than needing to be re-established.
+
+### 1T.4 The investigation
+
+Four questions had to be answered from source and from the API before anything
+was edited.
+
+**How does `github-data.yml` commit?** A plain `run:` block: `git config` to
+`github-actions[bot]`, `git add src/data/github.snapshot.json`, `git commit`,
+`git push` — guarded by `git diff --quiet`, so it commits only when the file
+actually changed. The push is authenticated by the runner's automatic
+`GITHUB_TOKEN` supplied by `actions/checkout@v4`. No PAT anywhere.
+
+**What decides whether the snapshot changes?** `scripts/fetch-github.mjs`
+compares *repository facts only*, ignoring `generatedAt` (`sameFacts`). The
+fact list in `normalise` includes **`pushedAt`** — so any push to this
+repository changes a fact, and the next scheduled run commits. This is why the
+workflow commits far more often than "a few times a week": the repository's own
+development traffic moves its own `pushedAt`.
+
+**Why does that commit not deploy?** GitHub's recursion guard: events created
+by the default `GITHUB_TOKEN` do not start workflow runs. **Proven three
+times, not assumed** — for each bot commit, `GET /actions/runs?head_sha=…`:
+
+| Bot commit to `main` | Snapshot fact changed | Workflow runs for that SHA |
+|---|---|---|
+| `9ff17e2` | yes | 0 Deploy |
+| `b310619` | yes | **`total_count: 0`** |
+| `f2cc8da` (**observed live during M18**) | yes — `pushedAt` `2026-08-24T18:51:34Z` → `2026-08-25T05:49:32Z` | **`total_count: 0`** |
+
+`deploy.yml` triggers on `push: branches: [main]`, and `f2cc8da` *is* a push to
+`main`. It still produced nothing. That is the defect, reproduced live.
+
+**What was the consequence?** Measured. Run `32819427767` committed `f2cc8da`
+at 06:59:55Z. Production continued serving the 05:25:01Z build — a snapshot
+commit behind `main`, with no mechanism to catch up until an unrelated human
+push happened along.
+
+### 1T.5 Root cause — VERIFIED
+
+Not a bug in the workflow, and not something a permission fixes. It is
+documented GitHub behaviour: *"events triggered by the `GITHUB_TOKEN`, with the
+exception of `workflow_dispatch` and `repository_dispatch`, will not create a
+new workflow run."* The workflow was relying on its own push being noticed, and
+that is precisely the thing the guard prevents.
+
+### 1T.6 Chosen solution — ask, do not rely on being noticed
+
+The two documented exceptions are the two forms of dispatch. The workflow now
+requests the deployment explicitly, in the guarded tail of the commit step:
+
+```
+          git push
+          echo "Snapshot committed; requesting a production deployment."
+          gh workflow run deploy.yml --ref main
+```
+
+with `actions: write` added to its permissions.
+
+Why this and not the alternatives:
+
+| Option | Verdict |
+|---|---|
+| **`workflow_dispatch` from `github-data` (chosen)** | Fires only when a commit actually happened. Touches one file. `deploy.yml` unmodified |
+| `workflow_run` trigger on `deploy.yml` | Needs no new permission, but fires on *every* `github-data` completion — four pointless deployments a day — unless further guarded, and it requires editing the deployment workflow |
+| `repository_dispatch` | Might have needed no new permission, but that assumption was not certain enough to stake the fix on, and it too requires editing `deploy.yml` |
+| A PAT | **Rejected.** No credential was created, and none is needed |
+
+**Least privilege.** `actions: write` is the minimum grant for the one API call
+it makes. It is *narrower* than the `contents: write` this workflow already
+holds — a workflow that can push to `main` is strictly more powerful than one
+that can start a workflow — and it grants nothing towards Pages. `pages: write`
+and `id-token: write` remain confined to `deploy.yml`'s `deploy` job, still the
+only `actions/deploy-pages` invocation in the repository.
+
+**No fact change → no deploy.** The dispatch sits *after* the `exit 0` for the
+unchanged case. A quiet period produces no commit and no deployment.
+
+**No loop.** It dispatches `deploy.yml` and nothing else; `deploy.yml` neither
+pushes nor dispatches; `github-data.yml` is reachable only by `schedule` or a
+human `workflow_dispatch`. The chain is two steps deep and terminates.
+
+**No new supply chain.** `gh` is preinstalled on GitHub-hosted runners — no
+third-party action, no dependency, no lockfile change.
+
+### 1T.7 Local validation — every baseline held
+
+| Gate | Baseline | M18 | Status |
+|---|---|---|---|
+| `astro check` | 0 / 0 / 0 | 0 errors, 0 warnings, 0 hints | **VERIFIED** |
+| `npm run test:github` | 18 | 18 assertions | **VERIFIED** |
+| `npm run test:security` | 35 | 35 assertions | **VERIFIED** |
+| `npm run verify` | 17 pages | 17 pages, 8 worlds | **VERIFIED** |
+| `npm audit --audit-level=high` | 0 | 0 vulnerabilities | **VERIFIED** |
+| `git diff --check` | clean | clean | **VERIFIED** |
+| YAML parse, all three workflows | — | parse clean | **VERIFIED** |
+
+Nothing weakened, no assertion relaxed, no exclusion added.
+
+### 1T.8 Pull request — OBSERVED (Objective B complete)
+
+The repository's first pull request, and a real change rather than a synthetic
+one: the M18 fix itself.
+
+| | |
+|---|---|
+| PR | **#1** — `ci(github-data): deploy the snapshot it just committed` |
+| Head → base | `m18-snapshot-deploy` → `main` |
+| Head SHA | `fc1166a` |
+| Created / merged | 2026-08-25T08:11:28Z / 08:12:52Z |
+| Merge commit | **`093215d`** |
+| Size | 1 file, +42 −4 |
+| Opened by | repository owner (PR creation needs credentials Claude Code does not hold) |
+
+**PR CI run — OBSERVED:**
+
+| | |
+|---|---|
+| **Run ID** | **32825354280** |
+| Workflow / event | CI / **`pull_request`** |
+| Branch / SHA | `m18-snapshot-deploy` / `fc1166a` |
+| Duration | 2026-08-25T08:11:33Z → 08:12:03Z (**30 s**) |
+| Conclusion | **success** |
+
+All four gates, in the M17 order:
+
+| # | Step | Result |
+|---|---|---|
+| 4 | Install (`npm ci`) | **PASS** |
+| 6 | `test:github` | **PASS** |
+| 7 | `test:security` | **PASS** |
+| 8 | `verify` (astro check + build + `verify-output.mjs`) | **PASS** |
+| 9 | `npm audit --audit-level=high` | **PASS** |
+
+M17's `NOT OBSERVED — OWNER ACTION` on PR CI is now **CLOSED — VERIFIED**.
+
+An earlier push run on the same branch is also recorded: run **32814369987**,
+event `push`, 05:49:37Z → 05:50:05Z (28 s), success.
+
+### 1T.9 PR and feature-branch deployment exclusion — VERIFIED
+
+`GET /actions/runs?branch=m18-snapshot-deploy` → **`total_count: 2`**:
+
+| Run | Workflow | Event | Result |
+|---|---|---|---|
+| 32825354280 | CI | `pull_request` | success |
+| 32814369987 | CI | `push` | success |
+
+**Zero Deploy runs. Zero Pages deployments.** Both the push and the pull
+request ran validation only.
+
+From source, this is over-determined: `deploy.yml`'s trigger list is exactly
+`['push', 'workflow_dispatch']` — it has **no `pull_request` trigger at all**,
+so a PR event cannot start it even before the `deploy` job's
+`if: github.ref == 'refs/heads/main'` is considered. `ci.yml` remains
+`contents: read` with no `environment:` and no Pages step, and uses
+`pull_request`, never `pull_request_target`, so fork code would run against the
+merge ref with a read-only token and no secrets.
+
+Production during the PR: `Last-Modified` stayed at the pre-PR value until the
+*merge* deployed. **VERIFIED.**
+
+### 1T.10 The scheduled chain — AWAITING OBSERVATION
+
+The desired chain is:
+
+```
+github-data (schedule) → snapshot fact changes → bot commit to main
+   → gh workflow run deploy.yml → gates → deploy-pages → production updates
+```
+
+Half of it is already **OBSERVED**, from before the fix was merged — the first
+three links fire reliably (run `32819427767` → `f2cc8da`), and the fourth is
+exactly what did *not* happen and what the fix supplies.
+
+**The dispatch link has NOT been observed executing.** The fix reached `main`
+only at 08:12:52Z, after that run. Scheduled workflows execute the version on
+the default branch, so the next scheduled run is the first to carry it.
+
+Cadence observed so far — cron `0 */6 * * *`, delivered 50–60 minutes late by
+GitHub's scheduler: 2026-08-24T18:51Z, 2026-08-25T01:43Z, 2026-08-25T06:59Z.
+
+The next run is expected to commit, because `pushedAt` has already moved again
+(the 08:12:52Z merge) while the committed snapshot still records
+`2026-08-25T05:49:32Z`.
+
+Per the milestone's own rule, `github-data` was **not** manually dispatched to
+simulate this, and no deployment will be claimed from a workflow merely
+existing in YAML.
+
+Status at time of writing: **NOT OBSERVED — the mechanism is implemented,
+merged, statically verified and locally validated, but has not yet fired.**
+
+### 1T.11 Merge deployment — OBSERVED
+
+| | |
+|---|---|
+| **Run ID** | **32825466193** |
+| Workflow / event | Deploy / `push` on `main` |
+| Commit | `093215d` (parents `f2cc8da` + `fc1166a`) |
+| `build` | success, 08:12:57Z → 08:13:35Z (**38 s**) |
+| `deploy` | **success, executed**, 08:13:38Z → 08:13:47Z (**9 s**) |
+| Total | 08:12:54Z → 08:13:48Z (**54 s**) |
+
+`build`: `npm ci`, GitHub refresh, `test:github`, `test:security`, `verify`,
+`npm audit`, `upload-pages-artifact` — all PASS. Then `actions/deploy-pages@v4`
+PASS.
+
+Because the merge commit's first parent is `f2cc8da`, this deployment also
+carried the *pending* snapshot to production. The staleness described in §1T.4
+is resolved as of 08:13:41Z — **by the merge, not by the new mechanism**, which
+is a distinction worth keeping straight.
+
+### 1T.12 Production verification — VERIFIED
+
+All routes over HTTPS, `Last-Modified` Tue 25 Aug 2026 08:13:41 GMT:
+
+| Route | Status | Bytes | `<h1>` |
+|---|---|---|---|
+| `/` | 200 | 19 214 | 1 |
+| `/about/` | 200 | 13 999 | 1 |
+| `/projects/` | 200 | 20 178 | 1 |
+| `/ai-lab/` | 200 | 59 644 | 1 |
+| `/learning/` | 200 | 36 951 | 1 |
+| `/github/` | 200 | 36 924 | 1 |
+| `/contact/` | 200 | 17 440 | 1 |
+| `/cybersecurity/` | 200 | 20 059 | 1 |
+| `/404.html` | 200 | 8 986 | 1 |
+
+- HTTP → HTTPS **301**. Still enforced.
+- Live legacy: `/work.html` 200, `/lab/pretext/` 200.
+- Retired routes still gone: `/about.html`, `/contact.html`, `/journey.html`,
+  `/blog.html`, `/assets/resume.pdf`, `/ai` — **all 404**.
+- **Byte-identical to local `dist/`** (`cmp`): `/cybersecurity/`, `/about/`,
+  `/contact/`, `/learning/`, `/ai-lab/`.
+- `/github/` differs from local `dist/` (36 924 vs 35 421) — **expected, not a
+  regression**: `deploy.yml` runs a live `github:fetch`, the local build read
+  the committed snapshot. §1T.4's whole subject is that these two move apart.
+- Client-side audit over all nine fetched pages (233 395 B): **0**
+  `api.github.com`, **0** `sourceMappingURL`, **0** `.map` references, **0**
+  inline `<script>`, **0** credential-shaped strings, **0**
+  `fetch(`/`XMLHttpRequest`/`WebSocket`. Every script is a same-origin
+  `/_astro/…` module. No off-origin subresource is loaded anywhere; external
+  hosts (`github.com`, `overthewire.org`, `linkedin.com`) appear only as `href`
+  link targets, and `http://localhost:11434` appears only as prose inside a
+  `<code>` element on AI Lab describing a project's source.
+- Console: **no errors or exceptions** on `/`, `/cybersecurity/` and `/github/`,
+  with tracking active across each load.
+- Horizontal overflow: none at 1265 px on those three pages.
+
+### 1T.13 Security regression — VERIFIED
+
+| Check | Result |
+|---|---|
+| Credentials or PATs added | **None** |
+| Secrets printed | **None** |
+| Secret references | Only the pre-existing `secrets.GITHUB_TOKEN`, passed via `env:` |
+| `${{ }}` inside any `run:` block | **None**, across all three workflows |
+| Pages / `id-token` grants | Confined to `deploy.yml`'s `deploy` job |
+| Pages permission in CI or `github-data` | **None** |
+| Third-party actions | **None** — every `uses:` is first-party `actions/*` |
+| Dependencies / lockfile | **Unchanged** |
+| `continue-on-error` added | **None** — the two occurrences are the pre-existing GitHub-refresh steps |
+| Deployment reachable from a non-`main` ref | **No** — trigger list plus job `if`, and empirically zero Deploy runs on the branch |
+| Recursive workflow risk | **None** — two-step terminating chain (§1T.6) |
+| Security or accessibility assertions weakened | **None** |
+
+The one permission change in the milestone is `actions: write` on
+`github-data.yml`, justified in §1T.6.
+
+### 1T.14 Accessibility and responsive — status honestly bounded
+
+| Item | Status |
+|---|---|
+| One `<h1>` per page, nine routes | **VERIFIED** |
+| No console errors | **VERIFIED** on `/`, `/cybersecurity/`, `/github/` |
+| No horizontal overflow | **VERIFIED at 1265 px** on those three pages |
+| Narrow-viewport responsive | **NOT TESTED** in M18 |
+| Reduced motion | **NOT TESTED** |
+| axe / Lighthouse / screen reader | **NOT TESTED** — none was run |
+| WCAG conformance | **NOT CLAIMED** |
+
+M18 changed no markup, stylesheet or client script, so M16 §1R.13–1R.14 remain
+the governing evidence for accessibility and responsive behaviour.
+
+### 1T.15 Browser coverage
+
+**Chrome only.** Firefox **NOT TESTED**, Safari/WebKit **NOT TESTED**.
+
+### 1T.16 Git state
+
+| | |
+|---|---|
+| `main` | `093215d`, equal to `origin/main` |
+| Working tree | clean |
+| Branch retained | `m18-snapshot-deploy` at `fc1166a` |
+| Force-push / rebase / reset / history rewrite | **None** |
+| Merge style | GitHub merge commit via PR #1 |
+
+`8cd6300` (M17) remains an ancestor of `HEAD`.
+
+### 1T.17 Remaining owner actions
+
+| Item | Status |
+|---|---|
+| Observe the scheduled dispatch chain firing | **PENDING** — see §1T.10 |
+| Reduced-motion behaviour | **NOT TESTED** |
+| Firefox / Safari | **NOT TESTED** |
+| OpenWeatherMap credential | **OPEN — EXTERNAL** |
+
+### 1T.18 Risk register after M18
+
+| Risk | State |
+|---|---|
+| Branch pushes run no CI | **CLOSED — VERIFIED** (M17) |
+| PR CI never observed | **CLOSED — VERIFIED.** Run 32825354280, event `pull_request` |
+| A PR or feature branch could deploy | **CLOSED — VERIFIED.** 2 runs on the branch, both CI, zero Deploy |
+| Snapshot commits do not redeploy | **FIX MERGED, NOT YET OBSERVED FIRING** (§1T.10) |
+| Reduced motion / Firefox / Safari | **NOT TESTED** |
+| OpenWeatherMap credential | **OPEN — EXTERNAL** |
+
+### 1T.19 Next milestone
+
+**M19 — confirm the chain, then stop hardening.** The single outstanding item
+is one observation, not a change: a scheduled `github-data` run that commits and
+dispatches, followed by a Deploy run whose `head_sha` is that bot commit. Once
+that is recorded, the CI → snapshot → deployment chain is demonstrably correct
+end to end and the automation needs no further work. The untested items that
+remain (reduced motion, Firefox, Safari) are browser-behaviour questions, not
+pipeline questions, and deserve their own milestone rather than being folded in.
 
 ---
 
