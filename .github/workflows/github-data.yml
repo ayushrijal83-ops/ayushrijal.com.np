@@ -17,10 +17,18 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
-# Write is needed to commit the refreshed snapshot back to `main`, and is the
-# only elevated grant anywhere in this repository's automation.
+# `contents: write` commits the refreshed snapshot back to `main`.
+#
+# `actions: write` (M18) is the minimum grant for one API call: starting
+# `deploy.yml` via workflow_dispatch after a snapshot commit. It is narrower
+# than the `contents: write` this workflow already holds — a workflow that can
+# push to `main` is strictly more powerful than one that can start a workflow —
+# and it grants nothing towards Pages. `pages: write` and `id-token: write`
+# remain confined to the `deploy` job of `deploy.yml`, which is where the only
+# `actions/deploy-pages` invocation in the repository lives.
 permissions:
   contents: write
+  actions: write
 
 # One at a time. Two overlapping runs would race on the same push, and the
 # second would fail on a non-fast-forward. No cancel-in-progress: a run that
@@ -71,10 +79,38 @@ jobs:
       - name: Verify
         run: npm run verify
 
-      - name: Commit if the facts moved
+      # ── M18: commit, then ASK for a deployment ───────────────────────────
+      # The commit below is authored with the runner's automatic GITHUB_TOKEN,
+      # and GitHub deliberately does not start workflow runs from events that
+      # token creates — the recursion guard. Proven, not assumed: bot commit
+      # `b310619` is a real push to `main`, and the Actions API reports
+      # total_count 0 runs for it, even though `deploy.yml` triggers on
+      # `push: [main]`. The consequence was that a refreshed snapshot sat on
+      # `main` while production kept serving the older figures until some other
+      # push happened to come along.
+      #
+      # `workflow_dispatch` and `repository_dispatch` are the two documented
+      # exceptions to that guard, so the fix is to ask for the deploy
+      # explicitly rather than to rely on the push being noticed. This is
+      # inside the `if`-guarded tail of the step ON PURPOSE: when no repository
+      # fact moved there is no commit, and therefore no deployment either. A
+      # quiet week costs nothing.
+      #
+      # No loop is possible. This dispatches `deploy.yml` and nothing else;
+      # `deploy.yml` neither pushes nor dispatches, and this workflow is
+      # reachable only by `schedule` and by a human `workflow_dispatch`. The
+      # chain is two steps deep and terminates.
+      #
+      # `gh` is preinstalled on GitHub-hosted runners — no third-party action,
+      # no dependency, no PAT. The dispatch carries no input; `deploy.yml`
+      # re-runs every gate on `main` exactly as it does for a human push, so
+      # only a validated artifact can reach Pages.
+      - name: Commit if the facts moved, and deploy if they did
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- src/data/github.snapshot.json; then
-            echo "Snapshot unchanged; nothing to commit."
+            echo "Snapshot unchanged; nothing to commit, nothing to deploy."
             exit 0
           fi
           git config user.name  'github-actions[bot]'
@@ -82,3 +118,5 @@ jobs:
           git add src/data/github.snapshot.json
           git commit -m 'chore(data): refresh the GitHub fallback snapshot'
           git push
+          echo "Snapshot committed; requesting a production deployment."
+          gh workflow run deploy.yml --ref main
