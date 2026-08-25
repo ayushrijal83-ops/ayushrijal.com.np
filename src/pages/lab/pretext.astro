@@ -84,7 +84,7 @@ import '@styles/lab.css';
       <h2 class="lab__h" id="h-replacement">3 · What replaced it</h2>
       <div class="lab__panel">
         <h3>Home, now</h3>
-        <pre class="lab__code"><code>.hero &lbrace; display: flow-root; &rbrace;
+        <pre class="lab__code" role="region" aria-label="Code — the float composition" tabindex="0"><code>.hero &lbrace; display: flow-root; &rbrace;
 .hero__block &lbrace; float: inline-start; inline-size: min(52%, 40rem); &rbrace;
 .standfirst &lbrace; text-wrap: balance; &rbrace;</code></pre>
       </div>
@@ -146,7 +146,7 @@ import '@styles/lab.css';
         out to have text long enough for per-line variable width to matter, the
         experiment comes back with:
       </p>
-      <pre class="lab__code"><code>git show 8a5f95f:src/pages/lab/pretext.astro
+      <pre class="lab__code" role="region" aria-label="Code — recovering the removed rig" tabindex="0"><code>git show 8a5f95f:src/pages/lab/pretext.astro
 git show 8a5f95f:src/scripts/lab-pretext.ts
 git show 8a5f95f:src/scripts/editorial-field.ts
 git show 8a5f95f:src/components/lab/EditorialField.astro

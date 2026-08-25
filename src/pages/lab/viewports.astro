@@ -48,7 +48,7 @@ const COLUMN = 340;
       page.
     </p>
 
-    <div class="vp__grid">
+    <div class="vp__grid" role="region" aria-label="Viewport previews" tabindex="0">
       {
         VIEWPORTS.map((v) => {
           const scale = COLUMN / v.w;
@@ -88,6 +88,13 @@ const COLUMN = 340;
     flex-wrap: wrap;
     gap: var(--space-l);
     margin-block-start: var(--space-l);
+    /* The preview column is a fixed 340px because each frame is scaled by a
+       factor computed against it. Below roughly 380px that column is wider
+       than the page, so the row scrolls in its own box rather than dragging
+       the document sideways — the same rule .tablewrap follows, and the same
+       reason it carries role/label/tabindex: a container that can scroll must
+       be reachable from the keyboard when it does. */
+    overflow-x: auto;
   }
 
   .vp__caption {
