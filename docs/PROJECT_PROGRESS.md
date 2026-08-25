@@ -9,12 +9,13 @@
 | **Implementation** | Senior Developer (Claude) |
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
-| **Current milestone** | **M16 — Cybersecurity in production, verified** |
+| **Current milestone** | **M17 — Feature-branch CI hardening** |
+| **M17 status** | **COMPLETE — VERIFIED.** Feature branches now run CI automatically: run `32812105029` on `m17-ci-hardening` (`dcd44e2`) passed all four gates in 25 s, and was the **only** run the branch produced — no Deploy, no Pages deployment, production bytes unchanged. Merge `44f928e`, Deploy `32812259354` success (build 31 s, deploy job **executed** 10 s); production re-verified on nine routes. PR CI **NOT OBSERVED — OWNER ACTION**. See §1S. |
 | **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
 | **M15 status** | **Complete — merged in M16.** Branch `m15-cybersecurity` (`2aac8e7`). Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d), negative-tested 35/35. See §1Q. |
 | **M14 status** | **COMPLETE.** HTTPS enforcement **verified** (301 → HTTPS site-wide, valid cert). `github-data.yml` retargeted to `main` (`7ce6e11`), deployed via run `32735886304`, production republished 14:00:30Z and byte-compared against `dist`. `github-data` has **still never executed** — next scheduled 18:00Z. See §1P. |
-| **Last updated** | 2026-08-24 |
-| **Working branch** | `main` — production, deploys on push. `m15-cybersecurity` merged (`--no-ff`, `4caff65`) and retained. Rollback of the Cybersecurity world is `git revert -m 1 4caff65`; of the V2 cutover, `git revert -m 1 927477a`. |
+| **Last updated** | 2026-08-25 |
+| **Working branch** | `main` — production, deploys on push. `m17-ci-hardening` merged (`--no-ff`, `44f928e`) and retained; rollback of the CI trigger change is `git revert -m 1 44f928e`. `m15-cybersecurity` merged (`--no-ff`, `4caff65`) and retained. Rollback of the Cybersecurity world is `git revert -m 1 4caff65`; of the V2 cutover, `git revert -m 1 927477a`. |
 
 ---
 
@@ -40,6 +41,7 @@
 | M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
 | M15 | Cybersecurity world | **Complete** | §1Q below. Evidence-based, zero fabrication, 0 findings filed and correctly so. Merged in M16. |
 | M16 | Production integration & verification | **Complete — VERIFIED LIVE** | §1R below. Merge `4caff65`, Deploy `32741152755`; `/cybersecurity/` verified over HTTPS byte-identical; §8c/§8d re-run against production. |
+| M17 | Feature-branch CI hardening | **Complete — VERIFIED** | §1S below. CI run `32812105029` on `m17-ci-hardening` green with zero Deploy runs; merge `44f928e`, Deploy `32812259354` success. PR CI **NOT OBSERVED**. |
 | M14 | Production hardening & closeout | **Complete** | §1P below. HTTPS enforced and verified; `github-data.yml` → `ref: main`; production re-verified and byte-compared. `github-data` execution **NOT OBSERVED**. |
 | Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
 
@@ -6093,6 +6095,299 @@ surfaced: `m15-cybersecurity` was merged without a single runner having
 executed its gates, because no workflow triggers on an arbitrary branch. The
 fix is a trigger change, not new machinery — and it should be made deliberately
 rather than folded into a content milestone.
+
+---
+
+## 1S. M17 — Feature-branch CI hardening
+
+**Status: COMPLETE — feature-branch CI OBSERVED on a real runner, deploy
+exclusion proven from source and by the absence of any Deploy run on the
+branch.**
+
+### 1S.1 The problem M16 surfaced
+
+§1R.18 recorded it as the one open architectural gap: `ci.yml` triggered on
+`push: [v2]` and on pull requests, nothing else. An arbitrary development
+branch therefore received no runner validation at all. `m15-cybersecurity` was
+merged in M16 having never had a single gate executed by a runner — the gates
+in `deploy.yml` caught it on the way to production, so this was fail-safe for
+the live site, but it meant every branch stayed unverified until the moment it
+became production.
+
+### 1S.2 The change — one file, one trigger, one reordering
+
+`.github/workflows/ci.yml`, commit **`dcd44e2`**. Nothing else was touched: no
+page, no component, no stylesheet, no client script, no `package.json`, no
+`package-lock.json`, no dependency, no action version.
+
+```
+-  push:
+-    branches: [v2]
++  push:
++    branches-ignore: [main]
+```
+
+`branches-ignore` rather than an enumerated list, so a branch is covered the
+day it is created — no workflow edit, no branch-naming convention to remember.
+`main` is excluded *deliberately*: `deploy.yml` already runs this identical set
+of gates on every push to `main` before publishing, so triggering CI there too
+would buy a second identical run and nothing else. This was **confirmed
+empirically** — the M17 merge to `main` produced a Deploy run and **no** CI run.
+
+The gate order was also brought into line with `deploy.yml`:
+
+```
+test:github  ->  test:security  ->  verify  ->  npm audit
+```
+
+Previously CI ran `verify` first. CI publishes nothing, so it could get away
+with that — but `test:github` plants a `ghp_…` canary into `dist/` and ends on
+a bare `astro build` that no assertion inspects, and `test:security` plants
+fabricated sentences into the built page. With `verify` last, the tree CI
+asserts against is one `verify` re-emitted itself. The point is that "CI passed
+on my branch" and "the deploy build passed" now mean the same thing, which is
+the entire purpose of feature-branch CI.
+
+### 1S.3 Permission model — unchanged, and that is the finding
+
+CI was already minimal and stays minimal. The M17 diff changes **no**
+permission line.
+
+| Workflow | Permissions | Can reach `deploy-pages`? |
+|---|---|---|
+| `ci.yml` | `contents: read` (workflow level, no job override) | **No** |
+| `deploy.yml` — `build` | `contents: read` | No — uploads the artifact only |
+| `deploy.yml` — `deploy` | `contents: read`, `pages: write`, `id-token: write` | **Yes — and it is gated to `main`** |
+| `github-data.yml` | `contents: write` | No — no Pages step at all |
+
+CI has no `pages: write`, no `id-token: write`, no `contents: write`, no
+`environment:`, and no third-party action beyond `actions/checkout@v4` and
+`actions/setup-node@v4`, both already present before M17.
+
+### 1S.4 Deploy exclusion — proven, four independent barriers
+
+There is exactly **one** `actions/deploy-pages` invocation in the repository:
+`deploy.yml`, job `deploy`. A grep across `.github/workflows/` confirms it.
+
+| # | Barrier | What it covers |
+|---|---|---|
+| 1 | `deploy.yml` `on.push.branches: [main, v2]` — exact literals, no globs | `feature/test`, `m17-ci-hardening`, `bugfix/example` match neither, so the workflow never starts |
+| 2 | `deploy` job `if: github.ref == 'refs/heads/main'` | The `workflow_dispatch` path, which barrier 1 does **not** cover — a dispatch can target any branch, and the job then skips |
+| 3 | `pages: write` + `id-token: write` exist only on that one job | Even a step added to `ci.yml` would hold a token that cannot call the Pages API |
+| 4 | `ci.yml` contains no `upload-pages-artifact`, no `deploy-pages`, no `environment:` | CI produces no Pages artifact for a deployment to consume |
+
+Barrier 2 is worth stating separately: trigger filters alone would be an
+incomplete proof, because `workflow_dispatch` bypasses them.
+
+The M17 change widens a workflow that has **no** Pages capability to widen.
+
+**Empirical confirmation:** `GET /actions/runs?branch=m17-ci-hardening`
+returned `total_count: 1` — the CI run, and nothing else. Zero Deploy runs,
+zero Pages deployments.
+
+### 1S.5 Local validation — baseline held exactly
+
+| Gate | M16 baseline | M17 | Status |
+|---|---|---|---|
+| `astro check` | 0 / 0 / 0 | 0 errors, 0 warnings, 0 hints (51 files) | **VERIFIED** |
+| `npm run test:github` | 18 | 18 assertions | **VERIFIED** |
+| `npm run test:security` | 35 | 35 assertions | **VERIFIED** |
+| `npm run verify` | 17 pages | 17 pages, 8 worlds | **VERIFIED** |
+| `npm audit --audit-level=high` | 0 | 0 vulnerabilities | **VERIFIED** |
+| `git diff --check` | clean | clean | **VERIFIED** |
+
+Nothing was weakened, skipped or relaxed to make this pass. `test:github` and
+`test:security` were run in the new order locally before the workflow was
+committed, confirming that `test:github` builds its own `dist/` from nothing
+and `test:security` reads what it leaves behind.
+
+### 1S.6 Feature-branch CI — OBSERVED
+
+| | |
+|---|---|
+| **Run ID** | **32812105029** |
+| Workflow | CI (`.github/workflows/ci.yml`) |
+| Branch | `m17-ci-hardening` |
+| Commit | `dcd44e2` (remote SHA verified equal to local) |
+| Event | `push` |
+| Started / ended | 2026-08-25T05:15:11Z → 05:15:36Z |
+| Duration | **25 s** |
+| Conclusion | **success** |
+
+Every step, in execution order:
+
+| # | Step | Result |
+|---|---|---|
+| 4 | Install (`npm ci`) | **PASS** |
+| 5 | Refresh GitHub repository data | **PASS** |
+| 6 | Test the GitHub fallback and secret isolation (`test:github`) | **PASS** |
+| 7 | Test the security content audit (`test:security`) | **PASS** |
+| 8 | Build and verify (`astro check` + `astro build` + `verify-output.mjs`) | **PASS** |
+| 9 | Audit dependencies (`npm audit --audit-level=high`) | **PASS** |
+
+This is the assertion M17 exists to make, and it is now evidence rather than
+YAML: a runner executed the full gate set on a branch that is not `v2`, not
+`main`, and not part of any pull request.
+
+### 1S.7 Production during feature-branch CI — UNCHANGED, measured
+
+Captured before the push and again after the CI run concluded:
+
+| Route | Before | After |
+|---|---|---|
+| `/` | 200, 19 214 B, ETag `"6a8c5c5e-4b0e"`, Last-Modified Mon 24 Aug 2026 14:59:42 GMT | **identical on all four** |
+| `/cybersecurity/` | 200, 20 059 B, ETag `"6a8c5c5e-4e5b"`, Last-Modified Mon 24 Aug 2026 14:59:42 GMT | **identical on all four** |
+
+Status, `Content-Length`, `ETag` and `Last-Modified` were all unchanged.
+**FEATURE BRANCH CI ≠ PRODUCTION DEPLOYMENT — VERIFIED by measurement.**
+
+### 1S.8 Pull-request CI — NOT OBSERVED, OWNER ACTION
+
+No pull request was opened. `gh` is not installed on this machine, and reading
+the stored git credential in order to call the REST API was refused by the
+sandbox — correctly, and no attempt was made to work around it.
+
+The `pull_request` trigger is unchanged from M16 (`branches: [v2, main]`) and
+so carries M16's evidence, but a PR run has **not** been observed on a runner
+under M17. Status: **NOT OBSERVED — OWNER ACTION.** Opening any pull request
+against `main` or `v2` will exercise it. No `workflow_dispatch` trigger was
+added to fake this; the push-to-feature-branch run in §1S.6 is the real
+evidence, and it was obtained.
+
+### 1S.9 Main merge and production deployment — OBSERVED
+
+Merged with `git merge --no-ff m17-ci-hardening`, matching the convention used
+for `927477a` and `4caff65`. No force-push, no rebase, no reset, no history
+rewrite anywhere in this milestone.
+
+| | |
+|---|---|
+| Merge commit | **`44f928e`** |
+| Feature commit | **`dcd44e2`** |
+| **Deploy run ID** | **32812259354** |
+| Branch / event | `main` / `push` |
+| `build` job | success, 2026-08-25T05:17:33Z → 05:18:04Z (**31 s**) |
+| `deploy` job | **success, executed — not skipped**, 05:18:08Z → 05:18:18Z (**10 s**) |
+| Total | **47 s** |
+
+`build` step results: `npm ci` PASS, GitHub refresh PASS, `test:github` PASS,
+`test:security` PASS, `verify` PASS, `npm audit` PASS, `upload-pages-artifact`
+PASS. Then `deploy-pages` PASS.
+
+**No CI run was produced on `main`** — `branches-ignore: [main]` behaved
+exactly as designed, so the merge cost one workflow run, not two.
+
+To be explicit about a distinction the milestone brief asked for: CI and
+deployment **are** two separate workflow files, `ci.yml` and `deploy.yml`, and
+they ran as two separate runs on two different refs. `deploy.yml` re-runs every
+gate `ci.yml` runs; that duplication is deliberate, so nothing can reach
+production having been validated only on a branch.
+
+### 1S.10 Production regression after the M17 deployment — VERIFIED
+
+All routes over HTTPS, `Last-Modified` now Tue 25 Aug 2026 05:18:13 GMT:
+
+| Route | Status | Bytes | `<h1>` |
+|---|---|---|---|
+| `/` | 200 | 19 214 | 1 |
+| `/about/` | 200 | 13 999 | 1 |
+| `/projects/` | 200 | 20 178 | 1 |
+| `/ai-lab/` | 200 | 59 644 | 1 |
+| `/learning/` | 200 | 36 951 | 1 |
+| `/github/` | 200 | 36 924 | 1 |
+| `/contact/` | 200 | 17 440 | 1 |
+| `/cybersecurity/` | 200 | **20 059** | 1 |
+| `/404.html` | 200 | 8 986 | 1 |
+
+- `/cybersecurity/` is **20 059 B**, the same size M16 recorded — the security
+  world is untouched, as intended.
+- HTTP → HTTPS: **301**, still enforced.
+- Legacy routes intact: `/work.html` 200, `/lab/pretext/` 200.
+- **Byte-identical to the locally built `dist/`**, measured with `cmp`:
+  `/cybersecurity/`, `/about/`, `/contact/`. Those three carry no build-time
+  GitHub data, so they are the pages where a byte comparison is meaningful
+  regardless of what the runner's live fetch returned.
+- Console: **no errors or exceptions** on `/` or `/cybersecurity/`, with
+  console tracking active across the page load.
+- Horizontal overflow: none at 1265 px and 1280 px on `/` and
+  `/cybersecurity/` (`scrollWidth === clientWidth`).
+- One `<h1>` per page, on all nine routes.
+
+### 1S.11 Security regression on the workflow itself — VERIFIED
+
+| Check | Result |
+|---|---|
+| New secrets | **None.** The only secret reference is the pre-existing `secrets.GITHUB_TOKEN` |
+| New credentials | None |
+| `pages: write` in CI | **Absent** |
+| `id-token: write` in CI | **Absent** |
+| `contents: write` in CI | **Absent** |
+| Permission lines changed by the diff | **Zero** |
+| Third-party actions added | **None** — the diff touches no `uses:` line |
+| Dependencies added or changed | **None** — `package.json` and `package-lock.json` untouched |
+| Untrusted-input interpolation | **None.** No `${{ }}` appears inside any `run:` block anywhere in `ci.yml` |
+| Fork-PR exposure | Trigger is `pull_request`, **not** `pull_request_target` — forked code runs against the merge ref with a read-only token and no repository secrets |
+
+The whole file contains exactly two expressions: `github.ref` in
+`concurrency.group` (a YAML value, never a shell context) and
+`secrets.GITHUB_TOKEN` in an `env:` block. No branch name, PR title, commit
+message or other attacker-influenced string is interpolated into a shell
+command. **No command-injection surface exists.**
+
+### 1S.12 Two findings discovered in passing
+
+**`github-data.yml` has now executed — previously NOT OBSERVED.** M14 and M16
+both recorded that this scheduled workflow had never run. It has since run
+twice, both on `main`, both success: run **32764751379** (2026-08-24T18:51:12Z)
+and run **32798634576** (2026-08-25T01:43:17Z). Each committed a refreshed
+`src/data/github.snapshot.json` (`9ff17e2`, `b310619`). That risk is now
+**CLOSED — OBSERVED**. §1R is left as written; this is the later observation,
+not a correction of it.
+
+**NEW, OPEN: the snapshot refresh does not redeploy production.** Neither
+snapshot commit triggered a Deploy run. This is not a defect in the workflow —
+GitHub deliberately does not start workflows from pushes made with the default
+`GITHUB_TOKEN`, to prevent recursion. The consequence is real, though:
+`github-data.yml` commits fresher repository figures to `main`, and production
+keeps serving the older ones until some *other* push to `main` happens. Between
+2026-08-24T18:51Z and the M17 merge, production was two snapshot commits behind
+`main`. The M17 deployment carried both forward, so production is current now.
+
+Fixing it needs either a PAT with `contents: write` (a credential the owner
+must create) or a `workflow_run`/`schedule` trigger on `deploy.yml`. Out of
+M17's scope — M17 is CI hardening, not deployment redesign. Status: **OPEN —
+OWNER ACTION.**
+
+### 1S.13 Limitations — what M17 did not establish
+
+| Item | Status |
+|---|---|
+| Pull-request CI under the M17 workflow | **NOT OBSERVED — OWNER ACTION** (§1S.8) |
+| Narrow-viewport responsive re-test | **NOT RE-TESTED.** The browser resize reported success but the viewport did not change (`clientWidth` stayed 1265), so no narrow-width claim is made. M16 §1R.14 stands; M17 changed no stylesheet and no markup |
+| A *forked* pull request actually running | **NOT TESTED.** Reasoned from `pull_request` semantics, not observed |
+| Snapshot refresh redeploying production | **OPEN — OWNER ACTION** (§1S.12) |
+| Reduced-motion behaviour | **NOT TESTED** (unchanged from M16) |
+| Firefox / Safari | **NOT TESTED** (unchanged from M16) |
+| OpenWeatherMap credential | **OPEN — EXTERNAL** (unchanged from M16) |
+
+### 1S.14 Current risk register after M17
+
+| Risk | State |
+|---|---|
+| Branch pushes run no CI | **CLOSED — VERIFIED.** CI run 32812105029 executed all four gates on `m17-ci-hardening` |
+| A feature branch could deploy | **CLOSED — VERIFIED.** Four source barriers (§1S.4); zero Deploy runs on the branch; production bytes unchanged |
+| `github-data.yml` never executed | **CLOSED — OBSERVED.** Runs 32764751379 and 32798634576 |
+| Snapshot commits do not redeploy | **NEW — OPEN, OWNER ACTION** |
+| PR CI unobserved under the M17 config | **OPEN — OWNER ACTION** |
+| Reduced motion / Firefox / Safari | **NOT TESTED** |
+| OpenWeatherMap credential | **OPEN — EXTERNAL** |
+
+### 1S.15 Next milestone
+
+**M18 — close the snapshot-to-production gap (§1S.12), and observe a pull
+request.** Both are small, both are evidence-gathering rather than
+construction, and the first is the only genuinely new defect this milestone
+found. Neither touches the site.
 
 ---
 
