@@ -10,7 +10,7 @@
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
 | **Current milestone** | **M18 — Snapshot deployment gap + PR CI** |
-| **M18 status** | **Objective B COMPLETE — VERIFIED; Objective A merged, chain AWAITING OBSERVATION.** PR **#1** (`m18-snapshot-deploy` → `main`, merge `093215d`) produced the repository's first `pull_request` CI run `32825354280` — all four gates green in 30 s, and **zero Deploy runs** on the branch. `github-data.yml` now dispatches `deploy.yml` after a snapshot commit (`fc1166a`, `actions: write`); the recursion guard was proven three times, once live (`f2cc8da` → `total_count: 0`). Merge Deploy `32825466193` success, `deploy-pages` executed. See §1T. |
+| **M18 status** | **COMPLETE — SNAPSHOT-TO-PRODUCTION AUTOMATION VERIFIED.** The scheduled chain was observed end to end on 2026-08-25: `github-data` run **32850891668** (event `schedule`) → bot commit **`9d64237`** 13:01:53Z → Deploy run **32850928044** (event `workflow_dispatch`, `head_sha` = that commit exactly) → all four gates green in 29 s → `deploy-pages` executed → `github-pages` deployment **6083695789** success 13:03:22Z, live `Last-Modified` 13:02:42 GMT. Objective B also complete: PR **#1** produced the first `pull_request` CI run **32825354280**, four gates green, **zero** Deploy runs on the branch. See §1T.
 | **M17 status** | **COMPLETE — VERIFIED.** Feature branches now run CI automatically: run `32812105029` on `m17-ci-hardening` (`dcd44e2`) passed all four gates in 25 s, and was the **only** run the branch produced — no Deploy, no Pages deployment, production bytes unchanged. Merge `44f928e`, Deploy `32812259354` success (build 31 s, deploy job **executed** 10 s); production re-verified on nine routes. PR CI **NOT OBSERVED — OWNER ACTION**. See §1S. |
 | **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
 | **M15 status** | **Complete — merged in M16.** Branch `m15-cybersecurity` (`2aac8e7`). Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d), negative-tested 35/35. See §1Q. |
@@ -42,7 +42,7 @@
 | M13-C | **THE CUTOVER** | **COMPLETE — OBSERVED LIVE** | §1O below. Merge `927477a`; Deploy run `32731636983` success, deploy job **executed**; production serving V2, verified over HTTP on every route. |
 | M15 | Cybersecurity world | **Complete** | §1Q below. Evidence-based, zero fabrication, 0 findings filed and correctly so. Merged in M16. |
 | M16 | Production integration & verification | **Complete — VERIFIED LIVE** | §1R below. Merge `4caff65`, Deploy `32741152755`; `/cybersecurity/` verified over HTTPS byte-identical; §8c/§8d re-run against production. |
-| M18 | Snapshot deployment gap + PR CI | **Objective B complete; A awaiting observation** | §1T below. First `pull_request` CI run `32825354280` green with zero Deploy runs; snapshot→deploy dispatch merged (`093215d`) but **not yet observed firing**. |
+| M18 | Snapshot deployment gap + PR CI | **COMPLETE — VERIFIED** | §1T below. First `pull_request` CI run `32825354280` green with zero Deploy runs; scheduled chain observed end to end — run `32850891668` → bot commit `9d64237` → `workflow_dispatch` Deploy `32850928044` → Pages deployment `6083695789` success. |
 | M17 | Feature-branch CI hardening | **Complete — VERIFIED** | §1S below. CI run `32812105029` on `m17-ci-hardening` green with zero Deploy runs; merge `44f928e`, Deploy `32812259354` success. PR CI **NOT OBSERVED**. |
 | M14 | Production hardening & closeout | **Complete** | §1P below. HTTPS enforced and verified; `github-data.yml` → `ref: main`; production re-verified and byte-compared. `github-data` execution **NOT OBSERVED**. |
 | Cutover | V1 → V2 | **DONE 2026-08-24** | Production serves V2. Remaining: Enforce HTTPS (owner), `github-data.yml` ref (owner), OpenWeatherMap key (external). |
@@ -6395,8 +6395,9 @@ found. Neither touches the site.
 
 ## 1T. M18 — Snapshot deployment gap + PR CI observation
 
-**Status: Objective B COMPLETE — VERIFIED. Objective A implemented and merged;
-the scheduled chain is AWAITING OBSERVATION at the time of writing (§1T.10).**
+**Status: COMPLETE — VERIFIED. Both objectives closed on evidence. Objective B
+by PR #1 (§1T.9); Objective A by the scheduled chain firing in full on
+2026-08-25, unassisted (§1T.10).**
 
 ### 1T.1 Objective
 
@@ -6589,36 +6590,113 @@ merge ref with a read-only token and no secrets.
 Production during the PR: `Last-Modified` stayed at the pre-PR value until the
 *merge* deployed. **VERIFIED.**
 
-### 1T.10 The scheduled chain — AWAITING OBSERVATION
+### 1T.10 The scheduled chain — OBSERVED END TO END
 
 The desired chain is:
 
 ```
-github-data (schedule) → snapshot fact changes → bot commit to main
-   → gh workflow run deploy.yml → gates → deploy-pages → production updates
+github-data (schedule) -> snapshot fact changes -> bot commit to main
+   -> gh workflow run deploy.yml -> gates -> deploy-pages -> production updates
 ```
 
-Half of it is already **OBSERVED**, from before the fix was merged — the first
-three links fire reliably (run `32819427767` → `f2cc8da`), and the fourth is
-exactly what did *not* happen and what the fix supplies.
+It fired in full on **2026-08-25**, on the first scheduled run to carry the fix.
+Nothing was staged to produce this evidence: no workflow was manually
+dispatched, the cron was not touched, and no commit was manufactured. The run
+below is GitHub's own `schedule` delivery of the `0 */6 * * *` 12:00Z slot.
 
-**The dispatch link has NOT been observed executing.** The fix reached `main`
-only at 08:12:52Z, after that run. Scheduled workflows execute the version on
-the default branch, so the next scheduled run is the first to carry it.
+**Link 1 — the scheduled run**
 
-Cadence observed so far — cron `0 */6 * * *`, delivered 50–60 minutes late by
-GitHub's scheduler: 2026-08-24T18:51Z, 2026-08-25T01:43Z, 2026-08-25T06:59Z.
+| | |
+|---|---|
+| **Run ID** | **32850891668** |
+| Workflow / event | GitHub data / **`schedule`** |
+| Created | 2026-08-25T13:01:33Z — the 12:00Z slot, 61 min late, in line with the 50–60 min lateness recorded above |
+| `head_sha` | `6350f1d` — the `main` tip, which carries the M18 dispatch step |
+| Conclusion | **success** |
 
-The next run is expected to commit, because `pushedAt` has already moved again
-(the 08:12:52Z merge) while the committed snapshot still records
-`2026-08-25T05:49:32Z`.
+**Link 2 — the bot commit (the source identity for everything below)**
 
-Per the milestone's own rule, `github-data` was **not** manually dispatched to
-simulate this, and no deployment will be claimed from a workflow merely
-existing in YAML.
+| | |
+|---|---|
+| **SHA** | **`9d642371156c3927c66130b44631659d72404de9`** |
+| Author | `github-actions[bot]` |
+| Date | 2026-08-25T13:01:53Z |
+| Message | `chore(data): refresh the GitHub fallback snapshot` |
+| Diff | `src/data/github.snapshot.json` only — 2 lines: `generatedAt` `2026-08-25T06:59:41.381Z` → `2026-08-25T13:01:40.004Z`, `pushedAt` `2026-08-25T05:49:32Z` → `2026-08-25T08:24:01Z` |
 
-Status at time of writing: **NOT OBSERVED — the mechanism is implemented,
-merged, statically verified and locally validated, but has not yet fired.**
+That `pushedAt` move is exactly the change this section predicted would force a
+commit: the merge traffic of 08:12–08:24Z.
+
+**Link 3 — the dispatch, attributed by identity rather than by timing**
+
+All three attribution conditions hold:
+
+| Condition | Required | Observed |
+|---|---|---|
+| Deploy run `event` | `workflow_dispatch` | **`workflow_dispatch`** |
+| Created after the bot commit | > 13:01:53Z | **13:01:56Z** — 3 s later |
+| Deploy `head_sha` | exactly the bot commit | **`9d642371156c3927c66130b44631659d72404de9`** — exact match |
+
+| | |
+|---|---|
+| **Run ID** | **32850928044** |
+| Actor / triggering actor | `github-actions[bot]` / `github-actions[bot]` |
+| Conclusion | **success** |
+
+This is the repository's **first** `workflow_dispatch` Deploy run. Every one of
+the other twelve runs in `deploy.yml`'s history is `event: push` with a human
+actor, so it cannot be confused with a merge deployment.
+
+**Link 4 — the gates, re-run in full for the bot commit**
+
+`build`, 13:01:59Z → 13:02:28Z (**29 s**), every step success:
+
+| # | Step | Result |
+|---|---|---|
+| 2 | `actions/checkout@v4` | success |
+| 3 | `actions/setup-node@v4` | success |
+| 4 | Install (`npm ci`) | success |
+| 5 | Refresh GitHub repository data | success |
+| 6 | Test the GitHub fallback and secret isolation | success |
+| 7 | Test the security content audit | success |
+| 8 | Build and verify | success |
+| 9 | Audit dependencies | success |
+| 10 | `actions/upload-pages-artifact@v3` | success |
+
+The dispatch buys no shortcut. The bot commit cleared the same four gates a
+human push clears, which is the property §1T.6 argued for on paper and this run
+demonstrates in fact.
+
+**Link 5 — the deploy job**
+
+`deploy`, 13:02:32Z → 13:03:21Z (**49 s**). `actions/deploy-pages@v4`
+**executed** — success, not skipped. Run total: 13:01:56Z → 13:03:21Z (**85 s**).
+
+**Link 6 — production, verified independently of the Actions API**
+
+| | |
+|---|---|
+| `github-pages` deployment | **6083695789** |
+| Deployment `sha` | **`9d642371156c3927c66130b44631659d72404de9`** — the bot commit |
+| Status trail | `waiting` 13:02:30Z → `queued` 13:02:32Z → `in_progress` 13:02:33Z → **`success` 13:03:22Z** |
+| `environment_url` | `https://ayushrijal.com.np/` |
+| Live `Last-Modified` | **Tue, 25 Aug 2026 13:02:42 GMT** on `/`, `/github/` and `/projects/` — it was 08:13:41 GMT after the merge deployment of §1T.12 |
+| Live status | 200 over HTTPS |
+
+The `Last-Modified` move from 08:13:41 to 13:02:42 GMT is production
+republishing from the dispatched run's artifact, observed from the public site
+rather than from the API that reported the run.
+
+**What this evidence deliberately does not rest on.** Rendered `/github/`
+dates and figures are **not** used as proof. The snapshot is a build-time
+fallback, and a page can legitimately render identical numbers after a refresh
+whose only real changes were `generatedAt` and one `pushedAt`. Commit identity
+— the bot SHA, the Deploy `head_sha` and the Pages deployment `sha`, all three
+the same 40 characters — is the source of truth, and it is unambiguous.
+
+Status: **OBSERVED.** The dispatch link executes, and a refreshed snapshot
+reaches production with no human involvement. Scheduled run start to production
+success: **1 min 49 s**.
 
 ### 1T.11 Merge deployment — OBSERVED
 
@@ -6720,7 +6798,8 @@ the governing evidence for accessibility and responsive behaviour.
 
 | | |
 |---|---|
-| `main` | `093215d`, equal to `origin/main` |
+| `main` (local) | `6350f1d` |
+| `origin/main` | `9d64237` — one commit ahead: the unattended bot snapshot commit of §1T.10 |
 | Working tree | clean |
 | Branch retained | `m18-snapshot-deploy` at `fc1166a` |
 | Force-push / rebase / reset / history rewrite | **None** |
@@ -6732,7 +6811,7 @@ the governing evidence for accessibility and responsive behaviour.
 
 | Item | Status |
 |---|---|
-| Observe the scheduled dispatch chain firing | **PENDING** — see §1T.10 |
+| Observe the scheduled dispatch chain firing | **DONE — OBSERVED** 2026-08-25T13:01–13:03Z, §1T.10 |
 | Reduced-motion behaviour | **NOT TESTED** |
 | Firefox / Safari | **NOT TESTED** |
 | OpenWeatherMap credential | **OPEN — EXTERNAL** |
@@ -6744,19 +6823,28 @@ the governing evidence for accessibility and responsive behaviour.
 | Branch pushes run no CI | **CLOSED — VERIFIED** (M17) |
 | PR CI never observed | **CLOSED — VERIFIED.** Run 32825354280, event `pull_request` |
 | A PR or feature branch could deploy | **CLOSED — VERIFIED.** 2 runs on the branch, both CI, zero Deploy |
-| Snapshot commits do not redeploy | **FIX MERGED, NOT YET OBSERVED FIRING** (§1T.10) |
+| Snapshot commits do not redeploy | **CLOSED — VERIFIED.** Scheduled run `32850891668` → bot commit `9d64237` → `workflow_dispatch` Deploy `32850928044` (`head_sha` exact) → Pages deployment `6083695789` success (§1T.10) |
 | Reduced motion / Firefox / Safari | **NOT TESTED** |
 | OpenWeatherMap credential | **OPEN — EXTERNAL** |
 
 ### 1T.19 Next milestone
 
-**M19 — confirm the chain, then stop hardening.** The single outstanding item
-is one observation, not a change: a scheduled `github-data` run that commits and
-dispatches, followed by a Deploy run whose `head_sha` is that bot commit. Once
-that is recorded, the CI → snapshot → deployment chain is demonstrably correct
-end to end and the automation needs no further work. The untested items that
-remain (reduced motion, Firefox, Safari) are browser-behaviour questions, not
-pipeline questions, and deserve their own milestone rather than being folded in.
+**M18 is closed. The pipeline needs no further work.** The CI → snapshot →
+deployment chain is now demonstrated end to end rather than argued for: pushes
+to any branch run CI (M17), pull requests run CI and cannot deploy (§1T.9),
+merges to `main` deploy (§1T.11), and — the link that was missing — an
+unattended snapshot commit now deploys itself (§1T.10). Every claim in that
+chain is backed by a run ID, a commit SHA or a live HTTP header.
+
+**M19 — browser behaviour, not pipeline.** What remains untested is untested
+*rendering*, and it is deliberately not folded into a CI milestone: narrow
+viewports, `prefers-reduced-motion`, Firefox and Safari/WebKit, and an actual
+accessibility audit (axe or Lighthouse, neither of which has ever been run
+here). Those are questions about what a browser does with the built site, and
+they need their own milestone and their own honest evidence table. **Not
+started.**
+
+`OpenWeatherMap` remains **OPEN — EXTERNAL** and is not a milestone item.
 
 ---
 
