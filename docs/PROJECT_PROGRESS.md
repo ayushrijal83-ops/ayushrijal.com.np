@@ -10,7 +10,7 @@
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
 | **Current milestone** | **M19 — Final QA, accessibility, cross-browser verification & release — PROJECT COMPLETE** |
-| **M19 status** | **COMPLETE — PRODUCTION RELEASE VERIFIED.** Final milestone. QA only: three defects found by M19's own verification and fixed, all in `/lab/` — total product diff **3 files, +11 −4**. Responsive **136 cells across 8 widths: 0 findings** after fix (5 before). **axe-core 4.13.0: 0 violations** on every route (2 rules before). Reduced motion verified by engine emulation — **0 animation objects at all** under `reduce`, in all three engines. Cross-browser **Chromium 151 / Firefox 153 / WebKit 26.5, 51 cells each, 0 findings**; **Safari itself NOT TESTED — no Apple hardware**. Security: 0 credentials, 0 source maps, 0 network-capable JS, 0 external loads, CSP on 17/17, `npm audit` clean. **No floating Kali dragon exists in this repository** — verified by grep over source and `dist`; the pointer-reactive wordmark was QA'd against the Phase 4 criteria instead. See §1U. |
+| **M19 status** | **COMPLETE — PRODUCTION RELEASE VERIFIED.** Final milestone. QA only: three defects found by M19's own verification and fixed, all in `/lab/` — total product diff **3 files, +11 −4**. Responsive **136 cells across 8 widths: 0 findings** after fix (5 before). **axe-core 4.13.0: 0 violations** on every route (2 rules before). Reduced motion verified by engine emulation — **0 animation objects at all** under `reduce`, in all three engines. Cross-browser **Chromium 151 / Firefox 153 / WebKit 26.5, 51 cells each, 0 findings**; **Safari itself NOT TESTED — no Apple hardware**. Security: 0 credentials, 0 source maps, 0 network-capable JS, 0 external loads, CSP on 17/17, `npm audit` clean. **No floating Kali dragon exists in this repository** — verified by grep over source and `dist`; the pointer-reactive wordmark was QA'd against the Phase 4 criteria instead. Released as **`f805bf1`**, Deploy run **32866678080**, Pages deployment **6086575774** success 15:36:03Z; production re-verified after deployment — 136 responsive cells clean, axe clean, the three fixed pages byte-identical to the artifact. See §1U. |
 | **M18 status** | **COMPLETE — SNAPSHOT-TO-PRODUCTION AUTOMATION VERIFIED.** The scheduled chain was observed end to end on 2026-08-25: `github-data` run **32850891668** (event `schedule`) → bot commit **`9d64237`** 13:01:53Z → Deploy run **32850928044** (event `workflow_dispatch`, `head_sha` = that commit exactly) → all four gates green in 29 s → `deploy-pages` executed → `github-pages` deployment **6083695789** success 13:03:22Z, live `Last-Modified` 13:02:42 GMT. Objective B also complete: PR **#1** produced the first `pull_request` CI run **32825354280**, four gates green, **zero** Deploy runs on the branch. See §1T.
 | **M17 status** | **COMPLETE — VERIFIED.** Feature branches now run CI automatically: run `32812105029` on `m17-ci-hardening` (`dcd44e2`) passed all four gates in 25 s, and was the **only** run the branch produced — no Deploy, no Pages deployment, production bytes unchanged. Merge `44f928e`, Deploy `32812259354` success (build 31 s, deploy job **executed** 10 s); production re-verified on nine routes. PR CI **NOT OBSERVED — OWNER ACTION**. See §1S. |
 | **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
@@ -7237,6 +7237,46 @@ explicitly marked NOT TESTED, the pointer island compromises nothing,
 production healthy, git clean, dependencies and workflows untouched.
 
 **RELEASE APPROVED.**
+
+### 1U.18 Release deployment — OBSERVED
+
+The M19 commit was pushed to `main` and the deployment watched end to end.
+
+| | |
+|---|---|
+| **Release commit** | **`f805bf1c7261efd0c913eb633c1fa20d951a0cca`** |
+| Pushed | `458d1c5..f805bf1  main -> main`, fast-forward, no force |
+| **Deploy run** | **32866678080** — `deploy.yml`, event `push`, created 2026-08-25T15:34:53Z, **success** |
+| `build` | 15:35:01Z → 15:35:35Z (**34 s**) — checkout, setup-node, `npm ci`, GitHub refresh, `test:github`, `test:security`, `verify`, `npm audit`, `upload-pages-artifact`: **every step success** |
+| `deploy` | 15:35:39Z → 15:36:02Z (**23 s**) — `actions/deploy-pages@v4` **executed**, success |
+| **Pages deployment** | **6086575774**, `sha` = **`f805bf1c7261efd0c913eb633c1fa20d951a0cca`** |
+| Status trail | `waiting` 15:35:37Z → `queued` 15:35:38Z → `in_progress` 15:35:40Z → **`success` 15:36:03Z** |
+| `environment_url` | `https://ayushrijal.com.np/` |
+| Live `Last-Modified` | **Tue, 25 Aug 2026 15:35:51 GMT** (was 13:02:42 GMT) |
+
+**Post-deployment verification of the live artifact — not of the build:**
+
+| Check | Result |
+|---|---|
+| Responsive, 17 routes × 8 widths on production | **136 cells, 0 overflow, 0 console errors, `<h1>` = 1 everywhere** |
+| axe-core 4.13.0, 34 page-runs on production | **`scrollable-region-focusable` gone.** Only `landmark-unique` on `/lab/viewports/` remains — the iframe-harness artifact of §1U.8 |
+| The three fixes present in the served HTML | `class="lab__code" role="region" aria-label="…" tabindex="0"` ×2; `class="vp__grid" role="region" aria-label="Viewport previews" tabindex="0"`; `style="inline-size: min(26rem, 100%)"` |
+| Byte comparison, production vs artifact | **17 of 19 identical**, including all three fixed `/lab/` pages, which were the only pages that differed before deployment |
+| The two that differ | `/github/` and `/projects/` — build-time GitHub data only. Production's `/github/` hash moved again between the two comparisons (`743b579b` → `9a9b8199`) because CI re-fetched, which is the mechanism of §1U.11 demonstrating itself |
+| HTTP → HTTPS | **301** to `https://ayushrijal.com.np/`, still enforced |
+
+### 1U.19 Final git state
+
+| | |
+|---|---|
+| Branch | `main` |
+| HEAD | **`f805bf1`** → then the docs commit recording this section |
+| `origin/main` | equal to local `main` |
+| Working tree | clean |
+| Force push / reset / rebase / history rewrite | **None.** Two fast-forward pushes, nothing else |
+| Historical evidence | **preserved** — §1A–§1T are untouched; M19 only appends §1U and three status rows |
+| Retained branches | `m15-cybersecurity`, `m17-ci-hardening`, `m18-snapshot-deploy`, `v2` — all still present |
+| Rollback of M19 | `git revert f805bf1` — three `/lab/` attribute changes; nothing else depends on them |
 
 ### 1U.17 There is no M20
 
