@@ -1,15 +1,32 @@
 name: CI
 
-# V2 lives on its own long-lived branch and does NOT deploy. `main` continues
-# to serve V1 to production untouched, exactly as the migration strategy
-# requires (PROJECT_PROGRESS §10). This workflow verifies; it never publishes.
+# The validation half of the automation. This workflow verifies; it never
+# publishes. `deploy.yml` is the only workflow with the permissions Pages
+# needs, and its `deploy` job is gated to `main`.
+#
+# ── Why `branches-ignore: [main]` rather than a branch list (M17) ──────────
+# Until M17 this triggered on `push: [v2]` only, so an arbitrary feature
+# branch received no runner validation at all unless someone opened a PR —
+# `m15-cybersecurity` was merged without a single runner having executed its
+# gates (§1R.18). Ignoring `main` instead of listing branches means every
+# development branch is covered the day it is created, with no workflow edit
+# and no branch-name convention to remember.
+#
+# `main` is excluded deliberately, not accidentally: `deploy.yml` already runs
+# this exact set of gates on every push to `main` before it publishes, so
+# triggering here too would buy a second identical run and nothing else.
 on:
   push:
-    branches: [v2]
+    branches-ignore: [main]
   pull_request:
     branches: [v2, main]
   workflow_dispatch:
 
+# Validation only. No `pages: write`, no `id-token: write`, no `contents:
+# write` — nothing in this workflow can publish, and nothing needs to. The
+# trigger above is `pull_request`, not `pull_request_target`, so code from a
+# forked pull request runs against the merge ref with a read-only token and no
+# access to repository secrets.
 permissions:
   contents: read
 
@@ -51,31 +68,45 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run github:fetch
 
-      # `npm run verify` = astro check + astro build + scripts/verify-output.mjs.
-      # CI runs the exact command a developer runs locally, so the two can
-      # never drift: the assertions live in the script, not in this file.
-      # What the script guards is documented at the top of it — briefly: a page
-      # silently vanishing from the eight-world IA, the no-JS fallback content
-      # being dropped from the static HTML, an inline script the CSP would kill
-      # at runtime with no build error, and any third-party origin.
-      - name: Verify
-        run: npm run verify
-
+      # ── Gate order (M17: now identical to deploy.yml) ─────────────────────
       # The two properties `verify` structurally cannot check, because both
       # only exist when something has gone wrong: that the site still builds
       # and tells the truth with no GitHub data at all, and that a credential
       # in the output actually fails the gate. It rebuilds twice; that is
       # about four seconds here and it is the only test of the fallback.
+      #
+      # It runs BEFORE `verify` for the reason deploy.yml documents at length:
+      # it plants a `ghp_…` canary into `dist/` and its final rebuild is a bare
+      # `astro build` that no assertion inspects. CI publishes nothing, so it
+      # could get away with running this last — but then "CI passed on my
+      # branch" would mean something subtly different from "the deploy build
+      # passed", and the whole point of feature-branch CI is that it predicts
+      # the deploy. Same order, same meaning.
       - name: Test the GitHub fallback and secret isolation
         run: npm run test:github
 
       # M15. The security content audit, negative-tested: a planted claim of a
       # certification, an engagement, a CVE or a placement must fail the gate,
       # and the page's own negative register — which names every one of those
-      # nouns in order to deny it — must still pass. Runs after `verify` because
-      # it plants into the built page and restores it.
+      # nouns in order to deny it — must still pass. It PLANTS sentences into
+      # the built page and restores them in a `finally`, which is the same
+      # reason it belongs before `verify` rather than after.
+      #
+      # It reads the `dist/` that `test:github` leaves rebuilt with real data.
       - name: Test the security content audit
         run: npm run test:security
+
+      # `npm run verify` = astro check + astro build + scripts/verify-output.mjs.
+      # CI runs the exact command a developer runs locally, so the two can
+      # never drift: the assertions live in the script, not in this file.
+      # Last to touch `dist/`, so what it asserts against is a tree it re-emitted
+      # itself rather than one a test last wrote to.
+      # What the script guards is documented at the top of it — briefly: a page
+      # silently vanishing from the eight-world IA, the no-JS fallback content
+      # being dropped from the static HTML, an inline script the CSP would kill
+      # at runtime with no build error, and any third-party origin.
+      - name: Build and verify
+        run: npm run verify
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
