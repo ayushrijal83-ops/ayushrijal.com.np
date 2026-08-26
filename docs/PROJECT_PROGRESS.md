@@ -10,13 +10,13 @@
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
 | **Current milestone** | **M19 — Final QA, accessibility, cross-browser verification & release — PROJECT COMPLETE** |
-| **M19 status** | **COMPLETE — PRODUCTION RELEASE VERIFIED.** Final milestone. QA only: three defects found by M19's own verification and fixed, all in `/lab/` — total product diff **3 files, +11 −4**. Responsive **136 cells across 8 widths: 0 findings** after fix (5 before). **axe-core 4.13.0: 0 violations** on every route (2 rules before). Reduced motion verified by engine emulation — **0 animation objects at all** under `reduce`, in all three engines. Cross-browser **Chromium 151 / Firefox 153 / WebKit 26.5, 51 cells each, 0 findings**; **Safari itself NOT TESTED — no Apple hardware**. Security: 0 credentials, 0 source maps, 0 network-capable JS, 0 external loads, CSP on 17/17, `npm audit` clean. **No floating Kali dragon exists in this repository** — verified by grep over source and `dist`; the pointer-reactive wordmark was QA'd against the Phase 4 criteria instead. Released as **`f805bf1`**, Deploy run **32866678080**, Pages deployment **6086575774** success 15:36:03Z; production re-verified after deployment — 136 responsive cells clean, axe clean, the three fixed pages byte-identical to the artifact. See §1U. |
+| **M19 status** | **COMPLETE — PRODUCTION RELEASE VERIFIED.** Final milestone. QA only: three defects found by M19's own verification and fixed, all in `/lab/` — total product diff **3 files, +11 −4**. Responsive **136 cells across 8 widths: 0 findings** after fix (5 before). **axe-core 4.13.0: 0 violations** on every route (2 rules before). Reduced motion verified by engine emulation — **0 animation objects at all** under `reduce`, in all three engines. Cross-browser **Chromium 151 / Firefox 153 / WebKit 26.5, 51 cells each, 0 findings**; **Safari itself NOT TESTED — no Apple hardware**. Security: 0 credentials, 0 source maps, 0 network-capable JS, 0 external loads, CSP on 17/17, `npm audit` clean. **No floating Kali dragon exists in this repository** — verified by grep over source and `dist`; the pointer-reactive wordmark was QA'd against the Phase 4 criteria instead. Released as **`f805bf1`**, Deploy run **32866678080**, Pages deployment **6086575774** success 15:36:03Z; production re-verified after deployment — 136 responsive cells clean, axe clean, the three fixed pages byte-identical to the artifact. **Re-verified 2026-08-26** against a later production artifact (11 repos, Deploy 32940731422): all gates green, 136 responsive cells / 0 findings, axe unchanged, pointer island re-proved with real input in all three engines, 0 defects, 0 files changed. See §1U and §1U.20. |
 | **M18 status** | **COMPLETE — SNAPSHOT-TO-PRODUCTION AUTOMATION VERIFIED.** The scheduled chain was observed end to end on 2026-08-25: `github-data` run **32850891668** (event `schedule`) → bot commit **`9d64237`** 13:01:53Z → Deploy run **32850928044** (event `workflow_dispatch`, `head_sha` = that commit exactly) → all four gates green in 29 s → `deploy-pages` executed → `github-pages` deployment **6083695789** success 13:03:22Z, live `Last-Modified` 13:02:42 GMT. Objective B also complete: PR **#1** produced the first `pull_request` CI run **32825354280**, four gates green, **zero** Deploy runs on the branch. See §1T.
 | **M17 status** | **COMPLETE — VERIFIED.** Feature branches now run CI automatically: run `32812105029` on `m17-ci-hardening` (`dcd44e2`) passed all four gates in 25 s, and was the **only** run the branch produced — no Deploy, no Pages deployment, production bytes unchanged. Merge `44f928e`, Deploy `32812259354` success (build 31 s, deploy job **executed** 10 s); production re-verified on nine routes. PR CI **NOT OBSERVED — OWNER ACTION**. See §1S. |
 | **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
 | **M15 status** | **Complete — merged in M16.** Branch `m15-cybersecurity` (`2aac8e7`). Nothing fabricated: the world publishes the evidence boundary, not a portfolio. Audit extended (§8c/§8d), negative-tested 35/35. See §1Q. |
 | **M14 status** | **COMPLETE.** HTTPS enforcement **verified** (301 → HTTPS site-wide, valid cert). `github-data.yml` retargeted to `main` (`7ce6e11`), deployed via run `32735886304`, production republished 14:00:30Z and byte-compared against `dist`. `github-data` has **still never executed** — next scheduled 18:00Z. See §1P. |
-| **Last updated** | 2026-08-25 |
+| **Last updated** | 2026-08-26 |
 | **Working branch** | `main` — production, deploys on push. `m18-snapshot-deploy` merged via **PR #1** (`093215d`) and retained; rollback of the snapshot-dispatch change is `git revert -m 1 093215d`. `m17-ci-hardening` merged (`--no-ff`, `44f928e`) and retained; rollback of the CI trigger change is `git revert -m 1 44f928e`. `m15-cybersecurity` merged (`--no-ff`, `4caff65`) and retained. Rollback of the Cybersecurity world is `git revert -m 1 4caff65`; of the V2 cutover, `git revert -m 1 927477a`. |
 
 ---
@@ -7285,6 +7285,148 @@ M19 is the final engineering milestone. The pipeline is verified end to end
 either external (`OpenWeatherMap`), unavailable (`Safari`), or a formal
 sign-off nobody has asked for (screen reader, Lighthouse). None of them is a
 reason to keep the project open.
+
+### 1U.20 Post-release re-verification — 2026-08-26, OBSERVED
+
+M19 was already complete and released when this session began. Rather than
+re-run the milestone blind, every claim in §1U was re-tested against the actual
+repository and the live site. **No defect was found and no file was changed.**
+Two entries in the record are corrected below on stronger evidence, and one new
+piece of automation evidence is added.
+
+**Starting state, recorded before anything was touched.** Local `main` was at
+`8157ab5` and reported clean — but `origin/main` had moved to **`93bb72f`**,
+three commits ahead. All three are `github-actions[bot]` snapshot commits, and
+`git diff --stat 8157ab5..93bb72f` touches **exactly one file**,
+`src/data/github.snapshot.json` (+15 −15). No workflow, no source, no
+assertion, no manifest. The local clone was fast-forwarded; no merge commit, no
+force, no rewrite.
+
+**The M18 automation has run unattended three more times since the release.**
+This is the first evidence of the chain sustaining itself without a milestone
+watching it:
+
+| `github-data` run | Event | Bot commit | Deploy run | Event | Result |
+|---|---|---|---|---|---|
+| — | — | `3acd611` | **32886075328** | `workflow_dispatch` | success, 2026-08-25T18:50:09Z |
+| **32920386183** | `schedule` | `e946b54` | **32920410863** | `workflow_dispatch` | success, 2026-08-26T01:49:29Z |
+| **32940698897** | `schedule` | `93bb72f` | **32940731422** | `workflow_dispatch` | success, 2026-08-26T07:01:11Z |
+
+Production's live `Last-Modified` is **Wed, 26 Aug 2026 07:02:10 GMT**, from
+Deploy run 32940731422 on `93bb72f`. The archive now holds **11** repositories,
+where the M19 release artifact held 10.
+
+**Gates re-run on `93bb72f`** — every one, none inherited from the release:
+
+| Gate | Result |
+|---|---|
+| `npm run verify` | **PASS** — 16 pages built, 17 audited |
+| `npm run test:github` | **PASS** — 18 assertions |
+| `npm run test:security` | **PASS** — 35 assertions |
+| `npm audit` | **PASS** — 0 vulnerabilities |
+| `git diff --check` | **PASS** |
+| `.github/`, `scripts/`, `src/lib/`, `docs/SECURITY.md`, `package.json`, `package-lock.json` vs `origin/main` | **byte-identical** — nothing weakened, no dependency moved |
+
+**Responsive, on the current production artifact** — 17 routes × 8 widths =
+**136 cells: 0 horizontal overflow, 0 console errors, `<h1>` = 1 in every cell,
+0 duplicate ids, 0 broken `aria-labelledby`, 0 heading-level jumps.** The 11th
+repository row did not reintroduce overflow at any width.
+
+**axe-core 4.13.0, 34 page-runs** — one violation, `landmark-unique` on
+`/lab/viewports/` only, unchanged from §1U.8. It was this time **proven** to be
+the harness artifact rather than argued: the top-level document of that page
+contains `main: 1, header: 0, nav: 0, footer: 0` and **seven `<iframe src="/">`**.
+The landmarks axe merges belong to seven separate documents. Nothing is
+duplicated in any document a browser exposes.
+
+**Reduced motion, three engines** — `reduce` → `matchMedia` true, **0 animation
+objects, 0 running, 0 infinite**, on all eight worlds, in Chromium 151,
+Firefox 153 and WebKit 26.5. Unchanged.
+
+**Security regression, over `dist/`** — source maps **0**; `.env`/`*.key`/
+`*.pem`/`*secret*` **0**; credential-shaped strings **0**; `api.github.com`
+**0**; network-capable JS (`fetch(`, `XMLHttpRequest`, `WebSocket`,
+`sendBeacon`, `EventSource`) **0**; inline event handlers **0**; CSP on
+**17 of 17** pages. The only external origins in any shipped page are `<a href>`
+destinations: `github.com`, `www.linkedin.com`, `overthewire.org`.
+
+**Production regression** — 20 of 20 routes **200**; HTTP → **301** to HTTPS;
+the five retired routes **404**; extensionless world routes **301** to the
+canonical trailing slash. Byte comparison against a local build made from the
+committed snapshot: **15 of 16 pages identical**, including all three M19 `/lab/`
+fixes, which are present in the served HTML. `/github/` differs by **exactly one
+line** — the printed fetch timestamp, `07:01 UTC` on production against
+`07:00 UTC` in the snapshot. Every repository row, count and proportion matches.
+That single line is the whole of the legitimate dynamic difference; §1U.11's
+`/projects/` difference is now **gone**, because the snapshot has caught up.
+
+**No floating Kali dragon exists** — re-confirmed. `grep -rniE "dragon|kali"`
+over the source tree excluding `docs/` returns **zero**, and over `dist/`
+**zero**. §1U.1 stands.
+
+#### Two corrections to the M19 record
+
+**1. The pointer island was verified with synthetic events; it is now verified
+with real ones.** §1U.6's `0 → 0.0489` came from
+`dispatchEvent(new PointerEvent(...))`. Re-tested with real driver input
+(`mouse.move`) in all three engines, parking the pointer at 25%, 50% and 80% of
+the wordmark and reading **all ten** glyphs at each stop:
+
+| Pointer parked | Glyph lifts |
+|---|---|
+| 25% | `[0, .0189, .0305, .002, 0, 0, 0, 0, 0, 0]` |
+| 50% | `[0, 0, 0, .0084, .0489, .0005, 0, 0, 0, 0]` |
+| 80% | `[0, 0, 0, 0, 0, .0027, .0271, .0465, .0132, .0002]` |
+| pointer leaves | all **0** |
+
+The peak tracks the pointer across the glyph array, never exceeds `LIFT_EM`
+(0.05), and resets to zero on `pointerleave` — the bounded, predictable
+behaviour §1U.6 claimed, now demonstrated through the real input path in
+Chromium, Firefox and WebKit alike. An intermediate probe appeared to show the
+island inert; that was **the probe's own sampling error** — it read the leftmost
+glyphs after parking the pointer at the right-hand edge, where their lift is
+correctly zero. Recorded because it was chased to the bottom rather than
+assumed.
+
+**2. Text-only zoom 200% clips ten boxes, not one — all intentional.** §1U.4
+named a single false positive. The full count across all routes is **ten**, in
+two classes, and neither is a defect:
+
+- `h1/p.wordmark__fallback.visually-hidden` — 1 on `/`, 2 on `/lab/wordmark/`.
+  Clipping is what `.visually-hidden` is for; they clip identically at 100%.
+- `div.vp__viewport` — 7 on `/lab/viewports/`. These are the device-preview
+  frames, deliberately `overflow: hidden` so a simulated 1080 px viewport can be
+  shown inside a 189 px frame. Clipping is the feature.
+
+**Horizontal overflow at text-only 200% remains `+0 px` on every route**, which
+is the actual responsive criterion, and browser zoom 200% is likewise clean.
+
+#### Two cross-browser findings investigated and dismissed
+
+- **WebKit reported `/work.html` with `h1 = 0`.** Correct behaviour, not a
+  defect: `/work.html` is a legacy stub whose body is a zero-delay
+  `<meta http-equiv="refresh">` plus a visible manual fallback link — the
+  standard accessible redirect pattern. It carries no `<h1>` because it has no
+  content of its own. In all three engines it lands on `/projects/` with exactly
+  one `<h1>` within 3 s. WebKit merely sampled the stub before the refresh
+  completed; Chromium's execution context was destroyed mid-probe by the same
+  navigation.
+- **The nav-click probe reported `/` → `/`.** A stale selector reading the URL
+  before navigation settled. Re-tested: a real click on the first nav link goes
+  `/` → `/about/` with exactly one `<h1>` in **all three engines**.
+
+`/lab/pretext/`'s two code blocks were re-confirmed keyboard-reachable
+(`pre → pre` as the first two tab stops, each with a focus ring), so the M19 fix
+holds on the live artifact.
+
+#### Result
+
+| | |
+|---|---|
+| Files changed this session | **none** |
+| Defects found | **none** |
+| HEAD | **`93bb72f`** — equal to `origin/main`, working tree clean |
+| Release decision | **unchanged — the M19 release stands, and is now re-verified on a later production artifact than the one it shipped** |
 
 ---
 
