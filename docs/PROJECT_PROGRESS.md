@@ -10,7 +10,7 @@
 | **Repository** | `ayushrijal83-ops/ayushrijal.com.np` |
 | **Production URL** | https://ayushrijal.com.np |
 | **Current milestone** | **M19 — Final QA, accessibility, cross-browser verification & release — PROJECT COMPLETE** |
-| **M19 status** | **COMPLETE — PRODUCTION RELEASE VERIFIED.** Final milestone. QA only: three defects found by M19's own verification and fixed, all in `/lab/` — total product diff **3 files, +11 −4**. Responsive **136 cells across 8 widths: 0 findings** after fix (5 before). **axe-core 4.13.0: 0 violations** on every route (2 rules before). Reduced motion verified by engine emulation — **0 animation objects at all** under `reduce`, in all three engines. Cross-browser **Chromium 151 / Firefox 153 / WebKit 26.5, 51 cells each, 0 findings**; **Safari itself NOT TESTED — no Apple hardware**. Security: 0 credentials, 0 source maps, 0 network-capable JS, 0 external loads, CSP on 17/17, `npm audit` clean. **No floating Kali dragon exists in this repository** — verified by grep over source and `dist`; the pointer-reactive wordmark was QA'd against the Phase 4 criteria instead. Released as **`f805bf1`**, Deploy run **32866678080**, Pages deployment **6086575774** success 15:36:03Z; production re-verified after deployment — 136 responsive cells clean, axe clean, the three fixed pages byte-identical to the artifact. **Re-verified 2026-08-26** against a later production artifact (11 repos, Deploy 32940731422): all gates green, 136 responsive cells / 0 findings, axe unchanged, pointer island re-proved with real input in all three engines, 0 defects, 0 files changed. See §1U and §1U.20. |
+| **M19 status** | **COMPLETE — PRODUCTION RELEASE VERIFIED.** Final milestone. QA only: three defects found by M19's own verification and fixed, all in `/lab/` — total product diff **3 files, +11 −4**. Responsive **136 cells across 8 widths: 0 findings** after fix (5 before). **axe-core 4.13.0: 0 violations** on every route (2 rules before). Reduced motion verified by engine emulation — **0 animation objects at all** under `reduce`, in all three engines. Cross-browser **Chromium 151 / Firefox 153 / WebKit 26.5, 51 cells each, 0 findings**; **Safari itself NOT TESTED — no Apple hardware**. Security: 0 credentials, 0 source maps, 0 network-capable JS, 0 external loads, CSP on 17/17, `npm audit` clean. **No floating Kali dragon exists in this repository** — verified by grep over source and `dist`; the pointer-reactive wordmark was QA'd against the Phase 4 criteria instead. Released as **`f805bf1`**, Deploy run **32866678080**, Pages deployment **6086575774** success 15:36:03Z; production re-verified after deployment — 136 responsive cells clean, axe clean, the three fixed pages byte-identical to the artifact. **Verification pass 2 (§1U.21)** re-ran everything against the deployed artifact: 136 responsive cells / 0 findings, 48 reduced-motion page-loads across Chromium+Firefox+WebKit (**0 animations under `reduce`**), 153 cross-browser cells, 34 axe runs (1 violation, an iframe artifact), production security scan clean — **0 source changes**, and one false claim in §1U.8 found and corrected (one markdown table lacks `<caption>`/`scope`; not a WCAG failure). **Re-verified 2026-08-26** against a later production artifact (11 repos, Deploy 32940731422): all gates green, 136 responsive cells / 0 findings, axe unchanged, pointer island re-proved with real input in all three engines, 0 defects, 0 files changed. See §1U and §1U.20. |
 | **M18 status** | **COMPLETE — SNAPSHOT-TO-PRODUCTION AUTOMATION VERIFIED.** The scheduled chain was observed end to end on 2026-08-25: `github-data` run **32850891668** (event `schedule`) → bot commit **`9d64237`** 13:01:53Z → Deploy run **32850928044** (event `workflow_dispatch`, `head_sha` = that commit exactly) → all four gates green in 29 s → `deploy-pages` executed → `github-pages` deployment **6083695789** success 13:03:22Z, live `Last-Modified` 13:02:42 GMT. Objective B also complete: PR **#1** produced the first `pull_request` CI run **32825354280**, four gates green, **zero** Deploy runs on the branch. See §1T.
 | **M17 status** | **COMPLETE — VERIFIED.** Feature branches now run CI automatically: run `32812105029` on `m17-ci-hardening` (`dcd44e2`) passed all four gates in 25 s, and was the **only** run the branch produced — no Deploy, no Pages deployment, production bytes unchanged. Merge `44f928e`, Deploy `32812259354` success (build 31 s, deploy job **executed** 10 s); production re-verified on nine routes. PR CI **NOT OBSERVED — OWNER ACTION**. See §1S. |
 | **M16 status** | **COMPLETE — verified over HTTPS.** Merge `4caff65`, Deploy run `32741152755` success in 60 s with `Test the security content audit` passing on a real runner. `/cybersecurity/` live at **20,059 B, byte-identical to the artifact**; §8c and §8d re-verified against the deployed HTML. See §1R. |
@@ -7064,6 +7064,8 @@ any document the browser actually exposes. It is recorded rather than silenced.
 | Screen reader | **NOT TESTED** — no NVDA/JAWS/VoiceOver pass was run |
 | Lighthouse | **NOT TESTED** — axe was the tool used |
 
+> **Corrected by §1U.21.8.** The "every table" half of the **Tables** row above is **wrong**: `/projects/jarvis-assistant/`'s markdown-generated table carries **no `<caption>`** and its two `<th>` carry **no `scope`**. Verified against the DOM of all 17 production routes — 9 tables, 1 without a caption, 2 unscoped `<th>`. It remains true that the table passes `th-has-data-cells` and that axe reports 0 violations on that page. The row is left unedited as the record as it stood; the corrected finding and its assessment are in §1U.21.8.
+
 **WCAG conformance is NOT CLAIMED.** What is claimed is exactly this: axe-core
 4.13.0 reports zero violations across those tags on every route at every width
 tested, with contrast and touch targets bounded as above.
@@ -7427,6 +7429,333 @@ holds on the live artifact.
 | Defects found | **none** |
 | HEAD | **`93bb72f`** — equal to `origin/main`, working tree clean |
 | Release decision | **unchanged — the M19 release stands, and is now re-verified on a later production artifact than the one it shipped** |
+
+### 1U.21 M19 verification pass 2 — re-run against the deployed artifact, 2026-08-26
+
+**1. Objective.** Close the remaining verification gaps named in the M19 brief:
+narrow viewports, *real* reduced-motion behaviour, Firefox, Safari/WebKit, a
+real accessibility audit, and production regression — all against the currently
+deployed artifact rather than against the one M19 shipped. §1U and §1U.20 are
+preserved unedited; this section records a second, independent pass and
+**corrects one false claim** in §1U.8.
+
+**2. Initial state.**
+
+| | |
+|---|---|
+| Branch | `main` |
+| HEAD | **`0dc5f42`** |
+| `origin/main` | `0dc5f42` — equal, 0 ahead / 0 behind |
+| Working tree | clean |
+| Workflows | `ci.yml`, `deploy.yml`, `github-data.yml` — unchanged |
+| Production | serving `0dc5f42`, Pages deployment **6100364291**, `Last-Modified` 2026-08-26 08:51:10 GMT |
+| Dependencies | `astro 7.2.4`; dev `@astrojs/check`, `@types/node`, `typescript` |
+
+**Routes were derived from the build, not hardcoded.** `find dist -name '*.html'`
+yields **17** routes; the test harness's list matches it exactly, so the list
+used by every probe below is current rather than inherited.
+
+**3. Baseline tests (Phase 1).** All green before any work:
+`verify` 16 pages built / 17 audited · `test:github` **18 assertions** ·
+`test:security` **35 assertions** · `npm audit` **0 vulnerabilities** ·
+`git diff --check` clean. No pre-existing failure, so nothing was attributed to
+M19 that M19 did not cause.
+
+**4. Viewport results — VERIFIED.** 17 routes × 8 widths (320, 375, 390, 430,
+768, 1024, 1280, 1920) = **136 cells**, measured in-browser rather than by
+screenshot: `documentElement.scrollWidth − innerWidth`, every element escaping
+the viewport box, `<h1>` count, duplicate ids, broken `aria-labelledby`,
+heading-level jumps, table markup, scroll ports, touch-target size and console
+errors.
+
+| Check | Result |
+|---|---|
+| Horizontal overflow | **0 cells of 136** |
+| Clipped / escaping elements | **none** |
+| `<h1>` = 1 | **all 136 cells** |
+| Duplicate ids · broken `aria-labelledby` · heading jumps | **none** |
+| Console errors | **0 site-wide** |
+| Skip link | present on all 13 site pages; **absent on the four `/lab/*` pages by design** — they are `bare` pages rendering no header and no nav, so there is nothing to skip |
+| Text-only zoom 200% (root 16 px → 32 px) | **overflow +0 px on every route** |
+| Browser zoom 200% (1280 @ 2× = 640 CSS px) | **no horizontal overflow on any route** |
+| Table scroll ports reachable | **VERIFIED** — `/lab/pretext/`'s two `pre.lab__code` are the first two tab stops, each with a focus ring; `ArrowRight` scrolls them |
+
+Ten boxes report clipping under text-only zoom, all intentional and all
+re-confirmed: the `.visually-hidden` wordmark fallbacks (1 on `/`, 2 on
+`/lab/wordmark/` — clipping is what that class is for) and the seven
+`div.vp__viewport` device frames on `/lab/viewports/`, which are `overflow:
+hidden` so a simulated 1080 px viewport fits in a 189 px frame. No defect, and
+none introduced by M19.
+
+**5. Reduced-motion results — VERIFIED, in three engines, by emulation.** Not a
+CSS inspection. Each engine's own reduced-motion emulation was switched on, the
+page was asked what `matchMedia('(prefers-reduced-motion: reduce)')` reports,
+`document.getAnimations()` was read after 1.8 s of settling time, and the
+geometry of the first 400 elements was sampled twice 700 ms apart to catch
+movement no animation object would explain. **8 worlds × 3 engines × 2
+preferences = 48 page-loads.**
+
+| Preference | Engine | `mq` | Animations | Running | Infinite & running | Pages that moved after settling | Content visible / `h1`=1 | Skip link focusable + ring | JS errors |
+|---|---|---|---|---|---|---|---|---|---|
+| `no-preference` | Chromium 151 | false | 15 | **0** | **0** | **0 of 8** | 8 of 8 | 8 of 8 | **0** |
+| `no-preference` | Firefox 153 | false | 15 | **0** | **0** | **0 of 8** | 8 of 8 | 8 of 8 | **0** |
+| `no-preference` | WebKit 26.5 | false | 15 | **0** | **0** | **0 of 8** | 8 of 8 | 8 of 8 | **0** |
+| **`reduce`** | Chromium 151 | true | **0** | **0** | **0** | **0 of 8** | 8 of 8 | 8 of 8 | **0** |
+| **`reduce`** | Firefox 153 | true | **0** | **0** | **0** | **0 of 8** | 8 of 8 | 8 of 8 | **0** |
+| **`reduce`** | WebKit 26.5 | true | **0** | **0** | **0** | **0 of 8** | 8 of 8 | 8 of 8 | **0** |
+
+Under `reduce` there is not a reduced animation to audit — **there is no
+animation object on the page at all**, on any world, in any engine. Nothing runs
+indefinitely, nothing moves after settling, `<main>` stays visible, every page
+still has exactly one `<h1>`, the skip link is still focusable and still paints
+a ring, and no JavaScript error occurs. Under `no-preference` the 15 animations
+are entrance choreography that **completes and stops** — 0 running, 0 infinite,
+0 geometry movement after settle. No reduced-motion override disables any
+essential function.
+
+The mechanism explains the result: stylesheets gate decorative motion behind
+`@media (prefers-reduced-motion: no-preference)` — motion opts *in* — and the
+two motion-bearing islands (`wordmark.ts`, `world-gate.ts`) return early on
+`prefersReducedMotion()`, re-read per call.
+
+**6. Firefox results — VERIFIED.** Firefox **153.0**, driven, against
+production. 17 routes × 3 widths (390, 768, 1280) = **51 cells**, checking HTTP
+status, horizontal overflow, `<h1>` count, `<main>` presence, console errors,
+page errors, failed requests and any cross-origin resource load.
+
+| Check | Result |
+|---|---|
+| 51 cells | **0 findings** |
+| Cross-origin resource loads | **0** |
+| Navigation by real click | `/` → `/about/`, exactly one `<h1>` |
+| First tab stop | **skip link**, with a visible focus indicator |
+| Skip link activation | focus moves to `#main` |
+| Reduced motion | 0 animations under `reduce`, 0 infinite under `no-preference` (8 worlds) |
+| Console / JS errors | **0** |
+
+Page categories covered: home, about, projects index and all three project
+records, contact, GitHub, cybersecurity, learning, AI Lab, the four `/lab/*`
+pages (including `/lab/pretext/`, which carries the scroll ports), `/404.html`
+and `/work.html`.
+
+**7. Safari/WebKit results — WebKit VERIFIED, Safari NOT TESTED.**
+
+**WebKit 26.5** was driven directly, same 51 cells, same checks.
+
+| Check | Result |
+|---|---|
+| 51 cells | **1 finding**, investigated and dismissed — see below |
+| Cross-origin resource loads | **0** |
+| Navigation by real click | `/` → `/about/`, exactly one `<h1>` |
+| Skip link | `.focus()` succeeds, visible (39 px tall, on screen), paints a ring, activation moves focus to `main` with `location.hash === '#main'` |
+| Reduced motion | 0 animations under `reduce` (8 worlds) |
+| Console / JS errors | **0** |
+
+The one finding was `/work.html @390 h1=0`. **Correct behaviour, not a defect:**
+`/work.html` is the legacy redirect stub — a zero-delay
+`<meta http-equiv="refresh" content="0; url=/projects">` plus a visible manual
+fallback link, which is the standard accessible redirect pattern. It carries no
+`<h1>` because it has no content of its own. In **all three engines** it lands
+on `/projects/` with exactly one `<h1>` within 3 s; WebKit merely sampled the
+stub before the refresh completed, and Chromium's execution context was
+destroyed mid-probe by the same navigation. The stub is intact at **1 640 B**.
+
+**One genuine engine difference, recorded as such.** Under WebKit a plain `Tab`
+leaves focus on `<body>` and reaches no link. This is WebKit's documented
+default — Safari's *"Press Tab to highlight each item"* is off by default, so
+sequential navigation visits form controls only, and no markup on the page can
+change it. Measured on the same page in the same run: the skip link **is**
+focusable, **is** visible when focused, **does** paint a ring, and **does** move
+focus to `main` when activated. Recorded as an engine preference, **not** as a
+defect and **not** as a pass.
+
+**Safari itself: NOT TESTED.** There is no Apple hardware and no Safari
+installation in this environment. WebKit 26.5 — the engine Safari is built on —
+was tested directly; that is the closest available evidence and is explicitly
+not the same claim. Edge is installed but is Chromium, so it adds no engine
+coverage and is not recorded as one.
+
+**8. Accessibility audit results — OBSERVED.** **axe-core 4.13.0**, tags
+`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`, `best-practice`, over
+**17 routes × 2 widths = 34 page-runs** against production. Median 42 passing
+rule-groups per run.
+
+**Automated accessibility audit: 1 violation detected, on 1 route, and it is a
+measurement artifact.**
+
+`landmark-unique` (moderate) on `/lab/viewports/` only. This was **proven**
+rather than argued: the top-level document of that page contains
+`main: 1, header: 0, nav: 0, footer: 0` and **seven `<iframe src="/">`**. axe
+traverses into same-origin iframes and merges seven copies of the site's
+header/nav with the harness page's own `<main>`. Landmarks inside an iframe are
+scoped to that iframe's document; nothing is duplicated in any document a
+browser or assistive technology actually exposes. Recorded rather than silenced.
+
+| Check | Result |
+|---|---|
+| Heading hierarchy | **VERIFIED** — no skipped level on any route |
+| Exactly one `<h1>` | **VERIFIED** — 1 in all 136 responsive cells |
+| Landmarks | **VERIFIED** — header/nav/main/footer on all eight worlds; `/404.html` has no footer by design; `/lab/*` are `bare` pages carrying `<main>` alone |
+| Duplicate ids | **VERIFIED — none** |
+| Broken `aria-labelledby` | **VERIFIED — none** |
+| Links / buttons / accessible names | **0 violations** across 34 runs |
+| Skip link | **VERIFIED** — first tab stop on every site page, visible ring, activation moves focus to `#main` |
+| Visible focus | **VERIFIED** — every tab stop sampled on `/`, `/github/`, `/cybersecurity/`, `/contact/` paints an outline or box-shadow; **zero** without an indicator |
+| Focus order | **VERIFIED** — follows DOM order: skip link → masthead → nav |
+| Keyboard navigation | **VERIFIED** — scroll ports reachable and operable (§1U.21.4) |
+| Tables | **1 discrepancy — see below** |
+| Contrast | **0 violations.** 2 189 nodes return **INCOMPLETE** — "background could not be determined due to a background gradient / pseudo element" — because every world is printed on a CSS-drawn ground. axe cannot adjudicate those and neither will this record. `verify-output.mjs` separately asserts all **7 world stocks clear WCAG AA** |
+| `th-has-data-cells` | 2 nodes **INCOMPLETE**, 0 violations |
+| Zoom / reflow | **VERIFIED** — §1U.21.4 |
+| Screen reader (NVDA / JAWS / VoiceOver) | **NOT TESTED** |
+| Lighthouse | **NOT TESTED** — axe was the tool used |
+
+**WCAG conformance is NOT CLAIMED.** What is claimed is precisely: *axe-core
+4.13.0 reports one violation across those tags over 34 page-runs, and that
+violation is an artifact of the harness page's own iframes.* Automated tooling
+does not prove conformance; the manual limitations above are part of the result.
+
+**A correction to §1U.8 — one table does not carry a caption or `scope`.**
+§1U.8 states "every table carries `<caption>`; every `<th>` carries `scope`."
+**That is wrong**, and this pass found it by querying the DOM of all 17
+production routes rather than trusting the earlier probe:
+
+| | |
+|---|---|
+| Tables on production | **9** |
+| Without `<caption>` | **1** — `/projects/jarvis-assistant/` |
+| `<th>` without `scope` | **2** — the same table's "Stage" and "Runs locally as" |
+
+The cause: that table is **generated from markdown** (`| Stage | Runs locally
+as |` in `src/content/projects/jarvis-assistant.md`). Astro's markdown renderer
+emits a bare `<table>` with no class, no `<caption>` and unscoped `<th>`. The
+other eight tables are hand-authored components and all carry both. How the
+false claim survived: `responsive.mjs` **collects** table markup into its JSON
+but never asserts on it, and **no assertion in `verify-output.mjs` covers table
+captions or `th[scope]` at all** — so nothing ever checked, and a probe's
+unexamined output was generalised into the record.
+
+**Assessed, and deliberately not "fixed":**
+
+- It is **not** a WCAG failure. The table is simple — two columns, one header
+  row — and browsers and assistive technology associate the headers
+  automatically. H51 (basic table markup) is satisfied; H63 (`scope`) is one
+  sufficient technique among several, not a requirement for simple tables.
+- **axe reports 0 violations** on that page, including `th-has-data-cells`.
+- It causes **no responsive defect**: measured at 320 / 375 / 768 / 1280, the
+  table is 280 px wide in a 320 px viewport, does not scroll, does not escape
+  the viewport, and the page overflow is 0 at every width.
+
+Per Phase 9 — *prefer zero source changes if the current implementation passes*
+— **no source change was made.** Adding a `<caption>` would put new visible text
+onto a published page to make an old sentence true, which is backwards; the
+sentence has been corrected instead. Whether to bring that one markdown table
+into line with the site's convention is recorded below as an owner decision, not
+taken unilaterally in a verification milestone.
+
+**9. Production results — VERIFIED, over HTTPS, against the live site.**
+
+| Check | Result |
+|---|---|
+| 17 live routes (derived from `dist/`) | **200 on all 17** |
+| `robots.txt`, `sitemap.xml`, `CNAME` | **200** |
+| `/404.html` | **200** |
+| HTTP → HTTPS | **301** to `https://ayushrijal.com.np/` |
+| Extensionless world routes | `/about`, `/projects`, `/ai-lab`, `/cybersecurity`, `/learning`, `/github`, `/contact` → **301 → `/…/` → 200**. No stub shadows a live route |
+| Retired routes | `/blog.html`, `/journey.html`, `/about.html`, `/contact.html`, `/assets/resume.pdf` → **404**, each a documented decision in `src/lib/legacy.ts` |
+| `/work.html` | **200**, **1 640 B**, meta-refresh stub intact, `content="0; url=/projects"` |
+| Internal link crawl | **0 broken**; every non-200 is a GitHub Pages 301 to the canonical trailing slash, each resolving 200 |
+| Console errors on production | **0 across 136 cells** |
+| Unexpected external requests | **0 across 153 cross-browser page loads** |
+
+**10. Security regression — VERIFIED, against production HTML, not only `dist/`.**
+All 17 pages were downloaded from the live site and scanned.
+
+| Check | Result |
+|---|---|
+| Mixed content (`http://` resource refs) | **0** |
+| Third-party resource origins | **0** — the only absolute URLs are `<a href>` destinations: `github.com`, `www.linkedin.com`, `overthewire.org` |
+| Inline `<script>` with a body | **0** — all **14** script tags on the site carry `src=`, and all four distinct sources are relative `/_astro/…` paths |
+| Inline event handlers | **0** |
+| Source maps referenced | **0**; `/_astro/index.js.map` → **404** |
+| `.env` exposure | `/.env` → **404**; `/src/data/github.generated.json` → **404** |
+| Credential-shaped strings (`gh[pousr]_…`, `AKIA…`, `sk-…`, `BEGIN … PRIVATE KEY`, `Bearer …`) | **0** |
+| `api.github.com` in any shipped page | **0** — the integration is build-time only |
+| Network-capable JS (`fetch(`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`, `EventSource`) | **0 occurrences** |
+| CSP present | **17 of 17 pages**, both variants unchanged: `script-src 'self'` + `connect-src 'self'` site-wide, and the stricter `script-src 'none'` on the legacy stub |
+| `npm audit` | **0 vulnerabilities** |
+| Existing assertions | **unchanged** — 18 and 35, identical to Phase 1 |
+| `scripts/`, `src/lib/`, `.github/`, `docs/SECURITY.md`, `package.json`, `package-lock.json` vs `origin/main` | **byte-identical** |
+
+`localhost:11434` appears on `/ai-lab/` and `/learning/`. Confirmed **prose**,
+not an endpoint: it sits inside `<span class="pipeline__detail">` and inside a
+sentence describing the author's own local Ollama setup. With **0**
+network-capable JS in the bundle and `connect-src 'self'` in force, it is not
+reachable as one.
+
+**11. Files changed.** `docs/PROJECT_PROGRESS.md` only — this section. **No
+source, style, script, component, layout, workflow or test file was changed.**
+
+**12. Dependencies changed.** **None.** `package.json` and `package-lock.json`
+are byte-identical to `origin/main`. Playwright 1.62.1 (Chromium 151.0.7922.34,
+Firefox 153.0, WebKit 26.5) and axe-core 4.13.0 run from a scratchpad directory
+**outside the repository** — absent from the tree, both manifests and the diff.
+
+**13. Tests.** `verify` 16 pages built / 17 audited · `test:github` **18/18** ·
+`test:security` **35/35** · `npm audit` **0** · `git diff --check` clean.
+Identical to Phase 1; **no assertion was weakened, removed or made inert**, and
+none was added.
+
+**14. Browser coverage.**
+
+| Engine | Build | Coverage | Status |
+|---|---|---|---|
+| Chromium | 151.0.7922.34 | 136 responsive cells, 34 axe runs, 51 cross-browser cells, motion × 8 worlds × 2 prefs | **VERIFIED** |
+| Firefox | 153.0 | 51 cross-browser cells, motion × 8 worlds × 2 prefs, nav/focus | **VERIFIED** |
+| WebKit | 26.5 | 51 cross-browser cells, motion × 8 worlds × 2 prefs, nav/focus | **VERIFIED** |
+| **Safari** | — | — | **NOT TESTED — NOT AVAILABLE** |
+| Edge | installed | Chromium engine, adds no coverage | not recorded |
+
+**15. Known limitations.**
+
+- Safari proper is untested; WebKit 26.5 is the closest available evidence.
+- No screen-reader pass (NVDA / JAWS / VoiceOver) was run.
+- No Lighthouse run; axe was the tool used.
+- Contrast is partly **INCOMPLETE** under axe (2 189 nodes) because every world
+  is printed on a CSS-drawn ground; `verify-output.mjs` asserts the 7 world
+  stocks clear WCAG AA separately.
+- WCAG 2.5.8 touch targets remain **measured, not adjudicated** (§1U.8).
+- Automated auditing does not prove WCAG conformance, and none is claimed.
+
+**16. Owner actions.**
+
+| Item | Status |
+|---|---|
+| **OpenWeatherMap credential** in `Agriculture_simulator` | **OPEN — EXTERNAL.** Unchanged since M14, outside this repository, not a site defect |
+| Safari on Apple hardware | **NOT TESTED — NOT AVAILABLE** |
+| Screen-reader pass | **OWNER ACTION** if a formal a11y sign-off is ever wanted |
+| `/projects/jarvis-assistant/` markdown table | **OWNER DECISION.** Not a WCAG failure and not a responsive defect. Bring it into line with the site's caption + `scope` convention, or accept markdown's default output. Deliberately not changed here |
+
+**17. Remaining risks.** Low. No release-blocking defect is known. The residual
+risks are the untested surfaces above — Safari proper and screen readers — plus
+the contrast nodes axe cannot adjudicate. None is a regression and none is new.
+
+**18. Final M19 status: COMPLETE WITH LIMITATIONS.** Every scoped verification
+gap is closed with real, reproducible evidence: 136 responsive cells, 48
+reduced-motion page-loads across three engines, 153 cross-browser cells, 34 axe
+runs, and a production security scan over live HTML. The limitations are stated
+rather than papered over — Safari NOT TESTED, screen reader NOT TESTED, WCAG
+conformance NOT CLAIMED — and one false claim in the previous M19 record was
+found and corrected. Zero source changes, zero dependency changes, zero
+assertions weakened.
+
+**19. Recommended next milestone: none. Do not open M20.** The pipeline is
+verified end to end (M18), the product is verified end to end (M19, twice, in
+three engines). Everything still open is external (the OpenWeatherMap key),
+unavailable in this environment (Safari), or a formal sign-off nobody has
+requested (screen reader, Lighthouse) — plus one cosmetic owner decision about a
+markdown table. None of these is a reason to keep the project open, and none is
+work a milestone would do better than the owner doing it directly.
 
 ---
 
