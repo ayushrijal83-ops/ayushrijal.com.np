@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T11:28:58.215Z",
+  "generatedAt": "2026-09-17T16:47:57.514Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-09-17T11:29:14Z",
+      "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "AI-lm",
       "description": null,
@@ -12,19 +25,6 @@
       "forks": 0,
       "pushedAt": "2026-09-17T08:23:02Z",
       "createdAt": "2026-09-14T14:49:59Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-09-17T04:40:06Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
