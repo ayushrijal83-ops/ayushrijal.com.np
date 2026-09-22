@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-22T04:35:26.446Z",
+  "generatedAt": "2026-09-22T11:24:06.728Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "AI-lm",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/AI-lm",
+      "language": "Jupyter Notebook",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-09-22T06:29:58Z",
+      "createdAt": "2026-09-14T14:49:59Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "ayushrijal.com.np",
       "description": null,
@@ -10,7 +23,7 @@
       "language": "CSS",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-09-21T21:55:36Z",
+      "pushedAt": "2026-09-22T04:35:41Z",
       "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
@@ -25,19 +38,6 @@
       "forks": 0,
       "pushedAt": "2026-09-20T03:41:33Z",
       "createdAt": "2026-09-18T03:57:12Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "AI-lm",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/AI-lm",
-      "language": "Python",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-09-17T08:23:02Z",
-      "createdAt": "2026-09-14T14:49:59Z",
       "topics": [],
       "archived": false,
       "fork": false
