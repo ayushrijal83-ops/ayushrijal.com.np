@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T12:38:18.223Z",
+  "generatedAt": "2026-09-29T22:08:56.823Z",
   "login": "ayushrijal83-ops",
   "repos": [
     {
@@ -10,8 +10,21 @@
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-09-29T08:53:37Z",
+      "pushedAt": "2026-09-29T17:02:08Z",
       "createdAt": "2026-08-20T16:12:09Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-09-29T12:38:33Z",
+      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
@@ -25,19 +38,6 @@
       "forks": 0,
       "pushedAt": "2026-09-29T05:38:03Z",
       "createdAt": "2026-09-24T14:20:34Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-09-29T05:30:42Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
