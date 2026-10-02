@@ -1,17 +1,30 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-02T12:20:57.328Z",
+  "generatedAt": "2026-10-02T22:04:57.410Z",
   "login": "ayushrijal83-ops",
   "repos": [
     {
       "name": "video_scliser",
       "description": "a long video into short for free",
       "url": "https://github.com/ayushrijal83-ops/video_scliser",
-      "language": null,
+      "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-10-02T12:08:27Z",
+      "pushedAt": "2026-10-02T13:59:07Z",
       "createdAt": "2026-10-02T05:03:33Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-10-02T12:21:10Z",
+      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
@@ -51,19 +64,6 @@
       "forks": 0,
       "pushedAt": "2026-10-02T09:43:28Z",
       "createdAt": "2026-08-21T04:14:54Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-10-02T05:21:00Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
