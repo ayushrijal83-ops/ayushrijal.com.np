@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-04T05:36:27.091Z",
+  "generatedAt": "2026-10-04T12:11:52.213Z",
   "login": "ayushrijal83-ops",
   "repos": [
     {
-      "name": "QuickJunction",
-      "description": "complete hotel management software",
-      "url": "https://github.com/ayushrijal83-ops/QuickJunction",
+      "name": "x-man",
+      "description": "X-MAN Team - HackForge Hackathon Project",
+      "url": "https://github.com/ayushrijal83-ops/x-man",
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-10-04T02:27:24Z",
-      "createdAt": "2026-08-20T16:12:09Z",
+      "pushedAt": "2026-10-04T10:48:43Z",
+      "createdAt": "2026-08-21T04:14:54Z",
       "topics": [],
       "archived": false,
       "fork": false
@@ -23,8 +23,21 @@
       "language": "CSS",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-10-03T20:57:05Z",
+      "pushedAt": "2026-10-04T05:36:36Z",
       "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "QuickJunction",
+      "description": "complete hotel management software",
+      "url": "https://github.com/ayushrijal83-ops/QuickJunction",
+      "language": "Python",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-10-04T02:27:24Z",
+      "createdAt": "2026-08-20T16:12:09Z",
       "topics": [],
       "archived": false,
       "fork": false
@@ -64,19 +77,6 @@
       "forks": 0,
       "pushedAt": "2026-10-02T10:51:02Z",
       "createdAt": "2026-09-14T14:49:59Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "x-man",
-      "description": "X-MAN Team - HackForge Hackathon Project",
-      "url": "https://github.com/ayushrijal83-ops/x-man",
-      "language": "Python",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-10-02T09:43:28Z",
-      "createdAt": "2026-08-21T04:14:54Z",
       "topics": [],
       "archived": false,
       "fork": false
