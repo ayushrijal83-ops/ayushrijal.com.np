@@ -1,21 +1,8 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-04T21:12:28.209Z",
+  "generatedAt": "2026-10-05T05:19:57.041Z",
   "login": "ayushrijal83-ops",
   "repos": [
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-10-04T12:12:02Z",
-      "createdAt": "2026-08-08T05:53:15Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
     {
       "name": "x-man",
       "description": "X-MAN Team - HackForge Hackathon Project",
@@ -23,8 +10,21 @@
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-10-04T10:48:43Z",
+      "pushedAt": "2026-10-05T03:56:44Z",
       "createdAt": "2026-08-21T04:14:54Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-10-04T21:12:43Z",
+      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
