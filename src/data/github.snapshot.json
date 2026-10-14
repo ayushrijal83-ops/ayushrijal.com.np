@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T11:38:27.910Z",
+  "generatedAt": "2026-10-14T17:00:16.829Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "Soc_bot",
+      "description": "An automation bot to post videos on social media.",
+      "url": "https://github.com/ayushrijal83-ops/Soc_bot",
+      "language": "Python",
+      "stars": 1,
+      "forks": 0,
+      "pushedAt": "2026-10-14T13:48:00Z",
+      "createdAt": "2026-09-24T14:20:34Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "ayushrijal.com.np",
       "description": null,
@@ -10,7 +23,7 @@
       "language": "CSS",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-10-14T04:38:07Z",
+      "pushedAt": "2026-10-14T11:38:43Z",
       "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
@@ -25,19 +38,6 @@
       "forks": 0,
       "pushedAt": "2026-10-11T11:09:13Z",
       "createdAt": "2026-10-02T05:03:33Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "Soc_bot",
-      "description": "An automation bot to post videos on social media.",
-      "url": "https://github.com/ayushrijal83-ops/Soc_bot",
-      "language": "Python",
-      "stars": 1,
-      "forks": 0,
-      "pushedAt": "2026-10-11T10:47:26Z",
-      "createdAt": "2026-09-24T14:20:34Z",
       "topics": [],
       "archived": false,
       "fork": false
