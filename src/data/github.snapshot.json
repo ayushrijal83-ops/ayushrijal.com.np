@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-28T12:37:24.151Z",
+  "generatedAt": "2026-10-28T22:27:56.311Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-10-28T12:37:42Z",
+      "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "video_scliser",
       "description": "a long video into short for free",
@@ -12,19 +25,6 @@
       "forks": 0,
       "pushedAt": "2026-10-28T07:22:24Z",
       "createdAt": "2026-10-02T05:03:33Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-10-28T05:20:25Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
