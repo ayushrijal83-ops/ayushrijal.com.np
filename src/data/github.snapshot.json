@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-01T05:45:21.697Z",
+  "generatedAt": "2026-11-01T13:07:24.693Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-11-01T05:45:37Z",
+      "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "QuickJunction",
       "description": "complete hotel management software",
@@ -12,19 +25,6 @@
       "forks": 0,
       "pushedAt": "2026-11-01T03:53:10Z",
       "createdAt": "2026-08-20T16:12:09Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-10-31T21:22:02Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
