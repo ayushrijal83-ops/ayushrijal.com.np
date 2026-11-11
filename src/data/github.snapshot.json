@@ -1,21 +1,8 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-11T05:51:43.053Z",
+  "generatedAt": "2026-11-11T13:58:54.784Z",
   "login": "ayushrijal83-ops",
   "repos": [
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-11-10T23:07:41Z",
-      "createdAt": "2026-08-08T05:53:15Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
     {
       "name": "QuickJunction",
       "description": "complete hotel management software",
@@ -23,8 +10,21 @@
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-11-08T14:16:41Z",
+      "pushedAt": "2026-11-11T10:21:50Z",
       "createdAt": "2026-08-20T16:12:09Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-11-11T05:51:55Z",
+      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
@@ -152,19 +152,6 @@
       "forks": 0,
       "pushedAt": "2026-08-09T07:34:18Z",
       "createdAt": "2026-08-09T07:22:35Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal83-ops",
-      "description": "Building the future of AI-powered cybersecurity through innovative software, hands-on learning, and open-source technology.",
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal83-ops",
-      "language": null,
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-08-06T08:33:40Z",
-      "createdAt": "2026-07-24T08:49:42Z",
       "topics": [],
       "archived": false,
       "fork": false
