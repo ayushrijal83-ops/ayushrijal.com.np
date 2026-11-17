@@ -1,21 +1,8 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T07:40:53.164Z",
+  "generatedAt": "2026-11-17T20:44:50.329Z",
   "login": "ayushrijal83-ops",
   "repos": [
-    {
-      "name": "yusha-corporate",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/yusha-corporate",
-      "language": null,
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-11-17T05:07:04Z",
-      "createdAt": "2026-11-17T05:07:03Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
     {
       "name": "QuickJunction",
       "description": "complete hotel management software",
@@ -23,7 +10,7 @@
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-11-17T03:36:28Z",
+      "pushedAt": "2026-11-17T09:03:50Z",
       "createdAt": "2026-08-20T16:12:09Z",
       "topics": [],
       "archived": false,
@@ -36,8 +23,21 @@
       "language": "CSS",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-11-16T21:54:31Z",
+      "pushedAt": "2026-11-17T07:41:06Z",
       "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
+    {
+      "name": "yusha-corporate",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/yusha-corporate",
+      "language": null,
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-11-17T05:07:04Z",
+      "createdAt": "2026-11-17T05:07:03Z",
       "topics": [],
       "archived": false,
       "fork": false
