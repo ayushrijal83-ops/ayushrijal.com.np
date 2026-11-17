@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T21:54:18.777Z",
+  "generatedAt": "2026-11-17T07:40:53.164Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "yusha-corporate",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/yusha-corporate",
+      "language": null,
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-11-17T05:07:04Z",
+      "createdAt": "2026-11-17T05:07:03Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "QuickJunction",
       "description": "complete hotel management software",
@@ -10,7 +23,7 @@
       "language": "Python",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-11-16T11:59:11Z",
+      "pushedAt": "2026-11-17T03:36:28Z",
       "createdAt": "2026-08-20T16:12:09Z",
       "topics": [],
       "archived": false,
@@ -23,7 +36,7 @@
       "language": "CSS",
       "stars": 0,
       "forks": 0,
-      "pushedAt": "2026-11-16T06:04:15Z",
+      "pushedAt": "2026-11-16T21:54:31Z",
       "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
