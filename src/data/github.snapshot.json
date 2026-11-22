@@ -1,8 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T19:01:48.115Z",
+  "generatedAt": "2026-11-22T06:24:08.862Z",
   "login": "ayushrijal83-ops",
   "repos": [
+    {
+      "name": "ayushrijal.com.np",
+      "description": null,
+      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
+      "language": "CSS",
+      "stars": 0,
+      "forks": 0,
+      "pushedAt": "2026-11-21T19:02:02Z",
+      "createdAt": "2026-08-08T05:53:15Z",
+      "topics": [],
+      "archived": false,
+      "fork": false
+    },
     {
       "name": "aiML-rust",
       "description": "all about my ai ml journey with rust(something new)",
@@ -12,19 +25,6 @@
       "forks": 0,
       "pushedAt": "2026-11-21T12:24:25Z",
       "createdAt": "2026-11-21T11:58:25Z",
-      "topics": [],
-      "archived": false,
-      "fork": false
-    },
-    {
-      "name": "ayushrijal.com.np",
-      "description": null,
-      "url": "https://github.com/ayushrijal83-ops/ayushrijal.com.np",
-      "language": "CSS",
-      "stars": 0,
-      "forks": 0,
-      "pushedAt": "2026-11-21T06:51:22Z",
-      "createdAt": "2026-08-08T05:53:15Z",
       "topics": [],
       "archived": false,
       "fork": false
